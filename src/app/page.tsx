@@ -5,7 +5,7 @@ export default function HomePage() {
     <main className="page">
       <section className="hero">
         <span className="badge">Fase 1 · estrutura inicial</span>
-        <h1>Screen Share</h1>
+        <h1>Discord 2</h1>
         <p className="lead">
           Um sistema privado de compartilhamento de tela. Uma pessoa transmite a
           tela do computador, com o áudio, e os amigos convidados assistem em

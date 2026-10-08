@@ -1,4 +1,4 @@
-# Screen Share
+# Discord 2
 
 Sistema **privado** de compartilhamento de tela (com áudio) para um grupo pequeno
 de amigos: uma pessoa transmite, as outras assistem.

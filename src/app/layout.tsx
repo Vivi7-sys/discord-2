@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Screen Share · compartilhamento de tela privado",
+  title: "Discord 2 · compartilhamento de tela privado",
   description:
     "Sistema privado de compartilhamento de tela, com áudio, para um grupo pequeno de amigos.",
 };

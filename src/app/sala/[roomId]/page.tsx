@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import RoomScreen from "@/components/room/RoomScreen";
 
 export const metadata: Metadata = {
-  title: "Sala · Screen Share",
+  title: "Sala · Discord 2",
 };
 
 type SalaPageProps = {
