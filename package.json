@@ -13,6 +13,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "livekit-client": "^2.22.3",
+    "livekit-server-sdk": "^2.19.1",
     "next": "^16.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

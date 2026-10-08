@@ -262,6 +262,26 @@ code {
   background: var(--warn);
 }
 
+.status-connected .status-dot {
+  background: #22c55e;
+}
+
+.status-error .status-dot {
+  background: #ef4444;
+}
+
+.connection-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+}
+
 .room-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;

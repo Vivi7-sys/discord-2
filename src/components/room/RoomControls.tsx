@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 // Barra de botões da sala.
-// A captura continua desativada. "Sair" apenas volta à página inicial.
+// A captura continua desativada. "Voltar" desmonta a sala e encerra a conexão.
 export default function RoomControls() {
   return (
     <section className="controls" aria-label="Controles da sala">
@@ -17,7 +17,7 @@ export default function RoomControls() {
         Voltar ao início
       </Link>
       <p className="controls-note">
-        A transmissão continua indisponível: ainda não existe conexão real.
+        A conexão é apenas para presença. Compartilhar tela fica para a Fase 4.
       </p>
     </section>
   );
