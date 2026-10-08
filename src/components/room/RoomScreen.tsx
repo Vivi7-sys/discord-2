@@ -2,6 +2,7 @@ import Link from "next/link";
 import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
 import StreamArea from "./StreamArea";
+import RoomInvite from "./RoomInvite";
 
 type RoomScreenProps = {
   roomId: string;
@@ -9,7 +10,7 @@ type RoomScreenProps = {
 
 // Monta a tela da sala juntando as três peças: área do vídeo, lista de
 // participantes e barra de controles.
-// Fase 1: só visual. Nenhuma conexão real acontece aqui.
+// Fase 2: cada URL identifica uma sala visual, ainda sem conexão real.
 export default function RoomScreen({ roomId }: RoomScreenProps) {
   return (
     <main className="room">
@@ -24,7 +25,7 @@ export default function RoomScreen({ roomId }: RoomScreenProps) {
         </div>
         <span className="status">
           <span className="status-dot" aria-hidden="true" />
-          Desconectado · visual de exemplo
+          Sem conexão · Fase 2
         </span>
       </header>
 
@@ -33,6 +34,7 @@ export default function RoomScreen({ roomId }: RoomScreenProps) {
         <ParticipantList />
       </div>
 
+      <RoomInvite roomId={roomId} />
       <RoomControls />
     </main>
   );

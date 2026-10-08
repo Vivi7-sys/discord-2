@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { isValidRoomId } from "@/lib/room/room-id";
 import { Suspense } from "react";
 import RoomScreen from "@/components/room/RoomScreen";
 
@@ -25,7 +27,9 @@ function safeDecode(value: string): string {
 // Sem Cache Components o <Suspense> é inofensivo, então o código serve nos dois casos.
 async function RoomContent({ params }: SalaPageProps) {
   const { roomId } = await params;
-  return <RoomScreen roomId={safeDecode(roomId)} />;
+  const id = safeDecode(roomId);
+  if (!isValidRoomId(id)) notFound();
+  return <RoomScreen roomId={id} />;
 }
 
 export default function SalaPage({ params }: SalaPageProps) {

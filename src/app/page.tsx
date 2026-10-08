@@ -1,10 +1,11 @@
 import Link from "next/link";
+import RoomEntry from "@/components/home/RoomEntry";
 
 export default function HomePage() {
   return (
     <main className="page">
       <section className="hero">
-        <span className="badge">Fase 1 · estrutura inicial</span>
+        <span className="badge">Fase 2 · estrutura de salas</span>
         <h1>Discord 2</h1>
         <p className="lead">
           Um sistema privado de compartilhamento de tela. Uma pessoa transmite a
@@ -38,10 +39,12 @@ export default function HomePage() {
       </section>
 
       <p className="notice">
-        <strong>Ainda em construção.</strong> Esta é só a estrutura inicial: não
-        existe conexão real, login nem compartilhamento de tela. As páginas
-        abaixo são apenas visuais.
+        <strong>Ainda em construção.</strong> Agora é possível abrir salas por ID ou link, mas
+        ainda não existe conexão real, login nem compartilhamento de tela.
+        Ter um link não significa que a sala seja protegida por senha.
       </p>
+
+      <RoomEntry />
 
       <div className="actions">
         <Link href="/sala/exemplo" className="btn btn-primary">

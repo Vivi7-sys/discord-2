@@ -1,5 +1,7 @@
+import Link from "next/link";
+
 // Barra de botões da sala.
-// Fase 1: todos desativados. Na Fase 4 o botão "Compartilhar tela" será ligado.
+// A captura continua desativada. "Sair" apenas volta à página inicial.
 export default function RoomControls() {
   return (
     <section className="controls" aria-label="Controles da sala">
@@ -11,16 +13,11 @@ export default function RoomControls() {
       >
         Compartilhar tela
       </button>
-      <button
-        type="button"
-        className="btn btn-secondary"
-        disabled
-        title="Disponível em uma fase futura"
-      >
-        Sair da sala
-      </button>
+      <Link href="/" className="btn btn-secondary">
+        Voltar ao início
+      </Link>
       <p className="controls-note">
-        Botões desativados: nesta fase ainda não há conexão nem captura de tela.
+        A transmissão continua indisponível: ainda não existe conexão real.
       </p>
     </section>
   );

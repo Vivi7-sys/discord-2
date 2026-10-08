@@ -3,15 +3,15 @@
 Sistema **privado** de compartilhamento de tela (com áudio) para um grupo pequeno
 de amigos: uma pessoa transmite, as outras assistem.
 
-> **Estado atual: Fase 1 — estrutura inicial.**
-> Só existe a base do projeto e telas visuais. Ainda não há LiveKit, WebRTC,
+> **Estado atual: Fase 2 — IDs e navegação de salas.**
+> Já existe criação e entrada em salas por URL, mas ainda não há LiveKit, WebRTC,
 > compartilhamento de tela, login, limite de participantes nem gravação.
 
 ## Tecnologias
 
 - Next.js (App Router) + React + TypeScript
 - CSS comum (sem Tailwind)
-- LiveKit Cloud (a partir da Fase 2)
+- LiveKit Cloud (planejado para a Fase 3)
 - Sem banco de dados no MVP
 
 ## Requisitos
@@ -30,7 +30,8 @@ npm run dev     # inicia o servidor de desenvolvimento
 Depois abra no navegador:
 
 - Página inicial: <http://localhost:3000>
-- Sala de exemplo (só visual): <http://localhost:3000/sala/exemplo>
+- Criar/entrar em sala: <http://localhost:3000>
+- Sala de exemplo: <http://localhost:3000/sala/exemplo>
 - Teste do backend: <http://localhost:3000/api/health>
 
 ### Testar o backend (`/api/health`)
@@ -70,13 +71,15 @@ screen-share/
     │   ├── globals.css               tema escuro
     │   ├── sala/[roomId]/page.tsx    página de sala (só visual)
     │   └── api/health/route.ts       rota de teste do backend
+    ├── components/home/RoomEntry.tsx criação e entrada por link
     ├── components/room/              peças visuais da sala
     │   ├── RoomScreen.tsx
+    │   ├── RoomInvite.tsx
     │   ├── StreamArea.tsx
     │   ├── ParticipantList.tsx
     │   └── RoomControls.tsx
     └── lib/
-        ├── room/                     (futuro) funções de sala
+        ├── room/room-id.ts           geração e validação de IDs
         └── capture/                  (futuro) captura de tela e áudio
 ```
 
@@ -89,14 +92,25 @@ cp .env.example .env.local
 ```
 
 O arquivo `.env.local` está no `.gitignore` e nunca deve ir para o Git.
-Estas variáveis só passam a ser usadas na Fase 2.
+Estas variáveis só passam a ser usadas na Fase 3.
 
 ## Ainda NÃO implementado
 
 - LiveKit, WebRTC e conexão em tempo real
-- Criação de sala e geração de ID (a sala de exemplo aceita qualquer texto na URL)
+- Sala real com conexão, presença e permissões (por enquanto só IDs e URLs)
 - Compartilhamento de tela e de áudio
 - Limite de 6 participantes
 - Login e senha
 - Gravação
 - Banco de dados
+
+## Fase 2: o que significa "criar uma sala"?
+
+O navegador gera um ID usando `crypto.randomUUID()` e abre `/sala/<id>`.
+Entrar com um ID ou um link deste mesmo site abre essa mesma página.
+O botão **Copiar link** copia o endereço da sala.
+
+Não existe ainda uma sala ativa no servidor. Duas pessoas no mesmo endereço
+não se enxergam e não têm transmissão. O link só funcionará em outro dispositivo
+quando ambos conseguirem acessar o mesmo servidor do Discord 2.
+O link **não é controle de acesso**: não compartilhe dados sensíveis.

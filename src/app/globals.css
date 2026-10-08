@@ -169,6 +169,43 @@ code {
 }
 
 /* --------------------------------------------------------------------------
+   Fase 2: criação e entrada em salas por URL
+   -------------------------------------------------------------------------- */
+.room-entry {
+  margin-top: 2rem;
+}
+
+.room-entry h2 { margin: 0 0 0.35rem; }
+.room-entry-note { margin: 0 0 1rem; color: var(--muted); }
+.room-entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.room-entry-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.room-entry-panel h3, .room-entry-panel label { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.room-entry-panel p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.room-entry-panel .btn { margin-top: auto; }
+.room-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.room-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.room-entry-panel .form-error { color: #ff9a9a; }
+.invite { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.invite-message { color: var(--muted); font-size: 0.9rem; }
+
+/* --------------------------------------------------------------------------
    Sala (somente visual)
    -------------------------------------------------------------------------- */
 
@@ -199,6 +236,12 @@ code {
 .room-title {
   margin: 0.25rem 0 0;
   font-size: 1.6rem;
+  overflow-wrap: anywhere;
+}
+
+.room-title code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 .status {
@@ -345,6 +388,7 @@ code {
    -------------------------------------------------------------------------- */
 
 @media (max-width: 860px) {
+  .room-entry-grid { grid-template-columns: 1fr; }
   .room-layout {
     grid-template-columns: minmax(0, 1fr);
   }
