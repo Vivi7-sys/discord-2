@@ -1,0 +1,362 @@
+/* ==========================================================================
+   Estilos globais (CSS comum, sem Tailwind).
+   Tema escuro simples. A Fase 9 vai refinar o visual.
+   ========================================================================== */
+
+:root {
+  --bg: #0e1116;
+  --surface: #161b22;
+  --surface-2: #1d242e;
+  --border: #2a313c;
+  --text: #e6edf3;
+  --muted: #9aa7b8;
+  --accent: #5b9bff;
+  --accent-contrast: #06121f;
+  --ok: #3fb950;
+  --warn: #d6a13a;
+  --radius: 12px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+}
+
+/* --------------------------------------------------------------------------
+   Botões
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Página inicial
+   -------------------------------------------------------------------------- */
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 20px 72px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hero h1 {
+  margin: 1rem 0 0.75rem;
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1.1;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin: 2.25rem 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.notice {
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  background: rgba(214, 161, 58, 0.08);
+  font-size: 0.95rem;
+}
+
+.notice strong {
+  color: var(--warn);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 1.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   Sala (somente visual)
+   -------------------------------------------------------------------------- */
+
+.room {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.room-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back-link {
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.room-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.6rem;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+
+.room-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 16px;
+}
+
+.stream {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  /* width: 100% é necessário: sem ele, o min-height + aspect-ratio forçam uma
+     largura maior que a da tela no celular. */
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 220px;
+  padding: 1rem;
+  text-align: center;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+
+.stream svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.stream-title {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.stream-hint {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.participants {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.participants h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.participants-note {
+  margin: 0.15rem 0 0.9rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.participants ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.participant-name {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.participant-role {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.controls-note {
+  flex: 1 1 240px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.loading {
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Telas estreitas (celular)
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .room-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding-top: 36px;
+  }
+
+  .actions .btn,
+  .controls .btn {
+    width: 100%;
+  }
+}
