@@ -7,15 +7,16 @@ type ParticipantItem = {
 type ParticipantListProps = {
   participants: ParticipantItem[];
   phase: "connecting" | "connected" | "reconnecting" | "disconnected" | "error";
+  sharingId: string | null;
 };
 
-export default function ParticipantList({ participants, phase }: ParticipantListProps) {
+export default function ParticipantList({ participants, phase, sharingId }: ParticipantListProps) {
   return (
     <aside className="participants" aria-label="Participantes">
       <h2>Participantes ({participants.length})</h2>
       <p className="participants-note">
         {phase === "connected"
-          ? "Pessoas conectadas agora. Ainda não há transmissão."
+          ? "Pessoas conectadas agora. Transmissão sem áudio."
           : "A lista aparecerá quando a conexão estiver ativa."}
       </p>
       {participants.length > 0 && (
@@ -28,7 +29,7 @@ export default function ParticipantList({ participants, phase }: ParticipantList
               <div>
                 <strong className="participant-name">{participant.label}</strong>
                 <span className="participant-role">
-                  {participant.isLocal ? "Você · espectador" : "Espectador"}
+                  {participant.id === sharingId ? "Transmitindo a tela" : "Espectador"}
                 </span>
               </div>
             </li>

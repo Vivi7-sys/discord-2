@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, TrackSource } from "livekit-server-sdk";
 import { randomUUID } from "node:crypto";
 
 export async function POST(request: NextRequest) {
@@ -50,7 +50,9 @@ export async function POST(request: NextRequest) {
       room: roomId,
       roomJoin: true,
       canSubscribe: true,
-      canPublish: false,
+      // Fase 4: permite somente vídeo da tela. Sem câmera ou microfone.
+      canPublish: true,
+      canPublishSources: [TrackSource.SCREEN_SHARE],
       canPublishData: false,
     });
 

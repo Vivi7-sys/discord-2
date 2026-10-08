@@ -1,6 +1,42 @@
-// Quadro onde a tela compartilhada vai aparecer.
-// Fase 1: apenas um espaço reservado, sem vídeo.
-export default function StreamArea() {
+"use client";
+
+import { useEffect, useRef } from "react";
+import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
+
+export type SharedScreen = {
+  track: LocalVideoTrack | RemoteVideoTrack;
+  ownerId: string;
+  ownerLabel: string;
+};
+
+type StreamAreaProps = {
+  screen: SharedScreen | null;
+};
+
+// Usa a trilha recebida do LiveKit; não abre outra captura de tela.
+export default function StreamArea({ screen }: StreamAreaProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const track = screen?.track;
+
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!track || !element) return;
+
+    track.attach(element);
+    return () => {
+      track.detach(element);
+    };
+  }, [track]);
+
+  if (screen) {
+    return (
+      <section className="stream stream-active" aria-label="Transmissão de tela">
+        <video ref={videoRef} className="stream-video" autoPlay playsInline muted />
+        <span className="stream-overlay">Tela de {screen.ownerLabel} · sem áudio</span>
+      </section>
+    );
+  }
+
   return (
     <section className="stream" aria-label="Área da transmissão">
       <svg
@@ -17,7 +53,7 @@ export default function StreamArea() {
       </svg>
       <p className="stream-title">Nenhuma transmissão ainda</p>
       <p className="stream-hint">
-        Quando a conexão existir, a tela compartilhada aparecerá aqui.
+        Quando alguém compartilhar a tela, o vídeo aparecerá aqui.
       </p>
     </section>
   );

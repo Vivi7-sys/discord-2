@@ -1,23 +1,41 @@
 import Link from "next/link";
 
-// Barra de botões da sala.
-// A captura continua desativada. "Voltar" desmonta a sala e encerra a conexão.
-export default function RoomControls() {
+type RoomControlsProps = {
+  connected: boolean;
+  sharing: boolean;
+  busy: boolean;
+  anotherSharing: boolean;
+  onToggleShare: () => void;
+};
+
+export default function RoomControls({
+  connected,
+  sharing,
+  busy,
+  anotherSharing,
+  onToggleShare,
+}: RoomControlsProps) {
   return (
     <section className="controls" aria-label="Controles da sala">
       <button
         type="button"
-        className="btn btn-primary"
-        disabled
-        title="Disponível em uma fase futura"
+        className={sharing ? "btn btn-secondary" : "btn btn-primary"}
+        disabled={!connected || busy || (anotherSharing && !sharing)}
+        onClick={onToggleShare}
       >
-        Compartilhar tela
+        {busy
+          ? "Aguarde…"
+          : sharing
+            ? "Parar transmissão"
+            : "Compartilhar tela"}
       </button>
       <Link href="/" className="btn btn-secondary">
         Voltar ao início
       </Link>
       <p className="controls-note">
-        A conexão é apenas para presença. Compartilhar tela fica para a Fase 4.
+        {anotherSharing && !sharing
+          ? "Já existe uma transmissão nesta sala."
+          : "Fase 4: somente vídeo da tela, sem áudio."}
       </p>
     </section>
   );
