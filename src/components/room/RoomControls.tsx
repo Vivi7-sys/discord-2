@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 export type AudioMode = "none" | "browser" | "linux-virtual";
+export type QualityProfile = "economico" | "equilibrado" | "alta";
 
 type RoomControlsProps = {
   connected: boolean;
@@ -12,6 +13,8 @@ type RoomControlsProps = {
   onCancelBroadcast: () => void;
   audioMode: AudioMode;
   onAudioModeChange: (value: AudioMode) => void;
+  qualityProfile: QualityProfile;
+  onQualityProfileChange: (value: QualityProfile) => void;
   audioStatus: string | null;
   pendingAudioConfirmation: boolean;
   onApproveVirtualAudio: () => void;
@@ -29,6 +32,8 @@ export default function RoomControls({
   onCancelBroadcast,
   audioMode,
   onAudioModeChange,
+  qualityProfile,
+  onQualityProfileChange,
   audioStatus,
   pendingAudioConfirmation,
   onApproveVirtualAudio,
@@ -67,6 +72,22 @@ export default function RoomControls({
           <option value="browser">Áudio nativo do navegador</option>
           <option value="linux-virtual">Fonte virtual Linux (Screen Share Audio)</option>
         </select>
+      </label>
+      <label className="audio-mode-label desktop-broadcast-only">
+        Qualidade da transmissão
+        <select
+          className="audio-mode-select"
+          value={qualityProfile}
+          disabled={!connected || busy || sharing}
+          onChange={(event) => onQualityProfileChange(event.target.value as QualityProfile)}
+        >
+          <option value="economico">Econômico — 480p / até 20 FPS</option>
+          <option value="equilibrado">Equilibrado — 720p / até 30 FPS</option>
+          <option value="alta">Alta qualidade — 1080p / até 60 FPS</option>
+        </select>
+        <span className="controls-note">
+          Escolha antes de compartilhar. A qualidade real depende do PC e da conexão.
+        </span>
       </label>
       {pendingAudioConfirmation && sharing && (
         <div className="audio-verification desktop-broadcast-only" role="group" aria-label="Confirmar fonte virtual de áudio">

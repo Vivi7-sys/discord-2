@@ -5,7 +5,7 @@ import { AudioPresets, ConnectionState, Room, RoomEvent, Track } from "livekit-c
 import Link from "next/link";
 import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
-import type { AudioMode } from "./RoomControls";
+import type { AudioMode, QualityProfile } from "./RoomControls";
 import RemoteScreenAudio from "./RemoteScreenAudio";
 import StreamArea from "./StreamArea";
 import type { SharedScreen } from "./StreamArea";
@@ -33,6 +33,18 @@ const labels: Record<Phase, string> = {
   error: "Falha na conexão",
 };
 
+// Valores desejados: o navegador e o hardware podem entregar menos FPS/resolução.
+const QUALITY_PRESETS: Record<QualityProfile, {
+  width: number;
+  height: number;
+  fps: number;
+  bitrate: number;
+}> = {
+  economico: { width: 854, height: 480, fps: 20, bitrate: 900_000 },
+  equilibrado: { width: 1280, height: 720, fps: 30, bitrate: 2_500_000 },
+  alta: { width: 1920, height: 1080, fps: 60, bitrate: 6_000_000 },
+};
+
 export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   const [phase, setPhase] = useState<Phase>("connecting");
   const [participants, setParticipants] = useState<ParticipantItem[]>([]);
@@ -50,6 +62,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   const pendingVirtualTrackRef = useRef<MediaStreamTrack | null>(null);
   const [pendingAudioConfirmation, setPendingAudioConfirmation] = useState(false);
   const [audioMode, setAudioMode] = useState<AudioMode>("none");
+  const [qualityProfile, setQualityProfile] = useState<QualityProfile>("equilibrado");
   const [audioStatus, setAudioStatus] = useState<string | null>(null);
 
   // Enquanto o usuário confere o pavucontrol, a entrada está capturando,
@@ -293,11 +306,14 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       updateBroadcastPermission();
     });
     room.on(RoomEvent.Reconnecting, () => {
-      if (!cancelled) setPhase("reconnecting");
+      if (cancelled) return;
+      setPhase("reconnecting");
+      setError(null);
     });
     room.on(RoomEvent.Reconnected, () => {
       if (cancelled) return;
       setPhase("connected");
+      setError(null);
       updateParticipants();
       updateScreen();
       updateBroadcastPermission();
@@ -305,7 +321,12 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
     room.on(RoomEvent.Disconnected, () => {
       discardPendingVirtualAudio();
       if (cancelled) return;
+      // Não manter a fonte virtual gravando após a saída definitiva da sala.
+      void releaseVirtualAudio(room);
       setPhase("disconnected");
+      setError("A conexão com a sala foi encerrada. Confira sua internet e clique em Tentar novamente.");
+      setCaptureError(null);
+      setAudioStatus(null);
       setRoomInstance(null);
       setParticipants([]);
       setScreen(null);
@@ -394,17 +415,18 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         setAudioStatus(null);
       } else {
         // Chamado diretamente pelo clique para preservar a ativação de usuário.
-        // 720p/30 é um perfil de teste; o hardware pode entregar menos FPS.
+        // Perfil selecionado vale para esta captura; não interfere no áudio.
+        const quality = QUALITY_PRESETS[qualityProfile];
         await room.localParticipant.setScreenShareEnabled(
           true,
           {
             audio: audioMode === "browser",
             systemAudio: audioMode === "browser" ? "include" : "exclude",
             contentHint: "motion",
-            resolution: { width: 1280, height: 720, frameRate: 30 },
+            resolution: { width: quality.width, height: quality.height, frameRate: quality.fps },
           },
           {
-            screenShareEncoding: { maxBitrate: 2_500_000, maxFramerate: 30 },
+            screenShareEncoding: { maxBitrate: quality.bitrate, maxFramerate: quality.fps },
             degradationPreference: "maintain-framerate",
             simulcast: true,
           }
@@ -495,6 +517,12 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         </span>
       </header>
 
+      {phase === "reconnecting" && (
+        <div className="connection-error" role="status">
+          Conexão instável. O LiveKit está tentando reconectar automaticamente.
+          O vídeo e o áudio podem pausar por alguns instantes.
+        </div>
+      )}
       {error && (
         <div className="connection-error" role="alert">
           <span>{error}</span>
@@ -524,6 +552,8 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         onCancelBroadcast={() => void cancelBroadcast()}
         audioMode={audioMode}
         onAudioModeChange={setAudioMode}
+        qualityProfile={qualityProfile}
+        onQualityProfileChange={setQualityProfile}
         audioStatus={audioStatus}
         pendingAudioConfirmation={pendingAudioConfirmation}
         onApproveVirtualAudio={() => void approveVirtualAudio()}
