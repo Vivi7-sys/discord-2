@@ -53,6 +53,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   const [attempt, setAttempt] = useState(0);
   const [roomInstance, setRoomInstance] = useState<Room | null>(null);
   const [screen, setScreen] = useState<SharedScreen | null>(null);
+  const [theaterMode, setTheaterMode] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [broadcastAllowed, setBroadcastAllowed] = useState(false);
   const tokenRef = useRef<string | null>(null);
@@ -505,7 +506,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   }
 
   return (
-    <main className="room">
+    <main className={theaterMode && screen ? "room room-theater" : "room"}>
       <header className="room-header">
         <div>
           <Link href="/" className="back-link">← Início</Link>
@@ -536,7 +537,11 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       )}
 
       <div className="room-layout">
-        <StreamArea screen={screen} />
+        <StreamArea
+          screen={screen}
+          theaterMode={theaterMode}
+          onToggleTheater={() => setTheaterMode((enabled) => !enabled)}
+        />
         <ParticipantList participants={participants} phase={phase} sharingId={screen?.ownerId ?? null} />
       </div>
 

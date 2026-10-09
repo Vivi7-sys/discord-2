@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
 
 export type SharedScreen = {
@@ -11,11 +11,43 @@ export type SharedScreen = {
 
 type StreamAreaProps = {
   screen: SharedScreen | null;
+  theaterMode: boolean;
+  onToggleTheater: () => void;
 };
 
 // Usa a trilha recebida do LiveKit; não abre outra captura de tela.
-export default function StreamArea({ screen }: StreamAreaProps) {
+export default function StreamArea({ screen, theaterMode, onToggleTheater }: StreamAreaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState<string | null>(null);
+
+  // A tecla Esc sai da tela cheia pelo próprio navegador.
+  useEffect(() => {
+    const updateFullscreen = () => {
+      setIsFullscreen(document.fullscreenElement === sectionRef.current);
+      setFullscreenError(null);
+    };
+    document.addEventListener("fullscreenchange", updateFullscreen);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreen);
+  }, []);
+
+  async function toggleFullscreen() {
+    const element = sectionRef.current;
+    if (!element) return;
+    setFullscreenError(null);
+    try {
+      if (document.fullscreenElement === element) {
+        await document.exitFullscreen();
+      } else if (typeof element.requestFullscreen === "function") {
+        await element.requestFullscreen();
+      } else {
+        setFullscreenError("Tela cheia não disponível neste navegador.");
+      }
+    } catch {
+      setFullscreenError("O navegador não permitiu tela cheia.");
+    }
+  }
   const track = screen?.track;
 
   useEffect(() => {
@@ -30,9 +62,20 @@ export default function StreamArea({ screen }: StreamAreaProps) {
 
   if (screen) {
     return (
-      <section className="stream stream-active" aria-label="Transmissão de tela">
+      <section ref={sectionRef} className="stream stream-active" aria-label="Transmissão de tela">
         <video ref={videoRef} className="stream-video" autoPlay playsInline muted />
         <span className="stream-overlay">Tela de {screen.ownerLabel}</span>
+        <div className="stream-view-controls" role="group" aria-label="Visualização da transmissão">
+          <button type="button" className="stream-view-button"
+            aria-pressed={theaterMode} onClick={onToggleTheater}>
+            {theaterMode ? "Sair do teatro" : "Modo teatro"}
+          </button>
+          <button type="button" className="stream-view-button"
+            onClick={() => void toggleFullscreen()}>
+            {isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+          </button>
+        </div>
+        {fullscreenError && <p className="stream-view-error" role="alert">{fullscreenError}</p>}
       </section>
     );
   }
