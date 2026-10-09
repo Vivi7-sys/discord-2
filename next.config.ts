@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // O código do projeto funciona com eles ligados ou desligados.
   cacheComponents: true,
   partialPrefetching: true,
+  allowedDevOrigins: ["192.168.100.99", "127.0.0.1"],
 };
 
 export default nextConfig;

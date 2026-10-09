@@ -32,7 +32,7 @@ export default function StreamArea({ screen }: StreamAreaProps) {
     return (
       <section className="stream stream-active" aria-label="Transmissão de tela">
         <video ref={videoRef} className="stream-video" autoPlay playsInline muted />
-        <span className="stream-overlay">Tela de {screen.ownerLabel} · sem áudio</span>
+        <span className="stream-overlay">Tela de {screen.ownerLabel}</span>
       </section>
     );
   }

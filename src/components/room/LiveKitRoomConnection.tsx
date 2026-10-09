@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ConnectionState, Room, RoomEvent, Track } from "livekit-client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AudioPresets, ConnectionState, Room, RoomEvent, Track } from "livekit-client";
 import Link from "next/link";
 import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
+import type { AudioMode } from "./RoomControls";
+import RemoteScreenAudio from "./RemoteScreenAudio";
 import StreamArea from "./StreamArea";
 import type { SharedScreen } from "./StreamArea";
 import RoomInvite from "./RoomInvite";
@@ -42,6 +44,88 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
+  const virtualTrackRef = useRef<MediaStreamTrack | null>(null);
+  const pendingVirtualTrackRef = useRef<MediaStreamTrack | null>(null);
+  const [pendingAudioConfirmation, setPendingAudioConfirmation] = useState(false);
+  const [audioMode, setAudioMode] = useState<AudioMode>("none");
+  const [audioStatus, setAudioStatus] = useState<string | null>(null);
+
+  // Enquanto o usuário confere o pavucontrol, a entrada está capturando,
+  // mas NÃO está publicada no LiveKit.
+  const discardPendingVirtualAudio = useCallback(() => {
+    pendingVirtualTrackRef.current?.stop();
+    pendingVirtualTrackRef.current = null;
+    setPendingAudioConfirmation(false);
+  }, []);
+
+  const releaseVirtualAudio = useCallback(async (room: Room) => {
+    discardPendingVirtualAudio();
+    const track = virtualTrackRef.current;
+    virtualTrackRef.current = null;
+    if (!track) return;
+    try {
+      await room.localParticipant.unpublishTrack(track, true);
+    } catch {
+      // Pode ter desconectado enquanto a trilha estava sendo removida.
+    } finally {
+      track.stop();
+    }
+  }, [discardPendingVirtualAudio]);
+
+  async function publishVirtualAudio(room: Room, audio: MediaStreamTrack) {
+    if (audio.readyState !== "live" ||
+        !room.localParticipant.isScreenShareEnabled ||
+        room.state !== ConnectionState.Connected) {
+      audio.stop();
+      setAudioStatus("A captura ou a conexão terminou; áudio não enviado.");
+      return;
+    }
+    virtualTrackRef.current = audio;
+    try {
+      await room.localParticipant.publishTrack(audio, {
+        source: Track.Source.ScreenShareAudio,
+        audioPreset: AudioPresets.musicHighQualityStereo,
+        dtx: false,
+        forceStereo: true,
+      });
+      if (!room.localParticipant.isScreenShareEnabled || room.state !== ConnectionState.Connected) {
+        await releaseVirtualAudio(room);
+      } else {
+        setAudioStatus("Transmitindo áudio do sistema via fonte virtual Linux.");
+      }
+    } catch {
+      await releaseVirtualAudio(room);
+      setAudioStatus("Não foi possível enviar a fonte virtual; o vídeo continua funcionando.");
+    }
+  }
+
+  async function approveVirtualAudio() {
+    const room = roomInstance;
+    const audio = pendingVirtualTrackRef.current;
+    if (!room || !audio || !pendingAudioConfirmation || busyRef.current) return;
+    pendingVirtualTrackRef.current = null;
+    setPendingAudioConfirmation(false);
+    busyRef.current = true;
+    setBusy(true);
+    try {
+      // Permissão apenas para diagnóstico local; não é uma validação do sistema.
+      if (process.env.NODE_ENV !== "development" ||
+          !/^(padrão|padrao|default)$/i.test(audio.label.trim())) {
+        audio.stop();
+        setAudioStatus("Confirmação manual indisponível; áudio não enviado.");
+        return;
+      }
+      await publishVirtualAudio(room, audio);
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
+
+  function rejectVirtualAudio() {
+    discardPendingVirtualAudio();
+    setAudioStatus("Áudio cancelado; vídeo continua funcionando.");
+  }
 
   useEffect(() => {
     const room = new Room({ adaptiveStream: true });
@@ -103,7 +187,15 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
     room.on(RoomEvent.TrackPublished, updateScreen);
     room.on(RoomEvent.TrackUnpublished, updateScreen);
     room.on(RoomEvent.LocalTrackPublished, updateScreen);
-    room.on(RoomEvent.LocalTrackUnpublished, updateScreen);
+    room.on(RoomEvent.LocalTrackUnpublished, () => {
+      updateScreen();
+      // Se o usuário usar "Parar compartilhamento" no próprio navegador,
+      // encerra também a captura virtual de áudio.
+      if (!room.localParticipant.isScreenShareEnabled) {
+        void releaseVirtualAudio(room);
+        setAudioStatus(null);
+      }
+    });
     room.on(RoomEvent.TrackMuted, updateScreen);
     room.on(RoomEvent.TrackUnmuted, updateScreen);
     room.on(RoomEvent.Connected, () => {
@@ -122,6 +214,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       updateScreen();
     });
     room.on(RoomEvent.Disconnected, () => {
+      discardPendingVirtualAudio();
       if (cancelled) return;
       setPhase("disconnected");
       setRoomInstance(null);
@@ -137,6 +230,8 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       setScreen(null);
       setSharing(false);
       setCaptureError(null);
+      setAudioStatus(null);
+      discardPendingVirtualAudio();
       setError(null);
       try {
         const response = await fetch("/api/livekit/token", {
@@ -176,9 +271,10 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       cancelled = true;
       controller.abort();
       room.removeAllListeners();
+      void releaseVirtualAudio(room);
       void room.disconnect(); // Libera a captura e a conexão ao sair da sala.
     };
-  }, [roomId, attempt]);
+  }, [roomId, attempt, releaseVirtualAudio, discardPendingVirtualAudio]);
 
   const localId = roomInstance?.localParticipant.identity;
   const anotherSharing = Boolean(screen && screen.ownerId !== localId);
@@ -192,14 +288,17 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
     setCaptureError(null);
     try {
       if (room.localParticipant.isScreenShareEnabled) {
+        await releaseVirtualAudio(room);
         await room.localParticipant.setScreenShareEnabled(false);
+        setAudioStatus(null);
       } else {
         // Chamado diretamente pelo clique para preservar a ativação de usuário.
         // 720p/30 é um perfil de teste; o hardware pode entregar menos FPS.
         await room.localParticipant.setScreenShareEnabled(
           true,
           {
-            audio: false,
+            audio: audioMode === "browser",
+            systemAudio: audioMode === "browser" ? "include" : "exclude",
             contentHint: "motion",
             resolution: { width: 1280, height: 720, frameRate: 30 },
           },
@@ -209,6 +308,55 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
             simulcast: true,
           }
         );
+
+        if (audioMode === "browser") {
+          const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
+          setAudioStatus(publication?.audioTrack
+            ? "O navegador está transmitindo áudio da tela."
+            : "O navegador compartilhou apenas o vídeo. No Linux, use a opção Fonte virtual Screen Share Audio.");
+        } else if (audioMode === "linux-virtual") {
+          // É uma escolha explícita: jamais publicamos a entrada padrão às cegas.
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false,
+                channelCount: 2,
+              },
+              video: false,
+            });
+            const audio = stream.getAudioTracks()[0];
+            // Se o nome for "Padrão", mantemos a trilha local sem publicar.
+            // O usuário inspeciona esta CAPTURA ATIVA no pavucontrol e só então
+            // autoriza manualmente o envio, em vez de usar window.confirm().
+            const verifiedByName = Boolean(
+              audio && /^screen[ -]share[ -]audio$/i.test(audio.label.trim())
+            );
+            const genericDefault = Boolean(
+              audio && /^(padrão|padrao|default)$/i.test(audio.label.trim())
+            );
+            if (!audio ||
+                !room.localParticipant.isScreenShareEnabled ||
+                room.state !== ConnectionState.Connected) {
+              stream.getTracks().forEach((track) => track.stop());
+              setAudioStatus("A conexão ou a captura foi encerrada; áudio não enviado.");
+            } else if (verifiedByName) {
+              await publishVirtualAudio(room, audio);
+            } else if (genericDefault && process.env.NODE_ENV === "development") {
+              pendingVirtualTrackRef.current = audio;
+              setPendingAudioConfirmation(true);
+              setAudioStatus("Áudio ainda NÃO enviado. Confira esta captura do Brave em pavucontrol → Gravando antes de confirmar.");
+            } else {
+              stream.getTracks().forEach((track) => track.stop());
+              setAudioStatus("Não foi possível confirmar a fonte de áudio; vídeo continua funcionando.");
+            }
+          } catch {
+            setAudioStatus("Não foi possível abrir a fonte virtual. O vídeo continua funcionando.");
+          }
+        } else {
+          setAudioStatus("Transmitindo somente vídeo.");
+        }
       }
       // Eventos do LiveKit também atualizam o vídeo ao iniciar ou parar.
       setSharing(room.localParticipant.isScreenShareEnabled);
@@ -254,12 +402,19 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         <ParticipantList participants={participants} phase={phase} sharingId={screen?.ownerId ?? null} />
       </div>
 
+      {roomInstance && <RemoteScreenAudio room={roomInstance} />}
       <RoomInvite roomId={roomId} />
       <RoomControls
         connected={phase === "connected" && !!roomInstance}
         sharing={sharing}
         busy={busy}
         anotherSharing={anotherSharing}
+        audioMode={audioMode}
+        onAudioModeChange={setAudioMode}
+        audioStatus={audioStatus}
+        pendingAudioConfirmation={pendingAudioConfirmation}
+        onApproveVirtualAudio={() => void approveVirtualAudio()}
+        onRejectVirtualAudio={rejectVirtualAudio}
         onToggleShare={() => void toggleShare()}
       />
     </main>

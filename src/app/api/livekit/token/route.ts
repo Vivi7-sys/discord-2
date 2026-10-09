@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
       room: roomId,
       roomJoin: true,
       canSubscribe: true,
-      // Fase 4: permite somente vídeo da tela. Sem câmera ou microfone.
+      // Fase 5: vídeo e áudio da tela, sem permitir câmera ou microfone.
       canPublish: true,
-      canPublishSources: [TrackSource.SCREEN_SHARE],
+      canPublishSources: [TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO],
       canPublishData: false,
     });
 
