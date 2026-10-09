@@ -7,6 +7,9 @@ type RoomControlsProps = {
   sharing: boolean;
   busy: boolean;
   anotherSharing: boolean;
+  broadcastAllowed: boolean;
+  onRequestBroadcast: () => void;
+  onCancelBroadcast: () => void;
   audioMode: AudioMode;
   onAudioModeChange: (value: AudioMode) => void;
   audioStatus: string | null;
@@ -21,6 +24,9 @@ export default function RoomControls({
   sharing,
   busy,
   anotherSharing,
+  broadcastAllowed,
+  onRequestBroadcast,
+  onCancelBroadcast,
   audioMode,
   onAudioModeChange,
   audioStatus,
@@ -33,16 +39,23 @@ export default function RoomControls({
     <section className="controls" aria-label="Controles da sala">
       <button
         type="button"
-        className={sharing ? "btn btn-secondary" : "btn btn-primary"}
+        className={`${sharing ? "btn btn-secondary" : "btn btn-primary"} desktop-broadcast-only`}
         disabled={!connected || busy || (anotherSharing && !sharing)}
-        onClick={onToggleShare}
+        onClick={sharing || broadcastAllowed ? onToggleShare : onRequestBroadcast}
       >
-        {busy ? "Aguarde…" : sharing ? "Parar transmissão" : "Compartilhar tela"}
+        {busy ? "Aguarde…" : sharing ? "Parar transmissão" :
+          broadcastAllowed ? "Compartilhar tela" : "Solicitar transmissão"}
       </button>
+      {broadcastAllowed && !sharing && (
+        <button type="button" className="btn btn-secondary desktop-broadcast-only"
+          disabled={!connected || busy} onClick={onCancelBroadcast}>
+          Cancelar vez
+        </button>
+      )}
       <Link href="/" className="btn btn-secondary">
         Voltar ao início
       </Link>
-      <label className="audio-mode-label">
+      <label className="audio-mode-label desktop-broadcast-only">
         Áudio da transmissão
         <select
           className="audio-mode-select"
@@ -56,7 +69,7 @@ export default function RoomControls({
         </select>
       </label>
       {pendingAudioConfirmation && sharing && (
-        <div className="audio-verification" role="group" aria-label="Confirmar fonte virtual de áudio">
+        <div className="audio-verification desktop-broadcast-only" role="group" aria-label="Confirmar fonte virtual de áudio">
           <p>
             Confira em pavucontrol → Gravando se a captura <strong>Brave input</strong>
             está em <strong>Screen Share Audio</strong>, não no microfone USB.
@@ -72,10 +85,13 @@ export default function RoomControls({
           </button>
         </div>
       )}
-      <p className="controls-note" aria-live="polite">
+      <p className="mobile-viewer-note">Modo espectador: assista à tela e ative o som, se necessário.</p>
+      <p className="controls-note desktop-broadcast-only" aria-live="polite">
         {anotherSharing && !sharing
-          ? "Já existe uma transmissão nesta sala."
-          : audioStatus || "Escolha o áudio antes de iniciar. A opção Linux exige a fonte virtual previamente configurada."}
+          ? "Alguém já está transmitindo. Aguarde essa pessoa encerrar para compartilhar sua tela."
+          : !broadcastAllowed && !sharing
+            ? "Solicite a transmissão primeiro. Se a vaga estiver livre, o botão mudará para Compartilhar tela."
+            : audioStatus || "Escolha o áudio antes de iniciar. A opção Linux exige a fonte virtual previamente configurada."}
       </p>
     </section>
   );

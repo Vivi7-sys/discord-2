@@ -16,7 +16,9 @@ export default function ParticipantList({ participants, phase, sharingId }: Part
       <h2>Participantes ({participants.length})</h2>
       <p className="participants-note">
         {phase === "connected"
-          ? "Pessoas conectadas agora. Transmissão sem áudio."
+          ? sharingId
+            ? "Há uma transmissão na sala. O áudio pode ser ativado nos controles de reprodução."
+            : "Pessoas conectadas agora. Aguardando alguém compartilhar a tela."
           : "A lista aparecerá quando a conexão estiver ativa."}
       </p>
       {participants.length > 0 && (

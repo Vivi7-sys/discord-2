@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { AccessToken, TrackSource } from "livekit-server-sdk";
+import { AccessToken } from "livekit-server-sdk";
 import { randomUUID } from "node:crypto";
 
 export async function POST(request: NextRequest) {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       LIVEKIT_API_SECRET,
       {
         identity: randomUUID(),
-        ttl: "15m",
+        ttl: "6h",
       }
     );
 
@@ -50,9 +50,10 @@ export async function POST(request: NextRequest) {
       room: roomId,
       roomJoin: true,
       canSubscribe: true,
-      // Fase 5: vídeo e áudio da tela, sem permitir câmera ou microfone.
-      canPublish: true,
-      canPublishSources: [TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO],
+      // Fase 6B: todos entram como espectadores. A permissão de transmitir
+      // é concedida separadamente pelo servidor a apenas uma pessoa.
+      canPublish: false,
+      canPublishSources: [],
       canPublishData: false,
     });
 

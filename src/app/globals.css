@@ -480,3 +480,16 @@ code {
   color: var(--muted);
 }
 .remote-audio audio { display: none; }
+/* Fase 6A: interface de espectador em celulares.
+   O bloqueio real de transmissões simultâneas será feito no backend (Fase 6B). */
+.mobile-viewer-note { display: none; }
+@media (hover: none) and (pointer: coarse) and (max-width: 1024px) {
+  .desktop-broadcast-only { display: none; }
+  .mobile-viewer-note {
+    display: block;
+    flex: 1 1 100%;
+    margin: 0;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+}
