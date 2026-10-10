@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Redis } from "@upstash/redis";
 
 const redis = Redis.fromEnv();
-const LOCK_SECONDS = 30;
+const LOCK_SECONDS = 120;
 
 function lockKey(roomId: string): string {
   return `discord2:room:mutex:v1:${roomId}`;

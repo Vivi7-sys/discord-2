@@ -26,8 +26,22 @@ export async function verifyTurnstileToken(token: unknown): Promise<boolean> {
 
     if (!response.ok) return false;
 
-    const result: { success?: boolean } = await response.json();
-    return result?.success === true;
+    const result: {
+      success?: boolean;
+      hostname?: string;
+    } = await response.json();
+
+    if (result?.success !== true) return false;
+
+    // Em produção, aceitar somente tokens do domínio configurado.
+    if (process.env.NODE_ENV === "production") {
+      const expectedHostname = process.env.TURNSTILE_ALLOWED_HOSTNAME;
+      return Boolean(
+        expectedHostname && result.hostname === expectedHostname
+      );
+    }
+
+    return true;
   } catch {
     return false;
   }
