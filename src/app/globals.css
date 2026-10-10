@@ -1486,3 +1486,96 @@ body {
   }
   .room .stream:not(.stream-active) { padding-bottom: 68px; }
 }
+
+/* Fase de identidade: entrada com nome e foto, sem cadastro. */
+.room-join-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(18px, 4vw, 44px) 18px;
+  background:
+    radial-gradient(ellipse at top, rgba(217, 38, 50, 0.12), transparent 58%),
+    var(--bg);
+}
+.room-join-page > .back-link {
+  width: min(100%, 470px);
+  margin-bottom: 22px;
+  align-self: center;
+}
+.room-join-card {
+  width: min(100%, 470px);
+  margin: auto 0;
+  padding: clamp(22px, 5vw, 38px);
+  border: 1px solid #383036;
+  border-radius: 20px;
+  background: #141519;
+  box-shadow: 0 20px 68px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.room-join-eyebrow {
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+}
+.room-join-card h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 5vw, 1.85rem);
+  line-height: 1.2;
+}
+.room-join-description { color: var(--muted); margin: -5px 0 6px; }
+.room-join-photo-row { display: flex; gap: 20px; align-items: center; margin: 8px 0 10px; }
+.room-join-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid #a52b38;
+  background: #292025;
+  color: #fafafa;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.room-join-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.room-join-photo-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.room-join-file { display: none; }
+.room-join-hint { color: var(--muted); font-size: 0.75rem; }
+.room-join-remove {
+  border: 0;
+  color: var(--accent);
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.room-join-label { font-weight: 700; font-size: 0.9rem; }
+.room-join-name {
+  width: 100%;
+  border: 1px solid #434047;
+  border-radius: 10px;
+  padding: 13px 14px;
+  color: var(--text);
+  background: #0d0e11;
+  font: inherit;
+}
+.room-join-name:focus-visible, .room-join-remove:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.room-join-submit { margin-top: 8px; min-height: 46px; }
+.room-join-privacy { font-size: 0.76rem; color: var(--muted); text-align: center; margin: 0; }
+.room-join-error { color: #ff969e; margin: 0; font-size: 0.9rem; }
+.avatar { overflow: hidden; }
+.avatar .avatar-photo { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 420px) {
+  .room-join-photo-row { gap: 12px; }
+  .room-join-avatar { width: 76px; height: 76px; }
+  .room-join-photo-actions .btn { padding: 0.5rem 0.7rem; }
+}

@@ -1,11 +1,13 @@
 "use client";
 
 import { useId, useState } from "react";
+import Image from "next/image";
 
 type ParticipantItem = {
   id: string;
   label: string;
   isLocal: boolean;
+  avatar: string | null;
 };
 
 type ParticipantListProps = {
@@ -38,7 +40,11 @@ export default function ParticipantList({ participants, sharingId }: Participant
             {participants.map((participant) => (
               <li className="participant" key={participant.id}>
                 <span className="avatar" aria-hidden="true">
-                  {participant.isLocal ? "V" : "P"}
+                  {participant.avatar ? (
+                    <Image src={participant.avatar} alt="" width={36} height={36} unoptimized className="avatar-photo" />
+                  ) : (
+                    participant.label.charAt(0).toUpperCase() || "?"
+                  )}
                 </span>
                 <div>
                   <strong className="participant-name">{participant.label}</strong>

@@ -10,6 +10,7 @@ import RemoteScreenAudio from "./RemoteScreenAudio";
 import StreamArea from "./StreamArea";
 import type { SharedScreen } from "./StreamArea";
 import RoomInvite from "./RoomInvite";
+import { avatarFromMetadata, type RoomProfile } from "@/lib/room/participant-profile";
 
 type Phase = "connecting" | "connected" | "reconnecting" | "disconnected" | "error";
 
@@ -17,6 +18,7 @@ type ParticipantItem = {
   id: string;
   label: string;
   isLocal: boolean;
+  avatar: string | null;
 };
 
 type TokenResponse = {
@@ -45,7 +47,7 @@ const QUALITY_PRESETS: Record<QualityProfile, {
   alta: { width: 1920, height: 1080, fps: 60, bitrate: 6_000_000 },
 };
 
-export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
+export default function LiveKitRoomConnection({ roomId, profile }: { roomId: string; profile: RoomProfile }) {
   const [phase, setPhase] = useState<Phase>("connecting");
   const [participants, setParticipants] = useState<ParticipantItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -220,9 +222,10 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         id: person.identity,
         label: person.name || `Participante ${person.identity.slice(0, 8)}`,
         isLocal: false,
+        avatar: avatarFromMetadata(person.metadata),
       }));
       setParticipants([
-        { id: room.localParticipant.identity, label: "Você", isLocal: true },
+        { id: room.localParticipant.identity, label: profile.displayName, isLocal: true, avatar: avatarFromMetadata(room.localParticipant.metadata) ?? profile.avatar },
         ...others,
       ]);
     }
@@ -257,6 +260,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
 
     room.on(RoomEvent.ParticipantPermissionsChanged, updateBroadcastPermission);
     room.on(RoomEvent.ParticipantConnected, updateParticipants);
+    room.on(RoomEvent.ParticipantMetadataChanged, updateParticipants);
     room.on(RoomEvent.ParticipantDisconnected, () => {
       updateParticipants();
       updateScreen();
@@ -352,7 +356,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         const response = await fetch("/api/livekit/token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ roomId }),
+          body: JSON.stringify({ roomId, displayName: profile.displayName, avatar: profile.avatar }),
           cache: "no-store",
           signal: controller.signal,
         });
@@ -391,7 +395,7 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
       void releaseVirtualAudio(room);
       void room.disconnect(); // Libera a captura e a conexão ao sair da sala.
     };
-  }, [roomId, attempt, releaseVirtualAudio, discardPendingVirtualAudio]);
+  }, [roomId, attempt, profile.displayName, profile.avatar, releaseVirtualAudio, discardPendingVirtualAudio]);
 
   const localId = roomInstance?.localParticipant.identity;
   const anotherSharing = Boolean(screen && screen.ownerId !== localId);

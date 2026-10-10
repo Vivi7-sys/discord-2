@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { randomUUID } from "node:crypto";
+import { cleanDisplayName, safeAvatarDataUrl } from "@/lib/room/participant-profile";
 
 // Fase 9A: proteção INICIAL apenas para desenvolvimento em um processo.
 // Em produção, usar limites por IP/identidade e armazenamento compartilhado.
@@ -82,19 +83,32 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const roomId = body?.roomId;
+    const displayName = cleanDisplayName(body?.displayName);
+    const avatar = body?.avatar == null ? null : safeAvatarDataUrl(body.avatar);
 
     if (
       typeof roomId !== "string" ||
-      !/^[a-zA-Z0-9_-]{6,64}$/.test(roomId)
+      !/^[a-zA-Z0-9_-]{6,64}$/.test(roomId) ||
+      !displayName ||
+      (body?.avatar != null && !avatar)
     ) {
       return NextResponse.json(
-        { error: "ID de sala inválido." },
+        { error: "Dados de entrada inválidos. Confira nome e foto." },
         { status: 400 }
       );
     }
 
     const roomRetry = checkRoomLimit(roomId);
     if (roomRetry !== null) return tooManyRequests(roomRetry);
+
+    // Valida a foto compactada antes de carregar o token do LiveKit.
+    if (avatar) {
+      const jpeg = Buffer.from(avatar.slice("data:image/jpeg;base64,".length), "base64");
+      if (jpeg.length > 12_000 || jpeg[0] !== 0xff || jpeg[1] !== 0xd8 ||
+          jpeg[jpeg.length - 2] !== 0xff || jpeg[jpeg.length - 1] !== 0xd9) {
+        return NextResponse.json({ error: "Foto de perfil inválida." }, { status: 400 });
+      }
+    }
 
     const { LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET } =
       process.env;
@@ -140,6 +154,8 @@ export async function POST(request: NextRequest) {
       LIVEKIT_API_SECRET,
       {
         identity: randomUUID(),
+        name: displayName,
+        metadata: avatar ? JSON.stringify({ avatar }) : undefined,
         ttl: "6h",
       }
     );
