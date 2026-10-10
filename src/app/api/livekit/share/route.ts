@@ -110,8 +110,16 @@ const viewerPermission = {
 };
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Disponível somente em desenvolvimento." }, { status: 403 });
+  // Em producao, a transmissao precisa ser habilitada explicitamente.
+  // Por padrao, permanece bloqueada.
+  if (
+    process.env.NODE_ENV !== "development" &&
+    process.env.ENABLE_SHARE_IN_PRODUCTION !== "true"
+  ) {
+    return NextResponse.json(
+      { error: "Transmissao ainda indisponivel." },
+      { status: 403 }
+    );
   }
 
   const globalRetry = globalShareRetry();
