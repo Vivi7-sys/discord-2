@@ -11,6 +11,64 @@ const scope = globalThis as typeof globalThis & {
 const roomQueues = scope.discord2RoomQueues ??= new Map<string, Promise<void>>();
 const reservations = scope.discord2Reservations ??= new Map<string, string>();
 
+// Fase 9B: limitação inicial da API de transmissão (apenas um processo).
+// Não é uma proteção distribuída: em produção, combinar com limites na borda
+// e, caso haja mais de uma instância, estado/controle compartilhado.
+const SHARE_WINDOW_MS = 60_000;
+const SHARE_GLOBAL_LIMIT = 120; // todas as tentativas, inclusive inválidas
+const SHARE_ACQUIRE_LIMIT = 12; // solicitações de transmissão por participante
+
+type ShareRateWindow = { count: number; resetAt: number };
+type ShareRateState = {
+  global: ShareRateWindow;
+  acquires: Map<string, ShareRateWindow>;
+};
+const shareRateScope = globalThis as typeof globalThis & {
+  discord2ShareRateState?: ShareRateState;
+};
+const shareRate = shareRateScope.discord2ShareRateState ??= {
+  global: { count: 0, resetAt: 0 },
+  acquires: new Map<string, ShareRateWindow>(),
+};
+
+function consumeShareWindow(bucket: ShareRateWindow, limit: number, now: number): number | null {
+  if (now >= bucket.resetAt) {
+    bucket.count = 0;
+    bucket.resetAt = now + SHARE_WINDOW_MS;
+  }
+  if (bucket.count >= limit) {
+    return Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
+  }
+  bucket.count += 1;
+  return null;
+}
+
+function globalShareRetry(): number | null {
+  const now = Date.now();
+  if (now >= shareRate.global.resetAt) {
+    for (const [identity, bucket] of shareRate.acquires) {
+      if (now >= bucket.resetAt) shareRate.acquires.delete(identity);
+    }
+  }
+  return consumeShareWindow(shareRate.global, SHARE_GLOBAL_LIMIT, now);
+}
+
+function acquireShareRetry(identity: string): number | null {
+  let bucket = shareRate.acquires.get(identity);
+  if (!bucket) {
+    bucket = { count: 0, resetAt: 0 };
+    shareRate.acquires.set(identity, bucket);
+  }
+  return consumeShareWindow(bucket, SHARE_ACQUIRE_LIMIT, Date.now());
+}
+
+function shareTooManyRequests(seconds: number) {
+  return NextResponse.json(
+    { error: "Muitas solicitações de transmissão. Aguarde um pouco e tente novamente." },
+    { status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(seconds) } }
+  );
+}
+
 async function withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<T> {
   const previous = roomQueues.get(roomId) ?? Promise.resolve();
   let unlock = () => {};
@@ -44,14 +102,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Disponível somente em desenvolvimento." }, { status: 403 });
   }
 
+  const globalRetry = globalShareRetry();
+
   const { LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET } = process.env;
   if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     return NextResponse.json({ error: "LiveKit não configurado." }, { status: 500 });
-  }
-
-  const authorization = request.headers.get("authorization") ?? "";
-  if (!authorization.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Autorização necessária." }, { status: 401 });
   }
 
   let roomId: string;
@@ -63,10 +118,22 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
   }
+  // Mesmo com o limite global atingido, permitir a tentativa de
+  // encerrar transmissão. A autorização continua obrigatória.
+  if (globalRetry !== null && action !== "release") {
+    return shareTooManyRequests(globalRetry);
+  }
+
   if (typeof roomId !== "string" || !/^[a-zA-Z0-9_-]{6,64}$/.test(roomId) ||
       (action !== "acquire" && action !== "release")) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
   }
+
+  const authorization = request.headers.get("authorization") ?? "";
+  if (!authorization.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Autorização necessária." }, { status: 401 });
+  }
+
 
   
 
@@ -92,6 +159,13 @@ try {
   );
 }
 
+
+  // Limitar pedidos de adquirir transmissão, sem impedir o participante
+  // de liberar a vaga quando já alcançou o limite.
+  if (action === "acquire") {
+    const acquireRetry = acquireShareRetry(identity);
+    if (acquireRetry !== null) return shareTooManyRequests(acquireRetry);
+  }
 
 
   try {
