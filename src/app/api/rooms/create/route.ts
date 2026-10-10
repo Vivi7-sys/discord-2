@@ -22,14 +22,6 @@ const rate = scope.discord2CreateRate ??= {
 };
 
 export async function POST(request: NextRequest) {
-  // Nunca publicar esta versão da API sem proteções adicionais.
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json(
-      { error: "Criação ainda indisponível em produção." },
-      { status: 403 }
-    );
-  }
-
   const now = Date.now();
 
   if (now >= rate.resetAt) {
