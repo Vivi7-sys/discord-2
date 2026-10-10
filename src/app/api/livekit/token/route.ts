@@ -72,15 +72,6 @@ function tooManyRequests(seconds: number) {
 
 
 export async function POST(request: NextRequest) {
-  // Temporariamente disponível apenas no desenvolvimento.
-  // Antes da publicação, implementaremos autorização.
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json(
-      { error: "Rota ainda não disponível em produção." },
-      { status: 403 }
-    );
-  }
-
   // Bloqueia excesso de pedidos, mesmo com conteúdo inválido.
   const globalRetry = checkGlobalLimit();
   if (globalRetry !== null) return tooManyRequests(globalRetry);
