@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RoomServiceClient, TokenVerifier, TrackSource } from "livekit-server-sdk";
 import {
   getShareReservation,
+  isShareReservationOld,
   reserveShare,
   releaseShareReservation,
 } from "@/lib/security/redis-share-reservation";
@@ -225,6 +226,49 @@ try {
       try {
         lockOwner = await acquireRedisRoomLock(roomId);
       } catch {
+        // Se o Redis falhar, ainda permitir que um participante
+        // autenticado encerre a propria transmissao no LiveKit.
+        // Nunca usar esta alternativa para iniciar transmissao.
+        if (action === "release") {
+          try {
+            const people = await service.listParticipants(roomId);
+            const connected = people.some(
+              (participant) => participant.identity === identity
+            );
+
+            if (!connected) {
+              return NextResponse.json(
+                { error: "Você não está conectado à sala." },
+                { status: 409 }
+              );
+            }
+
+            await service.updateParticipant(roomId, identity, {
+              permission: viewerPermission,
+            });
+
+            // A permissão já foi revogada no LiveKit.
+            // Tenta limpar a reserva mesmo se a trava falhou.
+            // A remoção é condicional: só o dono libera sua reserva.
+            try {
+              await releaseShareReservation(roomId, identity);
+            } catch {
+              // Se o Redis realmente estiver indisponível,
+              // a reserva precisará ser reconciliada depois.
+            }
+
+            return NextResponse.json(
+              { ok: true },
+              { headers: { "Cache-Control": "no-store" } }
+            );
+          } catch {
+            return NextResponse.json(
+              { error: "Não foi possível encerrar a transmissão no LiveKit." },
+              { status: 502 }
+            );
+          }
+        }
+
         return NextResponse.json(
           { error: "Proteção de transmissão indisponível. Tente novamente." },
           { status: 503 }
@@ -249,11 +293,49 @@ try {
 
       // Redis guarda a reserva compartilhada entre instâncias.
       // O LiveKit confirma se o participante reservado ainda está na sala.
-      let holder = await getShareReservation(roomId);
+      let holder = action === "acquire"
+        ? await getShareReservation(roomId)
+        : null;
 
       if (holder && !people.some((participant) => participant.identity === holder)) {
         await releaseShareReservation(roomId, holder);
         holder = await getShareReservation(roomId);
+      }
+
+      // Recupera uma reserva antiga quando o dono ainda está
+      // conectado, mas não possui mais permissão de transmitir.
+      // Nunca remove reservas recentes ou de alguém publicando.
+      if (action === "acquire" && holder && holder !== identity) {
+        const reservedPerson = people.find(
+          (participant) => participant.identity === holder
+        );
+
+        if (
+          reservedPerson &&
+          !reservedPerson.permission?.canPublish &&
+          await isShareReservationOld(roomId, holder, 60)
+        ) {
+          const freshPeople = await service.listParticipants(roomId);
+
+          const stillViewer = freshPeople.some(
+            (participant) =>
+              participant.identity === holder &&
+              !participant.permission?.canPublish
+          );
+
+          const anyonePublishing = freshPeople.some(
+            (participant) => participant.permission?.canPublish
+          );
+
+          if (
+            stillViewer &&
+            !anyonePublishing &&
+            await getShareReservation(roomId) === holder
+          ) {
+            await releaseShareReservation(roomId, holder);
+            holder = await getShareReservation(roomId);
+          }
+        }
       }
 
       if (action === "acquire") {
@@ -291,7 +373,12 @@ try {
         await service.updateParticipant(roomId, identity, {
           permission: viewerPermission,
         });
-        await releaseShareReservation(roomId, identity);
+        try {
+          await releaseShareReservation(roomId, identity);
+        } catch {
+          // A permissão já foi revogada no LiveKit.
+          // A reserva pendente precisará ser reconciliada depois.
+        }
       }
       return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
       } finally {

@@ -49,3 +49,35 @@ export async function releaseShareReservation(
 
   return result === 1;
 }
+
+// Verifica a idade aproximada da reserva sem alterar seu prazo.
+// Exige também que a identidade ainda seja a mesma.
+export async function isShareReservationOld(
+  roomId: string,
+  identity: string,
+  minimumAgeSeconds: number
+): Promise<boolean> {
+  const script = `
+    if redis.call("GET", KEYS[1]) ~= ARGV[1] then
+      return 0
+    end
+    local remaining = redis.call("TTL", KEYS[1])
+    if remaining >= 0 and remaining <= tonumber(ARGV[2]) then
+      return 1
+    end
+    return 0
+  `;
+
+  const maximumRemaining = Math.max(
+    0,
+    RESERVATION_SECONDS - minimumAgeSeconds
+  );
+
+  const result = await redis.eval(
+    script,
+    [reservationKey(roomId)],
+    [identity, String(maximumRemaining)]
+  );
+
+  return result === 1;
+}
