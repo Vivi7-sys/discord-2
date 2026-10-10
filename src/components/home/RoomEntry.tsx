@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Turnstile } from "@marsidev/react-turnstile";
-import { useState, type FormEvent } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef, useState, type FormEvent } from "react";
 import { readRoomId } from "@/lib/room/room-id";
 
 /** Cria IDs e navega para as salas; participantes se conectam pelo LiveKit. */
 export default function RoomEntry() {
   const router = useRouter();
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
   const [roomInput, setRoomInput] = useState("");
   const [error, setError] = useState("");
   const [createError, setCreateError] = useState("");
@@ -55,6 +56,10 @@ export default function RoomEntry() {
         cause instanceof Error ? cause.message : "Não foi possível criar a sala."
       );
     } finally {
+      // Tokens Turnstile são de uso único.
+      // Preparar uma nova verificação mesmo se a criação falhar.
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       setCreating(false);
     }
   }
@@ -86,6 +91,7 @@ export default function RoomEntry() {
           <h3>Criar uma sala</h3>
           <p>Gere um link para chamar seus amigos e começar a transmissão.</p>
           <Turnstile
+            ref={turnstileRef}
             siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
             options={{ theme: "dark", size: "compact", language: "pt-BR" }}
             onSuccess={setTurnstileToken}
