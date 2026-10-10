@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { createRoomInvite } from "@/lib/room/server-invite";
 
 // Limite provisório por processo, somente para desenvolvimento.
@@ -19,7 +20,7 @@ const rate = scope.discord2CreateRate ??= {
   resetAt: 0,
 };
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   // Nunca publicar esta versão da API sem proteções adicionais.
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json(
@@ -54,6 +55,26 @@ export async function POST() {
   }
 
   rate.count += 1;
+
+  // O servidor verifica o Turnstile antes de emitir o convite.
+  let turnstileToken: unknown;
+
+  try {
+    const body = await request.json();
+    turnstileToken = body?.turnstileToken;
+  } catch {
+    return NextResponse.json(
+      { error: "Solicitação inválida." },
+      { status: 400 }
+    );
+  }
+
+  if (!(await verifyTurnstileToken(turnstileToken))) {
+    return NextResponse.json(
+      { error: "Verificação de segurança inválida. Tente novamente." },
+      { status: 403, headers: { "Cache-Control": "no-store" } }
+    );
+  }
 
   const secret = process.env.ROOM_INVITE_SECRET;
   if (!secret) {

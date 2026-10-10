@@ -13,6 +13,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.6.1",
     "livekit-client": "^2.22.3",
     "livekit-server-sdk": "^2.19.1",
     "next": "^16.4.0",

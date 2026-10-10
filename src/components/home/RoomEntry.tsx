@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useState, type FormEvent } from "react";
 import { readRoomId } from "@/lib/room/room-id";
 
@@ -11,16 +12,23 @@ export default function RoomEntry() {
   const [error, setError] = useState("");
   const [createError, setCreateError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   async function createRoom() {
     if (creating) return;
 
     setCreateError("");
+    if (!turnstileToken) {
+      setCreateError("Aguarde a verificação de segurança.");
+      return;
+    }
     setCreating(true);
 
     try {
       const response = await fetch("/api/rooms/create", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ turnstileToken }),
         cache: "no-store",
       });
 
@@ -77,11 +85,18 @@ export default function RoomEntry() {
           <span className="home-entry-number" aria-hidden="true">01 / HOST</span>
           <h3>Criar uma sala</h3>
           <p>Gere um link para chamar seus amigos e começar a transmissão.</p>
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+            options={{ theme: "dark", size: "compact", language: "pt-BR" }}
+            onSuccess={setTurnstileToken}
+            onExpire={() => setTurnstileToken(null)}
+            onError={() => setTurnstileToken(null)}
+          />
           <button
             type="button"
             className="btn btn-primary"
             onClick={createRoom}
-            disabled={creating}
+            disabled={creating || !turnstileToken}
           >
             {creating ? "Criando sala..." : "Criar nova sala"}
             <span aria-hidden="true">↗</span>
