@@ -508,9 +508,10 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
   return (
     <main className={theaterMode && screen ? "room room-theater" : "room"}>
       <header className="room-header">
-        <div>
+        <div className="room-heading">
+          <h1 className="room-sr-only">Sala de transmissão</h1>
           <Link href="/" className="back-link">← Início</Link>
-          <h1 className="room-title">Sala <code>{roomId}</code></h1>
+          <RoomInvite roomId={roomId} />
         </div>
         <span className={`status status-${phase}`} aria-live="polite">
           <span className="status-dot" aria-hidden="true" />
@@ -536,35 +537,43 @@ export default function LiveKitRoomConnection({ roomId }: { roomId: string }) {
         <div className="connection-error" role="alert">Falha na captura: {captureError}</div>
       )}
 
+      <div className="room-section-bar">
+        <span className="room-section-title">TELA COMPARTILHADA</span>
+        <span className={`room-section-state${screen ? " room-section-state-live" : ""}`}>
+          {screen ? "● AO VIVO" : "AGUARDANDO TRANSMISSÃO"}
+        </span>
+      </div>
+
       <div className="room-layout">
         <StreamArea
           screen={screen}
           theaterMode={theaterMode}
           onToggleTheater={() => setTheaterMode((enabled) => !enabled)}
+          controls={
+            <RoomControls
+              connected={phase === "connected" && !!roomInstance}
+              sharing={sharing}
+              busy={busy}
+              anotherSharing={anotherSharing}
+              broadcastAllowed={broadcastAllowed}
+              onRequestBroadcast={() => void requestBroadcast()}
+              onCancelBroadcast={() => void cancelBroadcast()}
+              audioMode={audioMode}
+              onAudioModeChange={setAudioMode}
+              qualityProfile={qualityProfile}
+              onQualityProfileChange={setQualityProfile}
+              audioStatus={audioStatus}
+              pendingAudioConfirmation={pendingAudioConfirmation}
+              onApproveVirtualAudio={() => void approveVirtualAudio()}
+              onRejectVirtualAudio={rejectVirtualAudio}
+              onToggleShare={() => void toggleShare()}
+            />
+          }
         />
         <ParticipantList participants={participants} phase={phase} sharingId={screen?.ownerId ?? null} />
       </div>
 
       {roomInstance && <RemoteScreenAudio room={roomInstance} />}
-      <RoomInvite roomId={roomId} />
-      <RoomControls
-        connected={phase === "connected" && !!roomInstance}
-        sharing={sharing}
-        busy={busy}
-        anotherSharing={anotherSharing}
-        broadcastAllowed={broadcastAllowed}
-        onRequestBroadcast={() => void requestBroadcast()}
-        onCancelBroadcast={() => void cancelBroadcast()}
-        audioMode={audioMode}
-        onAudioModeChange={setAudioMode}
-        qualityProfile={qualityProfile}
-        onQualityProfileChange={setQualityProfile}
-        audioStatus={audioStatus}
-        pendingAudioConfirmation={pendingAudioConfirmation}
-        onApproveVirtualAudio={() => void approveVirtualAudio()}
-        onRejectVirtualAudio={rejectVirtualAudio}
-        onToggleShare={() => void toggleShare()}
-      />
     </main>
   );
 }

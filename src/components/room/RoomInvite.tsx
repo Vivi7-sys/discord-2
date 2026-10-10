@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import RoomIcon from "./RoomIcon";
 
 type RoomInviteProps = { roomId: string };
 
@@ -20,12 +21,14 @@ export default function RoomInvite({ roomId }: RoomInviteProps) {
 
   return (
     <div className="invite">
-      <button type="button" className="btn btn-secondary" onClick={copyLink}>
-        Copiar link da sala
-      </button>
-      <span className="invite-message" role="status" aria-live="polite">
-        {message}
-      </span>
+      <div className="invite-action">
+        <button type="button" className="room-copy-btn" onClick={copyLink} title="Copiar link da sala">
+          <RoomIcon name="copy" size={16} /> Copiar link
+        </button>
+        <span className="invite-message" role="status" aria-live="polite">
+          {message}
+        </span>
+      </div>
     </div>
   );
 }

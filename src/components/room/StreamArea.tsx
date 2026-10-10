@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { LocalVideoTrack, RemoteVideoTrack } from "livekit-client";
+import RoomIcon from "./RoomIcon";
 
 export type SharedScreen = {
   track: LocalVideoTrack | RemoteVideoTrack;
@@ -13,10 +14,11 @@ type StreamAreaProps = {
   screen: SharedScreen | null;
   theaterMode: boolean;
   onToggleTheater: () => void;
+  controls: ReactNode;
 };
 
 // Usa a trilha recebida do LiveKit; não abre outra captura de tela.
-export default function StreamArea({ screen, theaterMode, onToggleTheater }: StreamAreaProps) {
+export default function StreamArea({ screen, theaterMode, onToggleTheater, controls }: StreamAreaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -60,21 +62,40 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater }: Str
     };
   }, [track]);
 
+  // A barra fica DENTRO da área do vídeo, inclusive antes de alguém transmitir.
+  // Ações de captura continuam vinculadas ao clique direto do usuário.
+  const playerBar = (
+    <div className="stream-player-bar">
+      {controls}
+      {screen && (
+        <div className="stream-view-controls" role="group" aria-label="Visualização da transmissão">
+          <button type="button" className="stream-view-button"
+            aria-pressed={theaterMode} onClick={onToggleTheater}
+            aria-label={theaterMode ? "Sair do modo teatro" : "Modo teatro"}
+            title={theaterMode ? "Sair do modo teatro" : "Modo teatro"}>
+            <RoomIcon name="theater" size={19} />
+          </button>
+          <button type="button" className="stream-view-button"
+            onClick={() => void toggleFullscreen()}
+            aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+            title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}>
+            <RoomIcon name={isFullscreen ? "minimize" : "maximize"} size={19} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   if (screen) {
     return (
       <section ref={sectionRef} className="stream stream-active" aria-label="Transmissão de tela">
         <video ref={videoRef} className="stream-video" autoPlay playsInline muted />
-        <span className="stream-overlay">Tela de {screen.ownerLabel}</span>
-        <div className="stream-view-controls" role="group" aria-label="Visualização da transmissão">
-          <button type="button" className="stream-view-button"
-            aria-pressed={theaterMode} onClick={onToggleTheater}>
-            {theaterMode ? "Sair do teatro" : "Modo teatro"}
-          </button>
-          <button type="button" className="stream-view-button"
-            onClick={() => void toggleFullscreen()}>
-            {isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
-          </button>
+        <div className="stream-overlay">
+          <span className="stream-live-dot" aria-hidden="true" />
+          <strong>AO VIVO</strong>
+          <span className="stream-overlay-owner">Tela de {screen.ownerLabel}</span>
         </div>
+        {playerBar}
         {fullscreenError && <p className="stream-view-error" role="alert">{fullscreenError}</p>}
       </section>
     );
@@ -95,9 +116,7 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater }: Str
         <path d="M8.5 20.5h7M12 16.5v4" />
       </svg>
       <p className="stream-title">Nenhuma transmissão ainda</p>
-      <p className="stream-hint">
-        Quando alguém compartilhar a tela, o vídeo aparecerá aqui.
-      </p>
+      {playerBar}
     </section>
   );
 }

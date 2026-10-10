@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { generateRoomId, readRoomId } from "@/lib/room/room-id";
 
-/** Só navegação por URL. A sala ainda não é registrada em servidor algum. */
+/** Cria IDs e navega para as salas; participantes se conectam pelo LiveKit. */
 export default function RoomEntry() {
   const router = useRouter();
   const [roomInput, setRoomInput] = useState("");
@@ -29,22 +29,26 @@ export default function RoomEntry() {
 
   return (
     <section className="room-entry" aria-labelledby="room-entry-title">
-      <h2 id="room-entry-title">Comece por aqui</h2>
-      <p className="room-entry-note">
-        Por enquanto, criar ou entrar significa abrir uma página com ID próprio.
-        Ainda não existe conexão entre participantes.
-      </p>
+      <div className="home-section-heading">
+        <div>
+          <span className="home-section-label">PRONTO PARA ENTRAR?</span>
+          <h2 id="room-entry-title">Sua próxima sala começa aqui.</h2>
+        </div>
+        <p className="room-entry-note">Escolha como você quer participar.</p>
+      </div>
       <div className="room-entry-grid">
         <div className="room-entry-panel">
-          <h3>Criar sala</h3>
-          <p>Gere um endereço aleatório para compartilhar depois.</p>
+          <span className="home-entry-number" aria-hidden="true">01 / HOST</span>
+          <h3>Criar uma sala</h3>
+          <p>Gere um link para chamar seus amigos e começar a transmissão.</p>
           <button type="button" className="btn btn-primary" onClick={createRoom}>
-            Criar nova sala
+            Criar nova sala <span aria-hidden="true">↗</span>
           </button>
         </div>
         <form className="room-entry-panel" onSubmit={joinRoom}>
-          <label htmlFor="room-link">Entrar em sala</label>
-          <p>Cole um link deste site ou digite o ID da sala.</p>
+          <span className="home-entry-number" aria-hidden="true">02 / JOIN</span>
+          <label htmlFor="room-link">Entrar com convite</label>
+          <p>Cole o link enviado por alguém ou digite o ID da sala.</p>
           <input
             id="room-link"
             name="room-link"
@@ -66,7 +70,7 @@ export default function RoomEntry() {
             </p>
           )}
           <button type="submit" className="btn btn-secondary">
-            Abrir sala
+            Entrar na sala <span aria-hidden="true">→</span>
           </button>
         </form>
       </div>

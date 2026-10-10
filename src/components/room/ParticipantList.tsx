@@ -14,7 +14,7 @@ type ParticipantListProps = {
   sharingId: string | null;
 };
 
-export default function ParticipantList({ participants, phase, sharingId }: ParticipantListProps) {
+export default function ParticipantList({ participants, sharingId }: ParticipantListProps) {
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const detailsId = useId();
 
@@ -33,13 +33,6 @@ export default function ParticipantList({ participants, phase, sharingId }: Part
         </button>
       </div>
       <div id={detailsId} className={`participants-details${mobileListOpen ? " participants-details-open" : ""}`}>
-        <p className="participants-note">
-          {phase === "connected"
-            ? sharingId
-              ? "Há uma transmissão na sala. O áudio pode ser ativado nos controles de reprodução."
-              : "Pessoas conectadas agora. Aguardando alguém compartilhar a tela."
-            : "A lista aparecerá quando a conexão estiver ativa."}
-        </p>
         {participants.length > 0 && (
           <ul>
             {participants.map((participant) => (
