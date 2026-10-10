@@ -1,5 +1,5 @@
 /** Regras de IDs usadas pelo navegador e pela página da sala. */
-const ROOM_ID_PATTERN = /^[a-z0-9-]{3,64}$/;
+const ROOM_ID_PATTERN = /^[a-f0-9]{32}$/;
 
 export function isValidRoomId(roomId: string): boolean {
   return ROOM_ID_PATTERN.test(roomId);

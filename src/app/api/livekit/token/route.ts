@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     if (
       typeof roomId !== "string" ||
-      !/^[a-zA-Z0-9_-]{6,64}$/.test(roomId) ||
+      !/^[a-f0-9]{32}$/.test(roomId) ||
       !displayName ||
       (body?.avatar != null && !avatar)
     ) {
