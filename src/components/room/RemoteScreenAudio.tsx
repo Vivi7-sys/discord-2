@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { RemoteAudioTrack, Room, RoomEvent, Track } from "livekit-client";
 
 // Apenas a trilha de áudio de tela é reproduzida, nunca o microfone.
-export default function RemoteScreenAudio({ room }: { room: Room }) {
+export default function RemoteScreenAudio({
+  room,
+  volume,
+  muted,
+}: {
+  room: Room;
+  volume: number;
+  muted: boolean;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [track, setTrack] = useState<RemoteAudioTrack | null>(null);
   const [playbackActive, setPlaybackActive] = useState(false);
@@ -51,6 +59,14 @@ export default function RemoteScreenAudio({ room }: { room: Room }) {
       track.detach(element);
     };
   }, [track]);
+
+  // Volume individual de quem assiste; nao modifica a trilha transmitida.
+  useEffect(() => {
+    const element = audioRef.current;
+    if (!element) return;
+    element.volume = Math.max(0, Math.min(1, volume / 100));
+    element.muted = muted;
+  }, [volume, muted]);
 
   async function enablePlayback() {
     try {

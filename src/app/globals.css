@@ -1579,3 +1579,85 @@ body {
   .room-join-avatar { width: 76px; height: 76px; }
   .room-join-photo-actions .btn { padding: 0.5rem 0.7rem; }
 }
+
+
+/* Fase 10: mixer minimalista do player (audio individual do espectador). */
+.stream-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 35px;
+  height: 34px;
+  color: #f5f5f5;
+  flex: 0 0 auto;
+}
+.stream-volume-toggle {
+  display: inline-grid;
+  place-items: center;
+  height: 34px;
+  width: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.stream-volume-toggle:hover,
+.stream-volume-toggle:focus-visible { background: rgba(255, 255, 255, .14); }
+.stream-volume-slider-wrap {
+  display: flex;
+  align-items: center;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width .16s ease, opacity .16s ease;
+}
+.stream-volume:hover .stream-volume-slider-wrap,
+.stream-volume:focus-within .stream-volume-slider-wrap { width: 77px; opacity: 1; }
+.stream-volume-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 72px;
+  height: 3px;
+  padding: 0;
+  margin: 0 3px;
+  border: 0;
+  border-radius: 3px;
+  outline-offset: 5px;
+  background: linear-gradient(#e33845, #e33845) left center / 100% 100% no-repeat, #72727c;
+  cursor: pointer;
+}
+.stream-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: #f8f8f8;
+}
+.stream-volume-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: #f8f8f8;
+}
+.stream-volume-percent {
+  max-width: 0;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 11px;
+  color: #dedee3;
+  font-variant-numeric: tabular-nums;
+  transition: max-width .16s ease, opacity .16s ease;
+}
+.stream-volume:hover .stream-volume-percent,
+.stream-volume:focus-within .stream-volume-percent { max-width: 36px; opacity: 1; }
+@media (hover: none) {
+  .stream-volume-slider-wrap { width: 65px; opacity: 1; }
+  .stream-volume:hover .stream-volume-slider-wrap { width: 65px; }
+  .stream-volume-slider { width: 60px; }
+}

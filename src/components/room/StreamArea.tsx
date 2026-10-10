@@ -15,10 +15,11 @@ type StreamAreaProps = {
   theaterMode: boolean;
   onToggleTheater: () => void;
   controls: ReactNode;
+  volumeControl: ReactNode;
 };
 
 // Usa a trilha recebida do LiveKit; não abre outra captura de tela.
-export default function StreamArea({ screen, theaterMode, onToggleTheater, controls }: StreamAreaProps) {
+export default function StreamArea({ screen, theaterMode, onToggleTheater, controls, volumeControl }: StreamAreaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -67,6 +68,7 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
   const playerBar = (
     <div className="stream-player-bar">
       {controls}
+      {screen && volumeControl}
       {screen && (
         <div className="stream-view-controls" role="group" aria-label="Visualização da transmissão">
           <button type="button" className="stream-view-button"

@@ -7,6 +7,7 @@ import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
 import type { AudioMode, QualityProfile } from "./RoomControls";
 import RemoteScreenAudio from "./RemoteScreenAudio";
+import StreamVolumeControl from "./StreamVolumeControl";
 import StreamArea from "./StreamArea";
 import type { SharedScreen } from "./StreamArea";
 import RoomInvite from "./RoomInvite";
@@ -397,6 +398,31 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     };
   }, [roomId, attempt, profile.displayName, profile.avatar, releaseVirtualAudio, discardPendingVirtualAudio]);
 
+  // O navegador lembra o volume escolhido sem conta ou banco de dados.
+  const [streamVolume, setStreamVolume] = useState<number>(() => {
+    if (typeof window === "undefined") return 100;
+    try {
+      const saved = window.localStorage.getItem("discord2-stream-volume");
+      if (saved === null) return 100;
+      const number = Number(saved);
+      return Number.isFinite(number) && number >= 0 && number <= 100 ? Math.round(number) : 100;
+    } catch {
+      return 100;
+    }
+  });
+  const [streamMuted, setStreamMuted] = useState(false);
+
+  function updateStreamVolume(nextVolume: number) {
+    const safeVolume = Math.max(0, Math.min(100, Math.round(nextVolume)));
+    setStreamVolume(safeVolume);
+    if (safeVolume > 0) setStreamMuted(false);
+    try {
+      window.localStorage.setItem("discord2-stream-volume", String(safeVolume));
+    } catch {
+      // O volume continua funcionando se o navegador bloquear o armazenamento.
+    }
+  }
+
   const localId = roomInstance?.localParticipant.identity;
   const anotherSharing = Boolean(screen && screen.ownerId !== localId);
 
@@ -553,6 +579,17 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           screen={screen}
           theaterMode={theaterMode}
           onToggleTheater={() => setTheaterMode((enabled) => !enabled)}
+          volumeControl={
+            <StreamVolumeControl
+              volume={streamVolume}
+              muted={streamMuted}
+              onVolumeChange={updateStreamVolume}
+              onToggleMute={() => {
+                if (streamVolume === 0) updateStreamVolume(50);
+                else setStreamMuted((value) => !value);
+              }}
+            />
+          }
           controls={
             <RoomControls
               connected={phase === "connected" && !!roomInstance}
@@ -577,7 +614,9 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         <ParticipantList participants={participants} phase={phase} sharingId={screen?.ownerId ?? null} />
       </div>
 
-      {roomInstance && <RemoteScreenAudio room={roomInstance} />}
+      {roomInstance && (
+        <RemoteScreenAudio room={roomInstance} volume={streamVolume} muted={streamMuted} />
+      )}
     </main>
   );
 }
