@@ -2,17 +2,53 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { generateRoomId, readRoomId } from "@/lib/room/room-id";
+import { readRoomId } from "@/lib/room/room-id";
 
 /** Cria IDs e navega para as salas; participantes se conectam pelo LiveKit. */
 export default function RoomEntry() {
   const router = useRouter();
   const [roomInput, setRoomInput] = useState("");
   const [error, setError] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [creating, setCreating] = useState(false);
 
-  function createRoom() {
-    setError("");
-    router.push(`/sala/${generateRoomId()}`);
+  async function createRoom() {
+    if (creating) return;
+
+    setCreateError("");
+    setCreating(true);
+
+    try {
+      const response = await fetch("/api/rooms/create", {
+        method: "POST",
+        cache: "no-store",
+      });
+
+      const data: { roomId?: unknown; error?: unknown } = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data.error === "string"
+            ? data.error
+            : "Não foi possível criar a sala."
+        );
+      }
+
+      if (
+        typeof data.roomId !== "string" ||
+        !/^[a-f0-9]{64}$/.test(data.roomId)
+      ) {
+        throw new Error("O servidor retornou um convite inválido.");
+      }
+
+      router.push(`/sala/${data.roomId}`);
+    } catch (cause) {
+      setCreateError(
+        cause instanceof Error ? cause.message : "Não foi possível criar a sala."
+      );
+    } finally {
+      setCreating(false);
+    }
   }
 
   function joinRoom(event: FormEvent<HTMLFormElement>) {
@@ -41,9 +77,18 @@ export default function RoomEntry() {
           <span className="home-entry-number" aria-hidden="true">01 / HOST</span>
           <h3>Criar uma sala</h3>
           <p>Gere um link para chamar seus amigos e começar a transmissão.</p>
-          <button type="button" className="btn btn-primary" onClick={createRoom}>
-            Criar nova sala <span aria-hidden="true">↗</span>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={createRoom}
+            disabled={creating}
+          >
+            {creating ? "Criando sala..." : "Criar nova sala"}
+            <span aria-hidden="true">↗</span>
           </button>
+          {createError && (
+            <p role="alert" className="form-error">{createError}</p>
+          )}
         </div>
         <form className="room-entry-panel" onSubmit={joinRoom}>
           <span className="home-entry-number" aria-hidden="true">02 / JOIN</span>

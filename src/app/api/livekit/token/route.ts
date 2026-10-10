@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { randomUUID } from "node:crypto";
+import { verifyRoomInvite } from "@/lib/room/server-invite";
 import { cleanDisplayName, safeAvatarDataUrl } from "@/lib/room/participant-profile";
 
 // Fase 9A: proteção INICIAL apenas para desenvolvimento em um processo.
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     if (
       typeof roomId !== "string" ||
-      !/^[a-f0-9]{32}$/.test(roomId) ||
+      !/^[a-f0-9]{64}$/.test(roomId) ||
       !displayName ||
       (body?.avatar != null && !avatar)
     ) {
@@ -117,6 +118,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "LiveKit não configurado." },
         { status: 500 }
+      );
+    }
+
+    const inviteSecret = process.env.ROOM_INVITE_SECRET;
+    if (!inviteSecret) {
+      return NextResponse.json(
+        { error: "Servidor de convites não configurado." },
+        { status: 500 }
+      );
+    }
+
+    // Convites novos precisam ter uma assinatura legítima.
+    // IDs antigos de 32 caracteres permanecem temporariamente
+    // aceitos apenas durante a migração em desenvolvimento.
+    if (roomId.length === 64 && !verifyRoomInvite(roomId, inviteSecret)) {
+      return NextResponse.json(
+        { error: "Convite inválido. Solicite um novo link de sala." },
+        { status: 403, headers: { "Cache-Control": "no-store" } }
       );
     }
 

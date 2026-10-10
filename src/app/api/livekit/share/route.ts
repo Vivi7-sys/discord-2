@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     return shareTooManyRequests(globalRetry);
   }
 
-  if (typeof roomId !== "string" || !/^[a-f0-9]{32}$/.test(roomId) ||
+  if (typeof roomId !== "string" || !/^[a-f0-9]{64}$/.test(roomId) ||
       (action !== "acquire" && action !== "release")) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
   }
