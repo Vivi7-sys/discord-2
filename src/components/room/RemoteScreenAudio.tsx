@@ -15,7 +15,7 @@ export default function RemoteScreenAudio({
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [track, setTrack] = useState<RemoteAudioTrack | null>(null);
-  const [playbackActive, setPlaybackActive] = useState(false);
+  const [blockedTrack, setBlockedTrack] = useState<RemoteAudioTrack | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export default function RemoteScreenAudio({
         }
       }
       setTrack(current);
-      if (!current) setPlaybackActive(false);
     }
 
     room.on(RoomEvent.TrackSubscribed, update);
@@ -60,6 +59,33 @@ export default function RemoteScreenAudio({
     };
   }, [track]);
 
+  // Tenta iniciar o audio automaticamente quando a trilha aparece.
+  // Se o navegador bloquear, mostra o botao de ativacao.
+  useEffect(() => {
+    const element = audioRef.current;
+    if (!element || !track) return;
+
+    let cancelled = false;
+
+    void Promise.all([room.startAudio(), element.play()])
+      .then(() => {
+        if (!cancelled) {
+          setBlockedTrack(null);
+          setError(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBlockedTrack(track);
+          setError(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [room, track]);
+
   // Volume individual de quem assiste; nao modifica a trilha transmitida.
   useEffect(() => {
     const element = audioRef.current;
@@ -70,11 +96,13 @@ export default function RemoteScreenAudio({
 
   async function enablePlayback() {
     try {
-      await room.startAudio();
-      await audioRef.current?.play();
+      const element = audioRef.current;
+      if (!element) return;
+      await Promise.all([room.startAudio(), element.play()]);
       setError(null);
-      setPlaybackActive(true);
+      setBlockedTrack(null);
     } catch {
+      setBlockedTrack(track);
       setError("O navegador bloqueou o som. Clique novamente para habilitar a reprodução.");
     }
   }
@@ -85,10 +113,14 @@ export default function RemoteScreenAudio({
       {track && (
         <>
           <span>Áudio da tela recebido.</span>
-          <button className="btn btn-secondary" type="button" onClick={() => void enablePlayback()}>
-            {playbackActive ? "Som ativado · repetir" : "Ativar som"}
-          </button>
-          {error && <span role="alert">{error}</span>}
+          {blockedTrack === track && (
+            <>
+              <button className="btn btn-secondary" type="button" onClick={() => void enablePlayback()}>
+                Ativar som
+              </button>
+              {error && <span role="alert">{error}</span>}
+            </>
+          )}
         </>
       )}
     </div>

@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RoomServiceClient, TokenVerifier, TrackSource } from "livekit-server-sdk";
+import {
+  getShareReservation,
+  reserveShare,
+  releaseShareReservation,
+} from "@/lib/security/redis-share-reservation";
+import {
+  acquireRedisRoomLock,
+  releaseRedisRoomLock,
+} from "@/lib/security/redis-room-lock";
+import {
+  getShareGlobalLimiter,
+  getShareAcquireLimiter,
+} from "@/lib/security/share-rate-limit";
 
 // Exclusividade apenas por processo: suficiente para a instância única de
 // desenvolvimento, NÃO para múltiplos servidores ou deployment em produção.
 
 const scope = globalThis as typeof globalThis & {
   discord2RoomQueues?: Map<string, Promise<void>>;
-  discord2Reservations?: Map<string, string>;
 };
 const roomQueues = scope.discord2RoomQueues ??= new Map<string, Promise<void>>();
-const reservations = scope.discord2Reservations ??= new Map<string, string>();
 
 // Fase 9B: limitação inicial da API de transmissão (apenas um processo).
 // Não é uma proteção distribuída: em produção, combinar com limites na borda
@@ -124,6 +135,23 @@ export async function POST(request: NextRequest) {
     return shareTooManyRequests(globalRetry);
   }
 
+  // Não bloquear a liberação de transmissão, mesmo se o Redis falhar.
+  if (action === "acquire") {
+    try {
+      const result = await getShareGlobalLimiter().limit("global");
+      if (!result.success) {
+        return shareTooManyRequests(
+          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Proteção de segurança indisponível. Tente novamente." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+  }
+
   if (typeof roomId !== "string" || !/^[a-f0-9]{64}$/.test(roomId) ||
       (action !== "acquire" && action !== "release")) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
@@ -165,6 +193,20 @@ try {
   if (action === "acquire") {
     const acquireRetry = acquireShareRetry(identity);
     if (acquireRetry !== null) return shareTooManyRequests(acquireRetry);
+
+    try {
+      const result = await getShareAcquireLimiter().limit(identity);
+      if (!result.success) {
+        return shareTooManyRequests(
+          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Proteção de segurança indisponível. Tente novamente." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
   }
 
 
@@ -178,6 +220,25 @@ try {
     const service = new RoomServiceClient(endpoint.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
     return await withRoomLock(roomId, async () => {
+      let lockOwner: string | null;
+
+      try {
+        lockOwner = await acquireRedisRoomLock(roomId);
+      } catch {
+        return NextResponse.json(
+          { error: "Proteção de transmissão indisponível. Tente novamente." },
+          { status: 503 }
+        );
+      }
+
+      if (!lockOwner) {
+        return NextResponse.json(
+          { error: "Outra operação está sendo processada nesta sala. Tente novamente." },
+          { status: 409 }
+        );
+      }
+
+      try {
       // LiveKit é a fonte de verdade: a permissão existe somente enquanto o
       // participante estiver na sala. Sair da sala libera a vaga naturalmente.
       const people = await service.listParticipants(roomId);
@@ -186,29 +247,61 @@ try {
         return NextResponse.json({ error: "Você não está conectado à sala." }, { status: 409 });
       }
 
-      // Reserva em memória cobre o intervalo entre a atualização de permissão
-      // no LiveKit e sua propagação para listParticipants. Reconcilia ausências
-      // para liberar a vaga quando um navegador sai abruptamente da sala.
-      const holder = reservations.get(roomId);
+      // Redis guarda a reserva compartilhada entre instâncias.
+      // O LiveKit confirma se o participante reservado ainda está na sala.
+      let holder = await getShareReservation(roomId);
+
       if (holder && !people.some((participant) => participant.identity === holder)) {
-        reservations.delete(roomId);
+        await releaseShareReservation(roomId, holder);
+        holder = await getShareReservation(roomId);
       }
 
       if (action === "acquire") {
-        if ((reservations.has(roomId) && reservations.get(roomId) !== identity) ||
-            people.some((participant) => participant.identity !== identity && participant.permission?.canPublish)) {
-          return NextResponse.json({ error: "Outra pessoa já reservou ou está transmitindo. Aguarde." }, { status: 409 });
+        if (
+          (holder !== null && holder !== identity) ||
+          people.some(
+            (participant) =>
+              participant.identity !== identity &&
+              participant.permission?.canPublish
+          )
+        ) {
+          return NextResponse.json(
+            { error: "Outra pessoa já reservou ou está transmitindo. Aguarde." },
+            { status: 409 }
+          );
         }
+
+        if (!holder) {
+          const reserved = await reserveShare(roomId, identity);
+          if (!reserved) {
+            return NextResponse.json(
+              { error: "Outra pessoa já reservou a transmissão. Aguarde." },
+              { status: 409 }
+            );
+          }
+        }
+
         if (!person.permission?.canPublish) {
-          await service.updateParticipant(roomId, identity, { permission: screenPermission });
+          await service.updateParticipant(roomId, identity, {
+            permission: screenPermission,
+          });
         }
-        reservations.set(roomId, identity);
       } else {
-        // Revoke mesmo se listParticipants ainda não refletiu a concessão.
-        await service.updateParticipant(roomId, identity, { permission: viewerPermission });
-        if (reservations.get(roomId) === identity) reservations.delete(roomId);
+        // Revoga a permissão antes de liberar a reserva.
+        await service.updateParticipant(roomId, identity, {
+          permission: viewerPermission,
+        });
+        await releaseShareReservation(roomId, identity);
       }
       return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+      } finally {
+        // A trava possui expiração de segurança no Redis.
+        try {
+          await releaseRedisRoomLock(roomId, lockOwner);
+        } catch {
+          // Se o Redis falhar, a trava expira automaticamente.
+        }
+      }
     });
   } catch {
     // Não expor a API secret nem mensagens internas do servidor.

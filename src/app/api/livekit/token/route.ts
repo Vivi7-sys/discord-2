@@ -4,6 +4,10 @@ import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 import { randomUUID } from "node:crypto";
 import { verifyRoomInvite } from "@/lib/room/server-invite";
 import { cleanDisplayName, safeAvatarDataUrl } from "@/lib/room/participant-profile";
+import {
+  getTokenGlobalLimiter,
+  getTokenRoomLimiter,
+} from "@/lib/security/token-rate-limit";
 
 // Fase 9A: proteção INICIAL apenas para desenvolvimento em um processo.
 // Em produção, usar limites por IP/identidade e armazenamento compartilhado.
@@ -81,6 +85,21 @@ export async function POST(request: NextRequest) {
   const globalRetry = checkGlobalLimit();
   if (globalRetry !== null) return tooManyRequests(globalRetry);
 
+  // Limite global compartilhado entre reinícios do servidor.
+  try {
+    const result = await getTokenGlobalLimiter().limit("global");
+    if (!result.success) {
+      return tooManyRequests(
+        Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+      );
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Proteção de segurança indisponível. Tente novamente." },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
   try {
     const body = await request.json();
     const roomId = body?.roomId;
@@ -101,6 +120,21 @@ export async function POST(request: NextRequest) {
 
     const roomRetry = checkRoomLimit(roomId);
     if (roomRetry !== null) return tooManyRequests(roomRetry);
+
+    // Limite compartilhado específico para esta sala.
+    try {
+      const result = await getTokenRoomLimiter().limit(roomId);
+      if (!result.success) {
+        return tooManyRequests(
+          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Proteção de segurança indisponível. Tente novamente." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
 
     // Valida a foto compactada antes de carregar o token do LiveKit.
     if (avatar) {

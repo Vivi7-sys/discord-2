@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { createRoomInvite } from "@/lib/room/server-invite";
+import { getCreateLimiter } from "@/lib/security/redis-rate-limit";
 
 // Limite provisório por processo, somente para desenvolvimento.
 const WINDOW_MS = 60_000;
@@ -73,6 +74,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Verificação de segurança inválida. Tente novamente." },
       { status: 403, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  // Limite compartilhado no Redis, independente de reinícios do servidor.
+  // Por enquanto, todos os visitantes compartilham o mesmo limite.
+  try {
+    const result = await getCreateLimiter().limit("global");
+
+    if (!result.success) {
+      const retryAfter = Math.max(
+        1,
+        Math.ceil((result.reset - Date.now()) / 1000)
+      );
+
+      return NextResponse.json(
+        { error: "Muitas salas criadas. Aguarde um pouco." },
+        {
+          status: 429,
+          headers: {
+            "Cache-Control": "no-store",
+            "Retry-After": String(retryAfter),
+          },
+        }
+      );
+    }
+  } catch {
+    // Se o Redis falhar, não permitir criação sem proteção.
+    return NextResponse.json(
+      { error: "Proteção de segurança indisponível. Tente novamente." },
+      { status: 503 }
     );
   }
 
