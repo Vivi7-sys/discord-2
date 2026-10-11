@@ -27,7 +27,6 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
 
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const controlsHoveredRef = useRef(false);
   const controlsFocusedRef = useRef(false);
 
   function clearHideTimer() {
@@ -42,7 +41,7 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
     setControlsVisible(true);
 
     hideTimerRef.current = setTimeout(() => {
-      if (!controlsHoveredRef.current && !controlsFocusedRef.current) {
+      if (!controlsFocusedRef.current) {
         setControlsVisible(false);
       }
       hideTimerRef.current = null;
@@ -53,7 +52,7 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
     if (!screen) return;
 
     const timer = setTimeout(() => {
-      if (!controlsHoveredRef.current && !controlsFocusedRef.current) {
+      if (!controlsFocusedRef.current) {
         setControlsVisible(false);
       }
     }, 3000);
@@ -111,15 +110,6 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
   const playerBar = (
     <div
       className="stream-player-bar"
-      onPointerEnter={() => {
-        controlsHoveredRef.current = true;
-        clearHideTimer();
-        setControlsVisible(true);
-      }}
-      onPointerLeave={() => {
-        controlsHoveredRef.current = false;
-        revealControls();
-      }}
       onFocusCapture={() => {
         controlsFocusedRef.current = true;
         clearHideTimer();
