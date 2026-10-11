@@ -183,9 +183,9 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     busyRef.current = true;
     setBusy(true);
     try {
-      // Permissão apenas para diagnóstico local; não é uma validação do sistema.
-      if (process.env.NODE_ENV !== "development" ||
-          !/^(padrão|padrao|default)$/i.test(audio.label.trim())) {
+      // O usuário deve verificar a origem no pavucontrol antes de autorizar.
+      // Nunca publicar automaticamente uma entrada genérica.
+      if (!/^(padrão|padrao|default)$/i.test(audio.label.trim())) {
         audio.stop();
         setAudioStatus("Confirmação manual indisponível; áudio não enviado.");
         return;
@@ -497,10 +497,10 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
               setAudioStatus("A conexão ou a captura foi encerrada; áudio não enviado.");
             } else if (verifiedByName) {
               await publishVirtualAudio(room, audio);
-            } else if (genericDefault && process.env.NODE_ENV === "development") {
+            } else if (genericDefault) {
               pendingVirtualTrackRef.current = audio;
               setPendingAudioConfirmation(true);
-              setAudioStatus("Áudio ainda NÃO enviado. Confira esta captura do Brave em pavucontrol → Gravando antes de confirmar.");
+              setAudioStatus("Áudio NÃO enviado. Em pavucontrol → Gravando, escolha Screen Share Audio para este navegador. Confirme que NÃO é o microfone antes de autorizar.");
             } else {
               stream.getTracks().forEach((track) => track.stop());
               setAudioStatus("Não foi possível confirmar a fonte de áudio; vídeo continua funcionando.");

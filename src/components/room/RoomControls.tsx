@@ -102,8 +102,8 @@ export default function RoomControls({
       {pendingAudioConfirmation && sharing && (
         <div className="audio-verification desktop-broadcast-only" role="group" aria-label="Confirmar fonte virtual de áudio">
           <p>
-            Confira em pavucontrol → Gravando se a captura <strong>Brave input</strong>
-            está em <strong>Screen Share Audio</strong>, não no microfone USB.
+            Confira em pavucontrol → Gravando se a captura <strong>do navegador</strong>
+            está em <strong>Screen Share Audio</strong>, não em nenhum microfone.
             O áudio ainda não foi enviado.
           </p>
           <button type="button" className="btn btn-primary"
