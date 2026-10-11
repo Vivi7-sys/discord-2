@@ -1679,3 +1679,22 @@ body {
     transition: none;
   }
 }
+
+
+/* Discord 2: correção definitiva de ocultação */
+.room .stream.stream-active > .stream-player-bar {
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+.room .stream.stream-active.stream-controls-hidden
+> .stream-player-bar:not(:has(details[open])):not(:has(.audio-verification)):not(:has(:focus-visible)) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room .stream.stream-active > .stream-player-bar {
+    transition: none;
+  }
+}
