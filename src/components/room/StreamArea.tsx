@@ -25,6 +25,49 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenError, setFullscreenError] = useState<string | null>(null);
 
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const controlsHoveredRef = useRef(false);
+  const controlsFocusedRef = useRef(false);
+
+  function clearHideTimer() {
+    if (hideTimerRef.current !== null) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }
+
+  function revealControls() {
+    clearHideTimer();
+    setControlsVisible(true);
+
+    hideTimerRef.current = setTimeout(() => {
+      if (!controlsHoveredRef.current && !controlsFocusedRef.current) {
+        setControlsVisible(false);
+      }
+      hideTimerRef.current = null;
+    }, 3000);
+  }
+
+  useEffect(() => {
+    if (!screen) return;
+
+    const timer = setTimeout(() => {
+      if (!controlsHoveredRef.current && !controlsFocusedRef.current) {
+        setControlsVisible(false);
+      }
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+      if (hideTimerRef.current !== null) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+    };
+  }, [screen]);
+
+
   // A tecla Esc sai da tela cheia pelo próprio navegador.
   useEffect(() => {
     const updateFullscreen = () => {
@@ -66,7 +109,29 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
   // A barra fica DENTRO da área do vídeo, inclusive antes de alguém transmitir.
   // Ações de captura continuam vinculadas ao clique direto do usuário.
   const playerBar = (
-    <div className="stream-player-bar">
+    <div
+      className="stream-player-bar"
+      onPointerEnter={() => {
+        controlsHoveredRef.current = true;
+        clearHideTimer();
+        setControlsVisible(true);
+      }}
+      onPointerLeave={() => {
+        controlsHoveredRef.current = false;
+        revealControls();
+      }}
+      onFocusCapture={() => {
+        controlsFocusedRef.current = true;
+        clearHideTimer();
+        setControlsVisible(true);
+      }}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          controlsFocusedRef.current = false;
+          revealControls();
+        }
+      }}
+    >
       {controls}
       {screen && volumeControl}
       {screen && (
@@ -90,7 +155,21 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
 
   if (screen) {
     return (
-      <section ref={sectionRef} className="stream stream-active" aria-label="Transmissão de tela">
+      <section
+        ref={sectionRef}
+        className={`stream stream-active${controlsVisible ? "" : " stream-controls-hidden"}`}
+        aria-label="Transmissão de tela"
+        onPointerMove={(event) => {
+          if (event.pointerType === "mouse") revealControls();
+        }}
+        onPointerDown={(event) => {
+          if (event.pointerType === "touch" &&
+              (event.target === event.currentTarget ||
+               event.target === videoRef.current)) {
+            revealControls();
+          }
+        }}
+      >
         <video ref={videoRef} className="stream-video" autoPlay playsInline muted />
         <div className="stream-overlay">
           <span className="stream-live-dot" aria-hidden="true" />

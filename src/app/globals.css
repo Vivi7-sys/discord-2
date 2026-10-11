@@ -1661,3 +1661,21 @@ body {
   .stream-volume:hover .stream-volume-slider-wrap { width: 65px; }
   .stream-volume-slider { width: 60px; }
 }
+
+
+/* DISCORD 2 - CONTROLES AUTO-OCULTÁVEIS */
+.room .stream.stream-active .stream-player-bar {
+  transition: opacity 220ms ease;
+}
+
+.room .stream.stream-active.stream-controls-hidden
+.stream-player-bar:not(:has(.audio-verification)):not(:has(details[open])) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room .stream.stream-active .stream-player-bar {
+    transition: none;
+  }
+}
