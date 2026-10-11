@@ -79,9 +79,9 @@ export default function RoomControls({
               disabled={!connected || busy || sharing}
               onChange={(event) => onAudioModeChange(event.target.value as AudioMode)}
             >
-              <option value="none">Sem áudio</option>
-              <option value="browser">Áudio nativo do navegador</option>
-              <option value="linux-virtual">Fonte virtual Linux (Screen Share Audio)</option>
+              <option value="browser">Automático — áudio do navegador (recomendado)</option>
+              <option value="none">Somente vídeo — sem áudio</option>
+              <option value="linux-virtual">Avançado — fonte virtual Linux</option>
             </select>
           </label>
           <label className="audio-mode-label">

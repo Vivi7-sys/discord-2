@@ -65,7 +65,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const virtualTrackRef = useRef<MediaStreamTrack | null>(null);
   const pendingVirtualTrackRef = useRef<MediaStreamTrack | null>(null);
   const [pendingAudioConfirmation, setPendingAudioConfirmation] = useState(false);
-  const [audioMode, setAudioMode] = useState<AudioMode>("none");
+  const [audioMode, setAudioMode] = useState<AudioMode>("browser");
   const [qualityProfile, setQualityProfile] = useState<QualityProfile>("equilibrado");
   const [audioStatus, setAudioStatus] = useState<string | null>(null);
 
@@ -467,7 +467,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
           setAudioStatus(publication?.audioTrack
             ? "O navegador está transmitindo áudio da tela."
-            : "O navegador compartilhou apenas o vídeo. No Linux, use a opção Fonte virtual Screen Share Audio.");
+            : "Vídeo transmitido sem áudio: o navegador não forneceu uma faixa de som. Para áudio de guia, tente Chrome, Edge ou Brave e habilite o compartilhamento de áudio. Para jogos no Linux, use a fonte virtual nas configurações.");
         } else if (audioMode === "linux-virtual") {
           // É uma escolha explícita: jamais publicamos a entrada padrão às cegas.
           try {
