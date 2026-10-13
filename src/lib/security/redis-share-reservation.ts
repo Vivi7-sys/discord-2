@@ -1,6 +1,9 @@
-import { Redis } from "@upstash/redis";
+import { createSecurityRedis } from "./redis-client";
 
-const redis = Redis.fromEnv();
+let redis: ReturnType<typeof createSecurityRedis> | undefined;
+function getRedis() {
+  return redis ??= createSecurityRedis();
+}
 
 // Prazo de segurança para reservas abandonadas.
 // A presença e as permissões no LiveKit também precisam ser verificadas.
@@ -13,14 +16,14 @@ function reservationKey(roomId: string): string {
 export async function getShareReservation(
   roomId: string
 ): Promise<string | null> {
-  return redis.get<string>(reservationKey(roomId));
+  return getRedis().get<string>(reservationKey(roomId));
 }
 
 export async function reserveShare(
   roomId: string,
   identity: string
 ): Promise<boolean> {
-  const result = await redis.set(
+  const result = await getRedis().set(
     reservationKey(roomId),
     identity,
     { nx: true, ex: RESERVATION_SECONDS }
@@ -41,7 +44,7 @@ export async function releaseShareReservation(
     return 0
   `;
 
-  const result = await redis.eval(
+  const result = await getRedis().eval(
     script,
     [reservationKey(roomId)],
     [identity]
@@ -73,7 +76,7 @@ export async function isShareReservationOld(
     RESERVATION_SECONDS - minimumAgeSeconds
   );
 
-  const result = await redis.eval(
+  const result = await getRedis().eval(
     script,
     [reservationKey(roomId)],
     [identity, String(maximumRemaining)]

@@ -1,4 +1,5 @@
-import { Redis } from "@upstash/redis";
+import { rateLimitPrefix } from "./rate-limit-prefix";
+import { createSecurityRedis } from "./redis-client";
 import { Ratelimit } from "@upstash/ratelimit";
 
 // Compartilhado pelo Redis, mesmo após reiniciar o servidor.
@@ -10,9 +11,9 @@ const scope = globalThis as typeof globalThis & {
 export function getCreateLimiter(): Ratelimit {
   if (!scope.discord2CreateLimiter) {
     scope.discord2CreateLimiter = new Ratelimit({
-      redis: Redis.fromEnv(),
+      redis: createSecurityRedis(),
       limiter: Ratelimit.fixedWindow(10, "1 m"),
-      prefix: "discord2:rate:create:v1",
+      prefix: rateLimitPrefix("create:v1"),
       analytics: false,
     });
   }

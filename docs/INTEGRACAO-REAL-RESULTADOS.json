@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-13T23:03:16.895Z",
+  "isolated": true,
+  "mocked": false,
+  "media": "synthetic input; actual WebRTC transmission and decoding",
+  "results": [
+    {
+      "scenario": "redis_mutex_reservation_and_expiry",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "two_simultaneous_real_webrtc_connections",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "exclusive_acquisition_across_two_http_instances",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "actual_video_and_audio_received_over_webrtc",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "stop_video_audio_and_transfer_publisher",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "publisher_process_crash_and_reservation_recovery",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "new_participant_rejoins_after_crash",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "redis_connection_failure_blocks_grant_and_allows_real_revocation",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "livekit_connection_failure_returns_error_and_releases_real_mutex",
+      "status": "passed",
+      "type": "real-integration"
+    },
+    {
+      "scenario": "isolated_resource_cleanup",
+      "status": "passed",
+      "type": "real-integration"
+    }
+  ],
+  "notTested": [
+    "browser getDisplayMedia and user interaction",
+    "Linux virtual device",
+    "Safari/iOS autoplay",
+    "arbitrary network partitions and transaction fencing"
+  ]
+}

@@ -1,4 +1,5 @@
-import { Redis } from "@upstash/redis";
+import { rateLimitPrefix } from "./rate-limit-prefix";
+import { createSecurityRedis } from "./redis-client";
 import { Ratelimit } from "@upstash/ratelimit";
 
 const scope = globalThis as typeof globalThis & {
@@ -8,18 +9,18 @@ const scope = globalThis as typeof globalThis & {
 
 export function getTokenGlobalLimiter(): Ratelimit {
   return (scope.discord2TokenGlobalLimiter ??= new Ratelimit({
-    redis: Redis.fromEnv(),
+    redis: createSecurityRedis(),
     limiter: Ratelimit.fixedWindow(60, "1 m"),
-    prefix: "discord2:rate:token:global:v1",
+    prefix: rateLimitPrefix("token:global:v1"),
     analytics: false,
   }));
 }
 
 export function getTokenRoomLimiter(): Ratelimit {
   return (scope.discord2TokenRoomLimiter ??= new Ratelimit({
-    redis: Redis.fromEnv(),
+    redis: createSecurityRedis(),
     limiter: Ratelimit.fixedWindow(20, "1 m"),
-    prefix: "discord2:rate:token:room:v1",
+    prefix: rateLimitPrefix("token:room:v1"),
     analytics: false,
   }));
 }

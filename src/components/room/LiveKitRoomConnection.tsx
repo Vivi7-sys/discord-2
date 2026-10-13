@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AudioPresets, ConnectionState, Room, RoomEvent, Track } from "livekit-client";
+import { AudioPresets, ConnectionState, Room, RoomEvent, Track, type LocalTrack, type LocalTrackPublication } from "livekit-client";
 import Link from "next/link";
 import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
@@ -11,6 +11,7 @@ import StreamVolumeControl from "./StreamVolumeControl";
 import StreamArea from "./StreamArea";
 import type { SharedScreen } from "./StreamArea";
 import RoomInvite from "./RoomInvite";
+import { cleanupScreenTracks, publishScreenTracks } from "@/lib/capture/publish-screen-tracks";
 import { avatarFromMetadata, type RoomProfile } from "@/lib/room/participant-profile";
 
 type Phase = "connecting" | "connected" | "reconnecting" | "disconnected" | "error";
@@ -59,15 +60,27 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const [theaterMode, setTheaterMode] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [broadcastAllowed, setBroadcastAllowed] = useState(false);
-  const tokenRef = useRef<string | null>(null);
+  const tokenRef = useRef<{ room: Room; token: string } | null>(null);
+  const activeRoomRef = useRef<Room | null>(null);
+  const captureTracksRef = useRef<{ room: Room; tracks: LocalTrack[]; onEnded: () => void } | null>(null);
+  const releasesRef = useRef(new WeakMap<Room, Promise<void>>());
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
+  const stoppingShareRef = useRef<Room | null>(null);
   const virtualTrackRef = useRef<MediaStreamTrack | null>(null);
   const pendingVirtualTrackRef = useRef<MediaStreamTrack | null>(null);
   const [pendingAudioConfirmation, setPendingAudioConfirmation] = useState(false);
   const [audioMode, setAudioMode] = useState<AudioMode>("browser");
   const [qualityProfile, setQualityProfile] = useState<QualityProfile>("equilibrado");
   const [audioStatus, setAudioStatus] = useState<string | null>(null);
+
+  const releaseScreenCapture = useCallback(async (room: Room) => {
+    const capture = captureTracksRef.current;
+    if (!capture || capture.room !== room) return;
+    captureTracksRef.current = null;
+    capture.tracks[0]?.mediaStreamTrack.removeEventListener("ended", capture.onEnded);
+    await cleanupScreenTracks(capture.tracks, (track) => room.localParticipant.unpublishTrack(track, true));
+  }, []);
 
   // Enquanto o usuário confere o pavucontrol, a entrada está capturando,
   // mas NÃO está publicada no LiveKit.
@@ -82,30 +95,41 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     const track = virtualTrackRef.current;
     virtualTrackRef.current = null;
     if (!track) return;
+    track.stop();
     try {
       await room.localParticipant.unpublishTrack(track, true);
     } catch {
       // Pode ter desconectado enquanto a trilha estava sendo removida.
-    } finally {
-      track.stop();
     }
   }, [discardPendingVirtualAudio]);
 
-  async function requestBroadcastAction(action: "acquire" | "release") {
-    const token = tokenRef.current;
-    if (!token) throw new Error("Entre na sala novamente para solicitar a transmissão.");
-    const response = await fetch("/api/livekit/share", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({ roomId, action }),
-      cache: "no-store",
-    });
-    const result: { error?: string } = await response.json();
-    if (!response.ok) throw new Error(result.error || "Não foi possível solicitar a transmissão.");
-  }
+  const requestBroadcastAction = useCallback(async (room: Room, action: "acquire" | "release") => {
+    const session = tokenRef.current;
+    if (!session || session.room !== room) throw new Error("Entre na sala novamente para solicitar a transmissão.");
+    const pendingRelease = releasesRef.current.get(room);
+    if (action === "release" && pendingRelease) return pendingRelease;
+    const work = async () => {
+      const response = await fetch("/api/livekit/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ roomId, action }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      });
+      const result: { error?: string } = await response.json();
+      if (!response.ok) throw new Error(result.error || "Não foi possível solicitar a transmissão.");
+    };
+    const request = work();
+    if (action === "release") releasesRef.current.set(room, request);
+    try {
+      await request;
+    } finally {
+      if (action === "release") releasesRef.current.delete(room);
+    }
+  }, [roomId]);
 
   async function requestBroadcast() {
     const room = roomInstance;
@@ -114,7 +138,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     setBusy(true);
     setCaptureError(null);
     try {
-      await requestBroadcastAction("acquire");
+      await requestBroadcastAction(room, "acquire");
+      if (activeRoomRef.current !== room) return;
       // A atualização também chega ao navegador pelo evento de permissões.
       setBroadcastAllowed(Boolean(room.localParticipant.permissions?.canPublish));
       if (!room.localParticipant.permissions?.canPublish) {
@@ -123,32 +148,41 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         setAudioStatus(null);
       }
     } catch (cause) {
+      if (activeRoomRef.current !== room) return;
       setCaptureError(cause instanceof Error ? cause.message : "Não foi possível reservar a transmissão.");
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      if (activeRoomRef.current === room) {
+        busyRef.current = false;
+        setBusy(false);
+      }
     }
   }
 
   async function cancelBroadcast() {
-    if (busyRef.current || !roomInstance || sharing) return;
+    const room = roomInstance;
+    if (busyRef.current || !room || sharing) return;
     busyRef.current = true;
     setBusy(true);
     setCaptureError(null);
     try {
-      await requestBroadcastAction("release");
+      await requestBroadcastAction(room, "release");
+      if (activeRoomRef.current !== room) return;
       setBroadcastAllowed(false);
       setAudioStatus(null);
     } catch (cause) {
+      if (activeRoomRef.current !== room) return;
       setCaptureError(cause instanceof Error ? cause.message : "Não foi possível liberar a transmissão.");
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      if (activeRoomRef.current === room) {
+        busyRef.current = false;
+        setBusy(false);
+      }
     }
   }
 
   async function publishVirtualAudio(room: Room, audio: MediaStreamTrack) {
     if (audio.readyState !== "live" ||
+        activeRoomRef.current !== room ||
         !room.localParticipant.isScreenShareEnabled ||
         room.state !== ConnectionState.Connected) {
       audio.stop();
@@ -156,6 +190,11 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       return;
     }
     virtualTrackRef.current = audio;
+    async function cleanupAudio() {
+      if (virtualTrackRef.current === audio) virtualTrackRef.current = null;
+      audio.stop();
+      try { await room.localParticipant.unpublishTrack(audio, true); } catch { /* Já desconectou. */ }
+    }
     try {
       await room.localParticipant.publishTrack(audio, {
         source: Track.Source.ScreenShareAudio,
@@ -163,13 +202,14 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         dtx: false,
         forceStereo: true,
       });
-      if (!room.localParticipant.isScreenShareEnabled || room.state !== ConnectionState.Connected) {
-        await releaseVirtualAudio(room);
+      if (activeRoomRef.current !== room || !room.localParticipant.isScreenShareEnabled || room.state !== ConnectionState.Connected) {
+        await cleanupAudio();
       } else {
         setAudioStatus("Transmitindo áudio do sistema via fonte virtual Linux.");
       }
     } catch {
-      await releaseVirtualAudio(room);
+      await cleanupAudio();
+      if (activeRoomRef.current !== room) return;
       setAudioStatus("Não foi possível enviar a fonte virtual; o vídeo continua funcionando.");
     }
   }
@@ -192,8 +232,10 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       }
       await publishVirtualAudio(room, audio);
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      if (activeRoomRef.current === room) {
+        busyRef.current = false;
+        setBusy(false);
+      }
     }
   }
 
@@ -204,12 +246,18 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
 
   useEffect(() => {
     const room = new Room({ adaptiveStream: true });
+    activeRoomRef.current = room;
     const controller = new AbortController();
     let cancelled = false;
 
     function updateBroadcastPermission() {
       if (!cancelled) {
-        setBroadcastAllowed(Boolean(room.localParticipant.permissions?.canPublish));
+        const allowed = Boolean(room.localParticipant.permissions?.canPublish);
+        setBroadcastAllowed(allowed);
+        if (!allowed) {
+          void releaseScreenCapture(room);
+          void releaseVirtualAudio(room);
+        }
       }
     }
 
@@ -271,15 +319,16 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     room.on(RoomEvent.TrackPublished, updateScreen);
     room.on(RoomEvent.TrackUnpublished, updateScreen);
     room.on(RoomEvent.LocalTrackPublished, updateScreen);
-    room.on(RoomEvent.LocalTrackUnpublished, () => {
+    room.on(RoomEvent.LocalTrackUnpublished, (publication: LocalTrackPublication) => {
       updateScreen();
       // Se o usuário usar "Parar compartilhamento" no próprio navegador,
       // encerra também a captura virtual de áudio.
-      if (!room.localParticipant.isScreenShareEnabled) {
+      if (publication.source === Track.Source.ScreenShare && !room.localParticipant.isScreenShareEnabled) {
+        void releaseScreenCapture(room);
         void releaseVirtualAudio(room);
         setAudioStatus(null);
         // Também funciona quando a pessoa usa "Parar" na interface do navegador.
-        if (room.state === ConnectionState.Connected && room.localParticipant.permissions?.canPublish) {
+        if (stoppingShareRef.current !== room && room.state === ConnectionState.Connected && room.localParticipant.permissions?.canPublish) {
           void requestBroadcastReleaseAfterBrowserStop(room);
         }
       }
@@ -287,18 +336,9 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     room.on(RoomEvent.TrackMuted, updateScreen);
     room.on(RoomEvent.TrackUnmuted, updateScreen);
     async function requestBroadcastReleaseAfterBrowserStop(roomToRelease: Room) {
-      const token = tokenRef.current;
-      if (!token || roomToRelease.state !== ConnectionState.Connected) return;
+      if (cancelled || roomToRelease.state !== ConnectionState.Connected) return;
       try {
-        const response = await fetch("/api/livekit/share", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-          body: JSON.stringify({ roomId, action: "release" }),
-          cache: "no-store",
-        });
-        if (!response.ok && !cancelled) {
-          setCaptureError("A tela parou, mas não foi possível liberar a vaga. Use Cancelar vez.");
-        }
+        await requestBroadcastAction(roomToRelease, "release");
       } catch {
         if (!cancelled) setCaptureError("Não foi possível liberar a vaga. Use Cancelar vez.");
       }
@@ -325,8 +365,9 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       updateBroadcastPermission();
     });
     room.on(RoomEvent.Disconnected, () => {
-      discardPendingVirtualAudio();
       if (cancelled) return;
+      activeRoomRef.current = null;
+      void releaseScreenCapture(room);
       // Não manter a fonte virtual gravando após a saída definitiva da sala.
       void releaseVirtualAudio(room);
       setPhase("disconnected");
@@ -339,6 +380,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       setSharing(false);
       setBroadcastAllowed(false);
       tokenRef.current = null;
+      busyRef.current = false;
+      setBusy(false);
     });
 
     async function connect() {
@@ -359,7 +402,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomId, displayName: profile.displayName, avatar: profile.avatar }),
           cache: "no-store",
-          signal: controller.signal,
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
         });
         const data: TokenResponse = await response.json();
         if (!response.ok) {
@@ -370,11 +413,11 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         }
         if (cancelled) return;
         await room.connect(data.serverUrl, data.token);
-        if (cancelled) {
+        if (cancelled || activeRoomRef.current !== room || room.state !== ConnectionState.Connected) {
           void room.disconnect();
           return;
         }
-        tokenRef.current = data.token;
+        tokenRef.current = { room, token: data.token };
         setRoomInstance(room);
         setPhase("connected");
         updateParticipants();
@@ -382,6 +425,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         updateBroadcastPermission();
       } catch (cause) {
         if (cancelled) return;
+        void room.disconnect();
         setPhase("error");
         setParticipants([]);
         setError(cause instanceof Error ? cause.message : "Não foi possível entrar na sala.");
@@ -392,11 +436,15 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     return () => {
       cancelled = true;
       controller.abort();
+      tokenRef.current = null;
+      if (activeRoomRef.current === room) activeRoomRef.current = null;
+      busyRef.current = false;
       room.removeAllListeners();
+      void releaseScreenCapture(room);
       void releaseVirtualAudio(room);
       void room.disconnect(); // Libera a captura e a conexão ao sair da sala.
     };
-  }, [roomId, attempt, profile.displayName, profile.avatar, releaseVirtualAudio, discardPendingVirtualAudio]);
+  }, [roomId, attempt, profile.displayName, profile.avatar, releaseScreenCapture, releaseVirtualAudio, discardPendingVirtualAudio, requestBroadcastAction]);
 
   // O navegador lembra o volume escolhido sem conta ou banco de dados.
   const [streamVolume, setStreamVolume] = useState<number>(() => {
@@ -439,29 +487,64 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     setCaptureError(null);
     try {
       if (room.localParticipant.isScreenShareEnabled) {
-        await releaseVirtualAudio(room);
-        await room.localParticipant.setScreenShareEnabled(false);
-        await requestBroadcastAction("release");
+        stoppingShareRef.current = room;
+        await Promise.all([releaseScreenCapture(room), releaseVirtualAudio(room)]);
+        await requestBroadcastAction(room, "release");
+        if (activeRoomRef.current !== room) return;
         setBroadcastAllowed(false);
         setAudioStatus(null);
       } else {
         // Chamado diretamente pelo clique para preservar a ativação de usuário.
         // Perfil selecionado vale para esta captura; não interfere no áudio.
         const quality = QUALITY_PRESETS[qualityProfile];
-        await room.localParticipant.setScreenShareEnabled(
-          true,
-          {
-            audio: audioMode === "browser",
-            systemAudio: audioMode === "browser" ? "include" : "exclude",
-            contentHint: "motion",
-            resolution: { width: quality.width, height: quality.height, frameRate: quality.fps },
-          },
-          {
+        const tracks = await room.localParticipant.createScreenTracks({
+          audio: audioMode === "browser",
+          systemAudio: audioMode === "browser" ? "include" : "exclude",
+          contentHint: "motion",
+          resolution: { width: quality.width, height: quality.height, frameRate: quality.fps },
+        });
+        // O seletor pode continuar aberto após sair da sala. Toda captura que
+        // chegar tarde é parada antes de publicar ou abrir uma fonte de áudio.
+        if (activeRoomRef.current !== room || room.state !== ConnectionState.Connected) {
+          tracks.forEach((track) => track.stop());
+          return;
+        }
+        const onEnded = () => {
+          if (activeRoomRef.current !== room || captureTracksRef.current?.tracks !== tracks) return;
+          // O SDK pode esperar uma publicação pendente antes de emitir
+          // LocalTrackUnpublished. Pare o áudio já no evento nativo do vídeo.
+          void releaseScreenCapture(room);
+          void releaseVirtualAudio(room);
+          setAudioStatus(null);
+          if (room.state === ConnectionState.Connected && room.localParticipant.permissions?.canPublish) {
+            void requestBroadcastAction(room, "release").catch(() => {
+              if (activeRoomRef.current === room) setCaptureError("Não foi possível liberar a vaga. Use Cancelar vez.");
+            });
+          }
+        };
+        captureTracksRef.current = { room, tracks, onEnded };
+        tracks[0]?.mediaStreamTrack.addEventListener("ended", onEnded, { once: true });
+        const published = await publishScreenTracks({
+          tracks,
+          isActive: () => activeRoomRef.current === room &&
+            room.state === ConnectionState.Connected &&
+            tracks[0]?.mediaStreamTrack.readyState === "live",
+          publish: (track) => room.localParticipant.publishTrack(track, {
             screenShareEncoding: { maxBitrate: quality.bitrate, maxFramerate: quality.fps },
             degradationPreference: "maintain-framerate",
             simulcast: true,
+            audioPreset: AudioPresets.musicHighQualityStereo,
+            forceStereo: true,
+            dtx: false,
+          }),
+          unpublish: (track) => room.localParticipant.unpublishTrack(track, true),
+        });
+        if (!published) {
+          if (activeRoomRef.current === room && room.state === ConnectionState.Connected) {
+            await requestBroadcastAction(room, "release");
           }
-        );
+          return;
+        }
 
         if (audioMode === "browser") {
           const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
@@ -491,10 +574,11 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
               audio && /^(padrão|padrao|default)$/i.test(audio.label.trim())
             );
             if (!audio ||
+                activeRoomRef.current !== room ||
                 !room.localParticipant.isScreenShareEnabled ||
                 room.state !== ConnectionState.Connected) {
               stream.getTracks().forEach((track) => track.stop());
-              setAudioStatus("A conexão ou a captura foi encerrada; áudio não enviado.");
+              if (activeRoomRef.current === room) setAudioStatus("A conexão ou a captura foi encerrada; áudio não enviado.");
             } else if (verifiedByName) {
               await publishVirtualAudio(room, audio);
             } else if (genericDefault) {
@@ -506,32 +590,38 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
               setAudioStatus("Não foi possível confirmar a fonte de áudio; vídeo continua funcionando.");
             }
           } catch {
-            setAudioStatus("Não foi possível abrir a fonte virtual. O vídeo continua funcionando.");
+            if (activeRoomRef.current === room) setAudioStatus("Não foi possível abrir a fonte virtual. O vídeo continua funcionando.");
           }
         } else {
           setAudioStatus("Transmitindo somente vídeo.");
         }
       }
+      if (activeRoomRef.current !== room) return;
       // Eventos do LiveKit também atualizam o vídeo ao iniciar ou parar.
       setSharing(room.localParticipant.isScreenShareEnabled);
     } catch (cause) {
+      if (activeRoomRef.current !== room) return;
       // Cancelar o seletor de tela não deve interromper a conexão da sala.
       const name = cause instanceof Error ? cause.name : "";
       if (name !== "NotAllowedError" && name !== "AbortError") {
         setCaptureError(cause instanceof Error ? cause.message : "Falha ao compartilhar a tela.");
       }
       // Se a seleção de tela for cancelada, não reter a vaga da sala.
-      if (!room.localParticipant.isScreenShareEnabled) {
+      if (!room.localParticipant.isScreenShareEnabled && stoppingShareRef.current !== room) {
         try {
-          await requestBroadcastAction("release");
+          await requestBroadcastAction(room, "release");
+          if (activeRoomRef.current !== room) return;
           setBroadcastAllowed(false);
         } catch {
-          setCaptureError("A captura foi cancelada, mas não foi possível liberar a vaga. Use Cancelar vez.");
+          if (activeRoomRef.current === room) setCaptureError("A captura foi cancelada, mas não foi possível liberar a vaga. Use Cancelar vez.");
         }
       }
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      if (stoppingShareRef.current === room) stoppingShareRef.current = null;
+      if (activeRoomRef.current === room) {
+        busyRef.current = false;
+        setBusy(false);
+      }
     }
   }
 

@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   devIndicators: false,
   allowedDevOrigins: ["192.168.100.99", "127.0.0.1"],
+  async headers() {
+    return [{
+      source: "/:path*",
+      headers: [
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "X-Frame-Options", value: "DENY" },
+      ],
+    }, {
+      source: "/api/:path*",
+      headers: [{ key: "Cache-Control", value: "no-store" }],
+    }];
+  },
 };
 
 export default nextConfig;

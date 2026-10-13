@@ -1,5 +1,8 @@
+import { readRequestJson, RequestBodyError } from "@/lib/security/request-json";
+import { strictRateLimit } from "@/lib/security/strict-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { RoomServiceClient, TokenVerifier, TrackSource } from "livekit-server-sdk";
+import { RoomServiceClient, TokenVerifier } from "livekit-server-sdk";
+import { isShareActionEnabled, screenPermission, viewerPermission } from "@/lib/security/share-permissions";
 import {
   getShareReservation,
   isShareReservationOld,
@@ -8,6 +11,7 @@ import {
 } from "@/lib/security/redis-share-reservation";
 import {
   acquireRedisRoomLock,
+  hasRedisRoomLock,
   releaseRedisRoomLock,
 } from "@/lib/security/redis-room-lock";
 import {
@@ -15,8 +19,7 @@ import {
   getShareAcquireLimiter,
 } from "@/lib/security/share-rate-limit";
 
-// Exclusividade apenas por processo: suficiente para a instância única de
-// desenvolvimento, NÃO para múltiplos servidores ou deployment em produção.
+// A fila local evita disputa na instância; a trava Redis coordena instâncias.
 
 const scope = globalThis as typeof globalThis & {
   discord2RoomQueues?: Map<string, Promise<void>>;
@@ -96,32 +99,7 @@ async function withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<
   }
 }
 
-const screenPermission = {
-  canPublish: true,
-  canSubscribe: true,
-  canPublishData: false,
-  canPublishSources: [TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO],
-};
-const viewerPermission = {
-  canPublish: false,
-  canSubscribe: true,
-  canPublishData: false,
-  canPublishSources: [],
-};
-
 export async function POST(request: NextRequest) {
-  // Em producao, a transmissao precisa ser habilitada explicitamente.
-  // Por padrao, permanece bloqueada.
-  if (
-    process.env.NODE_ENV !== "development" &&
-    process.env.ENABLE_SHARE_IN_PRODUCTION !== "true"
-  ) {
-    return NextResponse.json(
-      { error: "Transmissao ainda indisponivel." },
-      { status: 403 }
-    );
-  }
-
   const globalRetry = globalShareRetry();
 
   const { LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET } = process.env;
@@ -132,11 +110,16 @@ export async function POST(request: NextRequest) {
   let roomId: string;
   let action: "acquire" | "release";
   try {
-    const body = await request.json();
-    roomId = body?.roomId;
-    action = body?.action;
-  } catch {
-    return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
+    const parsed = await readRequestJson(request, 1024);
+    const body = parsed as Record<string, unknown> | null;
+    roomId = body?.roomId as string;
+    action = body?.action as typeof action;
+  } catch (cause) {
+    return NextResponse.json({ error: cause instanceof RequestBodyError ? cause.message : "Requisição inválida." }, { status: cause instanceof RequestBodyError ? cause.status : 400 });
+  }
+  // Desabilitar novas transmissões nunca deve impedir a revogação das existentes.
+  if (!isShareActionEnabled(action, process.env.NODE_ENV, process.env.ENABLE_SHARE_IN_PRODUCTION)) {
+    return NextResponse.json({ error: "Transmissao ainda indisponivel." }, { status: 403 });
   }
   // Mesmo com o limite global atingido, permitir a tentativa de
   // encerrar transmissão. A autorização continua obrigatória.
@@ -147,7 +130,7 @@ export async function POST(request: NextRequest) {
   // Não bloquear a liberação de transmissão, mesmo se o Redis falhar.
   if (action === "acquire") {
     try {
-      const result = await getShareGlobalLimiter().limit("global");
+      const result = await strictRateLimit(getShareGlobalLimiter(), "global");
       if (!result.success) {
         return shareTooManyRequests(
           Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
@@ -172,30 +155,27 @@ export async function POST(request: NextRequest) {
   }
 
 
-  
+  let identity: string;
+  try {
+    const verifier = new TokenVerifier(LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const claims = await verifier.verify(authorization.slice(7));
 
-let identity: string;
-try {
-  const verifier = new TokenVerifier(LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
-  const claims = await verifier.verify(authorization.slice(7));
+    if (
+      typeof claims.sub !== "string" ||
+      !claims.sub ||
+      !claims.video?.roomJoin ||
+      claims.video.room !== roomId
+    ) {
+      throw new Error("Token não pertence a esta sala.");
+    }
 
-  if (
-    typeof claims.sub !== "string" ||
-    !claims.sub ||
-    !claims.video?.roomJoin ||
-    claims.video.room !== roomId
-  ) {
-    throw new Error("Token não pertence a esta sala.");
+    identity = claims.sub;
+  } catch {
+    return NextResponse.json(
+      { error: "Autorização inválida ou expirada. Entre na sala novamente." },
+      { status: 401 }
+    );
   }
-
-  identity = claims.sub;
-} catch {
-  return NextResponse.json(
-    { error: "Autorização inválida ou expirada. Entre na sala novamente." },
-    { status: 401 }
-  );
-}
-
 
   // Limitar pedidos de adquirir transmissão, sem impedir o participante
   // de liberar a vaga quando já alcançou o limite.
@@ -204,7 +184,7 @@ try {
     if (acquireRetry !== null) return shareTooManyRequests(acquireRetry);
 
     try {
-      const result = await getShareAcquireLimiter().limit(identity);
+      const result = await strictRateLimit(getShareAcquireLimiter(), identity);
       if (!result.success) {
         return shareTooManyRequests(
           Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
@@ -226,7 +206,7 @@ try {
     else if (endpoint.protocol !== "http:" && endpoint.protocol !== "https:") {
       throw new Error("Protocolo LiveKit inválido.");
     }
-    const service = new RoomServiceClient(endpoint.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const service = new RoomServiceClient(endpoint.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, { requestTimeout: 8, failover: false });
 
     return await withRoomLock(roomId, async () => {
       let lockOwner: string | null;
@@ -372,6 +352,12 @@ try {
         }
 
         if (!person.permission?.canPublish) {
+          if (!await hasRedisRoomLock(roomId, lockOwner, identity)) {
+            return NextResponse.json(
+              { error: "A operação expirou. Solicite a transmissão novamente." },
+              { status: 409 }
+            );
+          }
           await service.updateParticipant(roomId, identity, {
             permission: screenPermission,
           });

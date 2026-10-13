@@ -1,0 +1,319 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { Redis } from "@upstash/redis";
+import { TrackSource } from "livekit-server-sdk";
+import type { LocalTrack } from "livekit-client";
+import { readRequestJson } from "../src/lib/security/request-json";
+import { strictRateLimit } from "../src/lib/security/strict-rate-limit";
+import { cleanupScreenTracks, publishScreenTracks } from "../src/lib/capture/publish-screen-tracks";
+import { createSecurityRedis } from "../src/lib/security/redis-client";
+import { acquireRedisRoomLock, hasRedisRoomLock, releaseRedisRoomLock } from "../src/lib/security/redis-room-lock";
+import { reserveShare, getShareReservation, releaseShareReservation } from "../src/lib/security/redis-share-reservation";
+import { isShareActionEnabled, screenPermission, viewerPermission } from "../src/lib/security/share-permissions";
+import { rateLimitPrefix } from "../src/lib/security/rate-limit-prefix";
+import { createRoomInvite, verifyRoomInvite } from "../src/lib/room/server-invite";
+import { applyRemoteAudioVolume } from "../src/lib/room/remote-audio-volume";
+
+function request(body: string, headers = {}) {
+  return new Request("https://discord2.test/api", {
+    method: "POST", headers: { "Content-Type": "application/json", ...headers }, body,
+  });
+}
+
+test("mute nativo é preservado mesmo se o navegador ignorar ganho/volume HTML", () => {
+  const element = { muted: false };
+  const ignoredVolume = { setVolume() {} };
+  applyRemoteAudioVolume(ignoredVolume, element, 75, true, false);
+  assert.equal(element.muted, true);
+  applyRemoteAudioVolume(ignoredVolume, element, 75, false, false);
+  assert.equal(element.muted, false);
+});
+
+test("mix Web Audio mantém o elemento HTML mudo e controla o ganho do SDK", () => {
+  const element = { muted: false };
+  let gain = 1;
+  const track = { setVolume(value: number) { gain = value; } };
+  applyRemoteAudioVolume(track, element, 35, false, true);
+  assert.equal(gain, 0.35);
+  assert.equal(element.muted, true);
+  applyRemoteAudioVolume(track, element, 35, true, true);
+  assert.equal(gain, 0);
+  assert.equal(element.muted, true);
+});
+
+test("integração isola cotas Redis sem alterar o prefixo normal", () => {
+  const previous = process.env.DISCORD2_INTEGRATION_RUN;
+  try {
+    delete process.env.DISCORD2_INTEGRATION_RUN;
+    assert.equal(rateLimitPrefix("token:global:v1"), "discord2:rate:token:global:v1");
+    process.env.DISCORD2_INTEGRATION_RUN = "a".repeat(32);
+    assert.equal(rateLimitPrefix("token:global:v1"), `discord2:integration:${"a".repeat(32)}:rate:token:global:v1`);
+    process.env.DISCORD2_INTEGRATION_RUN = "invalid";
+    assert.throws(() => rateLimitPrefix("token:global:v1"));
+  } finally {
+    if (previous === undefined) delete process.env.DISCORD2_INTEGRATION_RUN;
+    else process.env.DISCORD2_INTEGRATION_RUN = previous;
+  }
+});
+
+test("JSON aceita o limite exato e rejeita bytes extras sem Content-Length", async () => {
+  assert.equal(await readRequestJson(request('"á"'), 4), "á");
+  await assert.rejects(readRequestJson(request('"á"'), 3), { status: 413 });
+});
+
+test("JSON rejeita tipo incorreto, sintaxe inválida e comprimento declarado excessivo", async () => {
+  await assert.rejects(readRequestJson(request("{}", { "Content-Type": "text/plain" }), 10), { status: 415 });
+  await assert.rejects(readRequestJson(request("{"), 10), { status: 400 });
+  await assert.rejects(readRequestJson(request("{}", { "Content-Length": "20" }), 10), { status: 413 });
+});
+
+test("JSON interrompe corpo enviado em chunks quando ultrapassa o limite", async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('{"a":'));
+      controller.enqueue(new TextEncoder().encode('"muito grande"}'));
+    },
+    cancel() { cancelled = true; },
+  });
+  const req = new Request("https://discord2.test", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: stream, duplex: "half",
+  } as RequestInit);
+  await assert.rejects(readRequestJson(req, 8), { status: 413 });
+  assert.equal(cancelled, true);
+});
+
+test("timeout do limitador nunca é tratado como autorização", async () => {
+  const limiter = { limit: async () => ({ success: true, reason: "timeout" as const, limit: 10, remaining: 0, reset: 123, pending: Promise.resolve() }) };
+  await assert.rejects(strictRateLimit(limiter, "global"));
+});
+
+test("limitador mantém uma rejeição real e propaga falha de conexão", async () => {
+  const denied = { success: false, reset: 123, limit: 10, remaining: 0, pending: Promise.resolve() };
+  const limiter = { limit: async () => denied };
+  assert.equal(await strictRateLimit(limiter, "room"), denied);
+  const broken = { limit: async () => { throw new Error("offline"); } };
+  await assert.rejects(strictRateLimit(broken, "global"), /offline/);
+});
+
+test("convite assinado rejeita adulteração e outra chave", () => {
+  const invite = createRoomInvite("test-secret");
+  assert.equal(verifyRoomInvite(invite, "test-secret"), true);
+  assert.equal(verifyRoomInvite(invite, "other-secret"), false);
+  assert.equal(verifyRoomInvite((invite[0] === "a" ? "b" : "a") + invite.slice(1), "test-secret"), false);
+  assert.equal(verifyRoomInvite("x".repeat(64), "test-secret"), false);
+});
+
+function tracks() {
+  const stopped: number[] = [];
+  const captured = [0, 1].map((i) => ({ stop() { stopped.push(i); } })) as LocalTrack[];
+  return { stopped, captured };
+}
+
+test("captura que chega após sair da sala é parada sem publicar", async () => {
+  const { stopped, captured } = tracks();
+  let publications = 0;
+  assert.equal(await publishScreenTracks({
+    tracks: captured, isActive: () => false,
+    publish: async () => { publications++; }, unpublish: async () => {},
+  }), false);
+  assert.deepEqual(stopped, [0, 1]);
+  assert.equal(publications, 0);
+});
+
+test("falha na publicação de áudio desfaz o vídeo e para ambas as capturas", async () => {
+  const { stopped, captured } = tracks();
+  const removed: LocalTrack[] = [];
+  await assert.rejects(publishScreenTracks({
+    tracks: captured, isActive: () => true,
+    publish: async (track) => { if (track === captured[1]) throw new Error("audio failed"); },
+    unpublish: async (track) => { removed.push(track); },
+  }), /audio failed/);
+  assert.deepEqual(stopped, [0, 1]);
+  assert.deepEqual(removed, captured);
+});
+
+test("desconexão durante a última publicação desfaz todas as trilhas", async () => {
+  const { stopped, captured } = tracks();
+  let active = true;
+  const removed: LocalTrack[] = [];
+  assert.equal(await publishScreenTracks({
+    tracks: captured, isActive: () => active,
+    publish: async (track) => { if (track === captured[1]) active = false; },
+    unpublish: async (track) => { removed.push(track); },
+  }), false);
+  assert.deepEqual(stopped, [0, 1]);
+  assert.deepEqual(removed, captured);
+});
+
+test("falha de despublicação não deixa a captura aberta nem oculta o erro original", async () => {
+  const { stopped, captured } = tracks();
+  await assert.rejects(publishScreenTracks({
+    tracks: captured, isActive: () => true,
+    publish: async () => { throw new Error("original"); },
+    unpublish: async () => { throw new Error("offline"); },
+  }), /original/);
+  assert.deepEqual(stopped, [0, 1]);
+});
+
+test("desconexão após vídeo impede a publicação do áudio", async () => {
+  const { stopped, captured } = tracks();
+  let active = true;
+  const published: LocalTrack[] = [];
+  assert.equal(await publishScreenTracks({
+    tracks: captured, isActive: () => active,
+    publish: async (track) => { published.push(track); active = false; },
+    unpublish: async () => {},
+  }), false);
+  assert.deepEqual(published, [captured[0]]);
+  assert.deepEqual(stopped, [0, 1]);
+});
+
+test("publicação completa mantém as trilhas capturadas ativas", async () => {
+  const { stopped, captured } = tracks();
+  const published: LocalTrack[] = [];
+  const removed: LocalTrack[] = [];
+  assert.equal(await publishScreenTracks({
+    tracks: captured, isActive: () => true,
+    publish: async (track) => { published.push(track); },
+    unpublish: async (track) => { removed.push(track); },
+  }), true);
+  assert.deepEqual(published, captured);
+  assert.deepEqual(stopped, []);
+  assert.deepEqual(removed, []);
+});
+
+test("encerramento de tela para vídeo e áudio antes de esperar a despublicação", async () => {
+  const { stopped, captured } = tracks();
+  let finish = () => {};
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  const cleanup = cleanupScreenTracks(captured, async () => pending);
+  assert.deepEqual(stopped, [0, 1]);
+  finish();
+  await cleanup;
+});
+
+test("encerramento tenta remover ambas as trilhas mesmo com erro síncrono do SDK", async () => {
+  const { stopped, captured } = tracks();
+  const removed: LocalTrack[] = [];
+  const result = await cleanupScreenTracks(captured, (track) => {
+    removed.push(track);
+    if (track === captured[0]) throw new Error("offline");
+    return Promise.resolve();
+  });
+  assert.deepEqual(stopped, [0, 1]);
+  assert.deepEqual(removed, captured);
+  assert.deepEqual(result.map((item) => item.status), ["rejected", "fulfilled"]);
+});
+
+test("desabilitar publicação em produção conserva a possibilidade de liberar", () => {
+  assert.equal(isShareActionEnabled("acquire", "production", "false"), false);
+  assert.equal(isShareActionEnabled("acquire", "production", undefined), false);
+  assert.equal(isShareActionEnabled("release", "production", "false"), true);
+  assert.equal(isShareActionEnabled("release", "production", undefined), true);
+  assert.equal(isShareActionEnabled("acquire", "production", "true"), true);
+});
+
+test("permissão de transmissor restringe fontes a tela e seu áudio", () => {
+  assert.equal(screenPermission.canPublish, true);
+  assert.equal(screenPermission.canPublishData, false);
+  assert.deepEqual(screenPermission.canPublishSources, [TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO]);
+  assert.equal(screenPermission.canPublishSources.includes(TrackSource.MICROPHONE), false);
+  assert.equal(screenPermission.canPublishSources.includes(TrackSource.CAMERA), false);
+});
+
+test("revogação remove todas as fontes de publicação e preserva recepção", () => {
+  assert.equal(viewerPermission.canPublish, false);
+  assert.equal(viewerPermission.canPublishData, false);
+  assert.equal(viewerPermission.canSubscribe, true);
+  assert.deepEqual(viewerPermission.canPublishSources, []);
+});
+
+test("fronteira HTTP do SDK Redis: configuração, serialização e falhas", async (t) => {
+  const commands: unknown[][] = [];
+  let result: unknown = "OK";
+  let offline = false;
+  let calls = 0;
+  const signals: AbortSignal[] = [];
+  t.mock.method(Redis, "fromEnv", (options: Parameters<typeof Redis.fromEnv>[0]) => {
+    assert.deepEqual(options?.retry, { retries: 0 });
+    assert.equal(typeof options?.signal, "function");
+    return new Redis({ ...options, url: "https://redis.invalid", token: "test-only" });
+  });
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
+    calls++;
+    signals.push(init.signal as AbortSignal);
+    const body = JSON.parse(init.body as string);
+    const pipeline = Array.isArray(body[0]);
+    commands.push(...(pipeline ? body : [body]));
+    if (init.signal?.aborted) throw init.signal.reason;
+    if (offline) throw new TypeError("offline");
+    const response = { result: typeof result === "string" ? Buffer.from(result).toString("base64") : result };
+    return Response.json(pipeline ? body.map(() => response) : response);
+  });
+
+  await t.test("cada comando recebe um sinal novo e não repete falha de rede", async () => {
+    const client = createSecurityRedis();
+    await client.get("one");
+    await client.get("two");
+    assert.notEqual(signals[0], signals[1]);
+    offline = true;
+    const before = calls;
+    await assert.rejects(client.get("broken"), /offline/);
+    assert.equal(calls - before, 1);
+    offline = false;
+  });
+
+  await t.test("aquisição usa NX e prazo; resposta perdida nunca concede a trava", async () => {
+    result = "OK";
+    const owner = await acquireRedisRoomLock("room");
+    assert.ok(owner);
+    const command = commands.at(-1)!;
+    assert.deepEqual(command.slice(0, 3), ["set", "discord2:room:mutex:v1:room", owner]);
+    assert.ok(command.slice(3).includes("nx"));
+    assert.equal(command[command.indexOf("ex") + 1], 120);
+    result = null;
+    assert.equal(await acquireRedisRoomLock("room"), null);
+    offline = true;
+    await assert.rejects(acquireRedisRoomLock("room"), /offline/);
+    offline = false;
+  });
+
+  await t.test("timeout do transporte Redis rejeita a operação sem sucesso artificial", async (subtest) => {
+    subtest.mock.method(AbortSignal, "timeout", () => AbortSignal.abort(new Error("transport timeout")));
+    await assert.rejects(createSecurityRedis().get("timeout"), /transport timeout/);
+  });
+
+  await t.test("verificação antes do grant envia dono da trava e dono da reserva", async () => {
+    result = 1;
+    assert.equal(await hasRedisRoomLock("room", "mutex-owner", "participant"), true);
+    const command = commands.at(-1)!;
+    assert.equal(command[0], "eval");
+    assert.deepEqual(command.slice(2), [2, "discord2:room:mutex:v1:room", "discord2:room:publisher:v1:room", "mutex-owner", "participant"]);
+    assert.match(command[1] as string, /redis\.call\("GET", KEYS\[2\]\) == ARGV\[2\]/);
+    result = 0;
+    assert.equal(await hasRedisRoomLock("room", "old-owner", "participant"), false);
+  });
+
+  await t.test("liberação usa comparação de dono em Lua e respeita rejeição", async () => {
+    result = 0;
+    assert.equal(await releaseRedisRoomLock("room", "wrong-owner"), false);
+    assert.deepEqual(commands.at(-1)!.slice(2), [1, "discord2:room:mutex:v1:room", "wrong-owner"]);
+    result = 1;
+    assert.equal(await releaseShareReservation("room", "participant"), true);
+    assert.deepEqual(commands.at(-1)!.slice(2), [1, "discord2:room:publisher:v1:room", "participant"]);
+    assert.match(commands.at(-1)![1] as string, /return redis\.call\("DEL", KEYS\[1\]\)/);
+  });
+
+  await t.test("reserva usa a mesma chave conferida no grant e retorna a identidade intacta", async () => {
+    result = "OK";
+    assert.equal(await reserveShare("room", "participant"), true);
+    const command = commands.at(-1)!;
+    assert.deepEqual(command.slice(0, 3), ["set", "discord2:room:publisher:v1:room", "participant"]);
+    assert.ok(command.slice(3).includes("nx"));
+    assert.equal(command[command.indexOf("ex") + 1], 21600);
+    result = "participant";
+    assert.equal(await getShareReservation("room"), "participant");
+  });
+});

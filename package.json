@@ -10,7 +10,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsc --project tsconfig.test.json && node .test-build/tests/security-and-capture.test.js",
+    "test:integration": "npm test && npm run build && node scripts/integration-real.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",

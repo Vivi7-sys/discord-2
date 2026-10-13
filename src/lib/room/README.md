@@ -1,13 +1,10 @@
-# lib/room — identificadores de salas
+# Salas e convites
 
-**Fase 2:** `room-id.ts` cria IDs aleatórios e valida IDs e links locais.
-A URL representa uma sala visual: nada é salvo em banco de dados nem há
-uma sessão, presença de usuários ou conexão entre navegadores.
+- `server-invite.ts`: nonce aleatório de 128 bits e assinatura HMAC truncada a
+  128 bits. Criação no servidor; verificação com comparação em tempo constante.
+- `room-id.ts`: IDs hexadecimais de 64 caracteres e links da mesma origem.
+- `participant-profile.ts`: validação de nome e avatar JPEG limitado.
 
-- `generateRoomId()` gera um ID imprevisível usando a API Web Crypto.
-- `isValidRoomId()` aceita apenas letras minúsculas, números e hífens (3 a 64 caracteres).
-- `readRoomId()` valida um ID ou um link da mesma origem do site, sem redirecionar a sites externos.
-
-**Importante:** um ID difícil de adivinhar não substitui autenticação e permissões.
-A proteção das salas, a geração de tokens LiveKit e o limite de participantes
-serão implementados em fases futuras. Nenhum segredo do LiveKit pode ir para o navegador.
+A presença e as trilhas são mantidas no LiveKit. O Redis mantém limites e a
+reserva de transmissão. Convites não têm expiração nem revogação individual;
+posse do link permite solicitar token sem autenticação de pessoa.

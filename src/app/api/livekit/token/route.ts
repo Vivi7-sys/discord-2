@@ -1,3 +1,5 @@
+import { readRequestJson, RequestBodyError } from "@/lib/security/request-json";
+import { strictRateLimit } from "@/lib/security/strict-rate-limit";
 
 import { NextRequest, NextResponse } from "next/server";
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
 
   // Limite global compartilhado entre reinícios do servidor.
   try {
-    const result = await getTokenGlobalLimiter().limit("global");
+    const result = await strictRateLimit(getTokenGlobalLimiter(), "global");
     if (!result.success) {
       return tooManyRequests(
         Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
@@ -92,7 +94,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readRequestJson(request, 24000);
+    const body = parsed as Record<string, unknown> | null;
     const roomId = body?.roomId;
     const displayName = cleanDisplayName(body?.displayName);
     const avatar = body?.avatar == null ? null : safeAvatarDataUrl(body.avatar);
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     // Limite compartilhado específico para esta sala.
     try {
-      const result = await getTokenRoomLimiter().limit(roomId);
+      const result = await strictRateLimit(getTokenRoomLimiter(), roomId);
       if (!result.success) {
         return tooManyRequests(
           Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
@@ -154,10 +157,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convites novos precisam ter uma assinatura legítima.
-    // IDs antigos de 32 caracteres permanecem temporariamente
-    // aceitos apenas durante a migração em desenvolvimento.
-    if (roomId.length === 64 && !verifyRoomInvite(roomId, inviteSecret)) {
+    // Somente convites assinados pelo servidor podem abrir salas.
+    if (!verifyRoomInvite(roomId, inviteSecret)) {
       return NextResponse.json(
         { error: "Convite inválido. Solicite um novo link de sala." },
         { status: 403, headers: { "Cache-Control": "no-store" } }
@@ -226,10 +227,10 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-  } catch {
+  } catch (cause) {
     return NextResponse.json(
-      { error: "Não foi possível processar a solicitação." },
-      { status: 400 }
+      { error: cause instanceof RequestBodyError ? cause.message : "Não foi possível processar a solicitação." },
+      { status: cause instanceof RequestBodyError ? cause.status : 400 }
     );
   }
 }

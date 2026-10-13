@@ -1,3 +1,5 @@
+import { readRequestJson, RequestBodyError } from "@/lib/security/request-json";
+import { strictRateLimit } from "@/lib/security/strict-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { createRoomInvite } from "@/lib/room/server-invite";
@@ -53,12 +55,13 @@ export async function POST(request: NextRequest) {
   let turnstileToken: unknown;
 
   try {
-    const body = await request.json();
+    const parsed = await readRequestJson(request, 4096);
+    const body = parsed as Record<string, unknown> | null;
     turnstileToken = body?.turnstileToken;
-  } catch {
+  } catch (cause) {
     return NextResponse.json(
-      { error: "Solicitação inválida." },
-      { status: 400 }
+      { error: cause instanceof RequestBodyError ? cause.message : "Solicitação inválida." },
+      { status: cause instanceof RequestBodyError ? cause.status : 400 }
     );
   }
 
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
   // Limite compartilhado no Redis, independente de reinícios do servidor.
   // Por enquanto, todos os visitantes compartilham o mesmo limite.
   try {
-    const result = await getCreateLimiter().limit("global");
+    const result = await strictRateLimit(getCreateLimiter(), "global");
 
     if (!result.success) {
       const retryAfter = Math.max(
