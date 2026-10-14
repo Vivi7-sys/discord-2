@@ -1296,29 +1296,6 @@ body {
 .room .room-broadcast-btn:hover:not(:disabled) { background: #b91e2c; }
 .room .room-broadcast-stop { background: #4d2029; border-color: #cf4350; }
 
-.room .room-settings { position: relative; flex: 0 0 auto; }
-.room .room-settings > summary { list-style: none; }
-.room .room-settings > summary::-webkit-details-marker { display: none; }
-.room .room-settings[open] > summary { background: #40252d; border-color: #e1515d; }
-.room .room-settings-panel {
-  position: absolute;
-  z-index: 20;
-  left: 0;
-  bottom: calc(100% + 10px);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 330px;
-  max-width: calc(100vw - 32px);
-  padding: 17px;
-  border: 1px solid #55505a;
-  border-radius: 14px;
-  background: #1b1b21;
-  box-shadow: 0 14px 42px rgb(0 0 0 / 65%);
-}
-.room .room-settings-title { margin: 0; font-size: .85rem; font-weight: 800; }
-.room .room-settings-panel .audio-mode-label { display: flex; flex-direction: column; gap: 6px; }
-.room .room-settings-panel .audio-mode-select { width: 100%; max-width: 100%; }
 .room .controls > .audio-verification {
   flex: 1 1 100%;
   max-height: min(190px, 27dvh);
@@ -1427,10 +1404,6 @@ body {
   min-width: 40px;
   min-height: 40px;
   margin: 0;
-}
-.room .stream-player-bar .room-settings-panel {
-  bottom: calc(100% + 8px);
-  text-align: left;
 }
 /* Confirmação de fonte Linux e avisos precisam continuar legíveis e clicáveis. */
 .room .stream-player-bar:has(.audio-verification) {
@@ -1698,3 +1671,12 @@ body {
     transition: none;
   }
 }
+
+.share-dialog { color: var(--text); background: #141519; border: 1px solid #36373d; border-radius: 12px; padding: 24px; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+.share-dialog::backdrop { background: rgb(0 0 0 / 70%); }
+.share-dialog h2 { margin: 0 0 12px; font-size: 1.2rem; }
+.share-dialog p { font-size: .85rem; line-height: 1.5; color: #b9bac1; margin: 12px 0; }
+.share-dialog .audio-mode-label { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.share-dialog .audio-mode-select { width: 100%; max-width: 100%; }
+.share-dialog-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.share-dialog :focus-visible { outline: 2px solid #e1515d; outline-offset: 3px; }

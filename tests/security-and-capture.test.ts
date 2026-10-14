@@ -14,6 +14,22 @@ import { rateLimitPrefix } from "../src/lib/security/rate-limit-prefix";
 import { createRoomInvite, verifyRoomInvite } from "../src/lib/room/server-invite";
 import { applyRemoteAudioVolume } from "../src/lib/room/remote-audio-volume";
 
+import { QUALITY_PRESETS, browserAudioOptions, findVirtualAudioDevice } from "../src/lib/capture/screen-options";
+
+test("captura mantém perfis menores e solicita 1080p30 com teto LiveKit de 5 Mbps", () => {
+  assert.deepEqual(QUALITY_PRESETS.alta, { width: 1920, height: 1080, fps: 30, bitrate: 5_000_000 });
+  assert.deepEqual(QUALITY_PRESETS.economico, { width: 854, height: 480, fps: 20, bitrate: 900_000 });
+  assert.deepEqual(QUALITY_PRESETS.equilibrado, { width: 1280, height: 720, fps: 30, bitrate: 2_500_000 });
+});
+
+test("áudio pede exclusão da própria aba só com suporte e mantém reprodução local", () => {
+  assert.deepEqual(browserAudioOptions({}), { suppressLocalAudioPlayback: false });
+  assert.deepEqual(browserAudioOptions({ restrictOwnAudio: true }), {
+    restrictOwnAudio: true, suppressLocalAudioPlayback: false,
+  });
+  assert.equal("deviceId" in browserAudioOptions({}), false);
+});
+
 function request(body: string, headers = {}) {
   return new Request("https://discord2.test/api", {
     method: "POST", headers: { "Content-Type": "application/json", ...headers }, body,
@@ -316,4 +332,18 @@ test("fronteira HTTP do SDK Redis: configuração, serialização e falhas", asy
     result = "participant";
     assert.equal(await getShareReservation("room"), "participant");
   });
+});
+
+
+test("fonte virtual nunca escolhe entrada padrão, microfone, saída ou dispositivo sem nome", () => {
+  const devices = [
+    { kind: "audioinput" as const, deviceId: "default", label: "Screen Share Audio" },
+    { kind: "audioinput" as const, deviceId: "communications", label: "Screen Share Audio" },
+    { kind: "audioinput" as const, deviceId: "mic", label: "Microfone" },
+    { kind: "audiooutput" as const, deviceId: "out", label: "Screen Share Audio" },
+    { kind: "audioinput" as const, deviceId: "hidden", label: "" },
+  ];
+  assert.equal(findVirtualAudioDevice(devices), undefined);
+  const virtual = { kind: "audioinput" as const, deviceId: "virtual-only", label: "Screen Share Audio" };
+  assert.equal(findVirtualAudioDevice([...devices, virtual]), virtual);
 });

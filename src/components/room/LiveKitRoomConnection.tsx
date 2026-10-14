@@ -5,6 +5,9 @@ import { AudioPresets, ConnectionState, Room, RoomEvent, Track, type LocalTrack,
 import Link from "next/link";
 import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
+import ShareDialog from "./ShareDialog";
+import { QUALITY_PRESETS, browserAudioOptions, findVirtualAudioDevice } from "@/lib/capture/screen-options";
+import { startMediaDiagnostics } from "@/lib/capture/media-diagnostics";
 import type { AudioMode, QualityProfile } from "./RoomControls";
 import RemoteScreenAudio from "./RemoteScreenAudio";
 import StreamVolumeControl from "./StreamVolumeControl";
@@ -37,18 +40,6 @@ const labels: Record<Phase, string> = {
   error: "Falha na conexão",
 };
 
-// Valores desejados: o navegador e o hardware podem entregar menos FPS/resolução.
-const QUALITY_PRESETS: Record<QualityProfile, {
-  width: number;
-  height: number;
-  fps: number;
-  bitrate: number;
-}> = {
-  economico: { width: 854, height: 480, fps: 20, bitrate: 900_000 },
-  equilibrado: { width: 1280, height: 720, fps: 30, bitrate: 2_500_000 },
-  alta: { width: 1920, height: 1080, fps: 60, bitrate: 6_000_000 },
-};
-
 export default function LiveKitRoomConnection({ roomId, profile }: { roomId: string; profile: RoomProfile }) {
   const [phase, setPhase] = useState<Phase>("connecting");
   const [participants, setParticipants] = useState<ParticipantItem[]>([]);
@@ -63,6 +54,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const tokenRef = useRef<{ room: Room; token: string } | null>(null);
   const activeRoomRef = useRef<Room | null>(null);
   const captureTracksRef = useRef<{ room: Room; tracks: LocalTrack[]; onEnded: () => void } | null>(null);
+  const reservedRoomRef = useRef<Room | null>(null);
   const releasesRef = useRef(new WeakMap<Room, Promise<void>>());
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
@@ -72,6 +64,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const [pendingAudioConfirmation, setPendingAudioConfirmation] = useState(false);
   const [audioMode, setAudioMode] = useState<AudioMode>("browser");
   const [qualityProfile, setQualityProfile] = useState<QualityProfile>("equilibrado");
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [audioStatus, setAudioStatus] = useState<string | null>(null);
 
   const releaseScreenCapture = useCallback(async (room: Room) => {
@@ -121,6 +114,9 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       });
       const result: { error?: string } = await response.json();
       if (!response.ok) throw new Error(result.error || "Não foi possível solicitar a transmissão.");
+      // A resposta HTTP pode chegar antes do evento de permissões do LiveKit.
+      if (action === "acquire") reservedRoomRef.current = room;
+      else if (reservedRoomRef.current === room) reservedRoomRef.current = null;
     };
     const request = work();
     if (action === "release") releasesRef.current.set(room, request);
@@ -245,7 +241,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   }
 
   useEffect(() => {
-    const room = new Room({ adaptiveStream: true });
+    const room = new Room({ adaptiveStream: true, dynacast: true });
     activeRoomRef.current = room;
     const controller = new AbortController();
     let cancelled = false;
@@ -370,6 +366,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       void releaseScreenCapture(room);
       // Não manter a fonte virtual gravando após a saída definitiva da sala.
       void releaseVirtualAudio(room);
+      setShareDialogOpen(false);
       setPhase("disconnected");
       setError("A conexão com a sala foi encerrada. Confira sua internet e clique em Tentar novamente.");
       setCaptureError(null);
@@ -432,9 +429,11 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       }
     }
 
+    const stopDiagnostics = startMediaDiagnostics(room);
     void connect();
     return () => {
       cancelled = true;
+      stopDiagnostics();
       controller.abort();
       tokenRef.current = null;
       if (activeRoomRef.current === room) activeRoomRef.current = null;
@@ -474,6 +473,19 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const localId = roomInstance?.localParticipant.identity;
   const anotherSharing = Boolean(screen && screen.ownerId !== localId);
 
+  function openShareDialog() {
+    if (!sharing) setShareDialogOpen(true);
+    else void toggleShare();
+  }
+
+  async function dismissShareDialog() {
+    setShareDialogOpen(false);
+    // A reserva vem de Solicitar transmissão; fechar o modal devolve a vez.
+    if (roomInstance && (reservedRoomRef.current === roomInstance || roomInstance.localParticipant.permissions?.canPublish)) {
+      await cancelBroadcast();
+    }
+  }
+
   async function toggleShare() {
     const room = roomInstance;
     if (!room || room.state !== ConnectionState.Connected || busyRef.current) return;
@@ -482,6 +494,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
       setCaptureError("Solicite a transmissão e aguarde a liberação antes de compartilhar.");
       return;
     }
+    setShareDialogOpen(false);
     busyRef.current = true;
     setBusy(true);
     setCaptureError(null);
@@ -498,7 +511,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         // Perfil selecionado vale para esta captura; não interfere no áudio.
         const quality = QUALITY_PRESETS[qualityProfile];
         const tracks = await room.localParticipant.createScreenTracks({
-          audio: audioMode === "browser",
+          audio: audioMode === "browser" ? browserAudioOptions(navigator.mediaDevices.getSupportedConstraints()) : false,
+          selfBrowserSurface: "exclude",
           systemAudio: audioMode === "browser" ? "include" : "exclude",
           contentHint: "motion",
           resolution: { width: quality.width, height: quality.height, frameRate: quality.fps },
@@ -531,7 +545,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
             tracks[0]?.mediaStreamTrack.readyState === "live",
           publish: (track) => room.localParticipant.publishTrack(track, {
             screenShareEncoding: { maxBitrate: quality.bitrate, maxFramerate: quality.fps },
-            degradationPreference: "maintain-framerate",
+            videoCodec: "vp8",
+            degradationPreference: "balanced",
             simulcast: true,
             audioPreset: AudioPresets.musicHighQualityStereo,
             forceStereo: true,
@@ -554,8 +569,18 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         } else if (audioMode === "linux-virtual") {
           // É uma escolha explícita: jamais publicamos a entrada padrão às cegas.
           try {
+            // Não abrir a entrada padrão: pode ser o microfone antes de o usuário
+            // conseguir roteá-la. Exigir a fonte virtual identificada previamente.
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const virtualDevice = findVirtualAudioDevice(devices);
+            if (!virtualDevice) {
+              setAudioStatus("A fonte Screen Share Audio ainda não foi identificada. Configure e autorize a entrada virtual no navegador e tente novamente; nenhuma entrada padrão foi aberta. O vídeo continua funcionando.");
+              return;
+            }
+            if (activeRoomRef.current !== room || room.state !== ConnectionState.Connected || !room.localParticipant.isScreenShareEnabled) return;
             const stream = await navigator.mediaDevices.getUserMedia({
               audio: {
+                deviceId: { exact: virtualDevice.deviceId },
                 echoCancellation: false,
                 noiseSuppression: false,
                 autoGainControl: false,
@@ -689,21 +714,23 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
               broadcastAllowed={broadcastAllowed}
               onRequestBroadcast={() => void requestBroadcast()}
               onCancelBroadcast={() => void cancelBroadcast()}
-              audioMode={audioMode}
-              onAudioModeChange={setAudioMode}
-              qualityProfile={qualityProfile}
-              onQualityProfileChange={setQualityProfile}
               audioStatus={audioStatus}
               pendingAudioConfirmation={pendingAudioConfirmation}
               onApproveVirtualAudio={() => void approveVirtualAudio()}
               onRejectVirtualAudio={rejectVirtualAudio}
-              onToggleShare={() => void toggleShare()}
+              onToggleShare={openShareDialog}
             />
           }
         />
         <ParticipantList participants={participants} phase={phase} sharingId={screen?.ownerId ?? null} />
       </div>
 
+      {shareDialogOpen && (
+        <ShareDialog audioMode={audioMode} onAudioModeChange={setAudioMode}
+          qualityProfile={qualityProfile} onQualityProfileChange={setQualityProfile}
+          canStart={phase === "connected" && broadcastAllowed && !busy && !anotherSharing}
+          onStart={() => void toggleShare()} onCancel={() => void dismissShareDialog()} />
+      )}
       {roomInstance && (
         <RemoteScreenAudio room={roomInstance} volume={streamVolume} muted={streamMuted} />
       )}

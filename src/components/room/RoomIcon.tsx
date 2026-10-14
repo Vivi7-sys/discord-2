@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export type RoomIconName =
   | "copy" | "request" | "share" | "play" | "stop" | "cancel"
-  | "settings" | "theater" | "maximize" | "minimize";
+  | "theater" | "maximize" | "minimize";
 
 /** Ícones leves em SVG: nenhum pacote novo ou imagem externa. */
 export default function RoomIcon({ name, size = 20 }: { name: RoomIconName; size?: number }) {
@@ -14,7 +14,6 @@ export default function RoomIcon({ name, size = 20 }: { name: RoomIconName; size
     play: <path d="M11,10 L18,13.74 18,22.28 11,26 M18,13.74 L26,18 26,18 18,22.28" />,
     stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
     cancel: <path d="M6 6l12 12M18 6 6 18" />,
-    settings: <><path d="M12 2 13.4 4.2l2.4.3.9 2.3 2.4.9-.3 2.4L21 12l-2.2 1.9.3 2.4-2.4.9-.9 2.3-2.4.3L12 22l-1.4-2.2-2.4-.3-.9-2.3-2.4-.9.3-2.4L3 12l2.2-1.9-.3-2.4 2.4-.9.9-2.3 2.4-.3Z" /><circle cx="12" cy="12" r="3" /></>,
     // Contorno vazado retangular usado no modo teatro do YouTube.
     theater: <path fillRule="evenodd" d="m 28,11 0,14 -20,0 0,-14 z m -18,2 16,0 0,10 -16,0 0,-10 z" />,
     // Quatro cantos retos do controle de tela cheia do YouTube.
