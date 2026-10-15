@@ -39,6 +39,7 @@ export default function ShareDialog(props: Props) {
           <option value="economico">Econômico — 480p / até 20 FPS</option>
           <option value="equilibrado">Equilibrado — 720p / até 30 FPS</option>
           <option value="alta">Alta qualidade — 1080p / até 30 FPS</option>
+          <option value="maxima">Máxima qualidade — 1080p / até 60 FPS</option>
         </select>
       </label>
       <p>Resolução e FPS são solicitados; a qualidade se adapta à conexão e ao dispositivo.</p>

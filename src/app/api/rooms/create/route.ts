@@ -3,54 +3,10 @@ import { strictRateLimit } from "@/lib/security/strict-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";
 import { createRoomInvite } from "@/lib/room/server-invite";
+import { limitTurnstileVerification } from "@/lib/security/verification-rate-limit";
 import { getCreateLimiter } from "@/lib/security/redis-rate-limit";
 
-// Limite provisório por processo, somente para desenvolvimento.
-const WINDOW_MS = 60_000;
-const CREATE_LIMIT = 10;
-
-type RateWindow = {
-  count: number;
-  resetAt: number;
-};
-
-const scope = globalThis as typeof globalThis & {
-  discord2CreateRate?: RateWindow;
-};
-
-const rate = scope.discord2CreateRate ??= {
-  count: 0,
-  resetAt: 0,
-};
-
 export async function POST(request: NextRequest) {
-  const now = Date.now();
-
-  if (now >= rate.resetAt) {
-    rate.count = 0;
-    rate.resetAt = now + WINDOW_MS;
-  }
-
-  if (rate.count >= CREATE_LIMIT) {
-    const retryAfter = Math.max(
-      1,
-      Math.ceil((rate.resetAt - now) / 1000)
-    );
-
-    return NextResponse.json(
-      { error: "Muitos convites criados. Aguarde um minuto." },
-      {
-        status: 429,
-        headers: {
-          "Cache-Control": "no-store",
-          "Retry-After": String(retryAfter),
-        },
-      }
-    );
-  }
-
-  rate.count += 1;
-
   // O servidor verifica o Turnstile antes de emitir o convite.
   let turnstileToken: unknown;
 
@@ -63,6 +19,20 @@ export async function POST(request: NextRequest) {
       { error: cause instanceof RequestBodyError ? cause.message : "Solicitação inválida." },
       { status: cause instanceof RequestBodyError ? cause.status : 400 }
     );
+  }
+
+  if (typeof turnstileToken !== "string" || !turnstileToken || turnstileToken.length > 2048) {
+    return NextResponse.json({ error: "Verificação de segurança inválida." }, { status: 403 });
+  }
+  try {
+    const result = await limitTurnstileVerification(turnstileToken);
+    if (!result.success) {
+      return NextResponse.json({ error: "Muitas verificações. Aguarde e tente novamente." }, {
+        status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))) },
+      });
+    }
+  } catch {
+    return NextResponse.json({ error: "Proteção de segurança indisponível. Tente novamente." }, { status: 503 });
   }
 
   if (!(await verifyTurnstileToken(turnstileToken))) {

@@ -11,8 +11,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsc --project tsconfig.test.json && node .test-build/tests/security-and-capture.test.js",
-    "test:integration": "npm test && npm run build && node scripts/integration-real.mjs"
+    "test": "tsc --project tsconfig.test.json && node .test-build/tests/security-and-capture.test.js && node scripts/test-api-regressions.cjs",
+    "test:integration": "npm test && npm run build && node scripts/integration-real.mjs",
+    "test:ui": "node scripts/test-share-dialog.cjs && node scripts/test-room-regressions.cjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",

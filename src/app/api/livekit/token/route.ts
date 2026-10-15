@@ -11,54 +11,6 @@ import {
   getTokenRoomLimiter,
 } from "@/lib/security/token-rate-limit";
 
-// Fase 9A: proteção INICIAL apenas para desenvolvimento em um processo.
-// Em produção, usar limites por IP/identidade e armazenamento compartilhado.
-const WINDOW_MS = 60_000;
-const GLOBAL_LIMIT = 60;
-const ROOM_LIMIT = 20;
-
-type RateWindow = { count: number; resetAt: number };
-type RateState = { global: RateWindow; rooms: Map<string, RateWindow> };
-
-const scope = globalThis as typeof globalThis & {
-  discord2TokenRateState?: RateState;
-};
-const rateState = scope.discord2TokenRateState ??= {
-  global: { count: 0, resetAt: 0 },
-  rooms: new Map<string, RateWindow>(),
-};
-
-function checkWindow(bucket: RateWindow, limit: number, now: number): number | null {
-  if (now >= bucket.resetAt) {
-    bucket.count = 0;
-    bucket.resetAt = now + WINDOW_MS;
-  }
-  if (bucket.count >= limit) {
-    return Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
-  }
-  bucket.count += 1;
-  return null;
-}
-
-function checkGlobalLimit(): number | null {
-  const now = Date.now();
-  if (now >= rateState.global.resetAt) {
-    for (const [id, bucket] of rateState.rooms) {
-      if (now >= bucket.resetAt) rateState.rooms.delete(id);
-    }
-  }
-  return checkWindow(rateState.global, GLOBAL_LIMIT, now);
-}
-
-function checkRoomLimit(roomId: string): number | null {
-  let bucket = rateState.rooms.get(roomId);
-  if (!bucket) {
-    bucket = { count: 0, resetAt: 0 };
-    rateState.rooms.set(roomId, bucket);
-  }
-  return checkWindow(bucket, ROOM_LIMIT, Date.now());
-}
-
 function tooManyRequests(seconds: number) {
   return NextResponse.json(
     { error: "Muitas solicitações. Aguarde um pouco e tente novamente." },
@@ -72,27 +24,7 @@ function tooManyRequests(seconds: number) {
   );
 }
 
-
 export async function POST(request: NextRequest) {
-  // Bloqueia excesso de pedidos, mesmo com conteúdo inválido.
-  const globalRetry = checkGlobalLimit();
-  if (globalRetry !== null) return tooManyRequests(globalRetry);
-
-  // Limite global compartilhado entre reinícios do servidor.
-  try {
-    const result = await strictRateLimit(getTokenGlobalLimiter(), "global");
-    if (!result.success) {
-      return tooManyRequests(
-        Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
-      );
-    }
-  } catch {
-    return NextResponse.json(
-      { error: "Proteção de segurança indisponível. Tente novamente." },
-      { status: 503, headers: { "Cache-Control": "no-store" } }
-    );
-  }
-
   try {
     const parsed = await readRequestJson(request, 24000);
     const body = parsed as Record<string, unknown> | null;
@@ -109,24 +41,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Dados de entrada inválidos. Confira nome e foto." },
         { status: 400 }
-      );
-    }
-
-    const roomRetry = checkRoomLimit(roomId);
-    if (roomRetry !== null) return tooManyRequests(roomRetry);
-
-    // Limite compartilhado específico para esta sala.
-    try {
-      const result = await strictRateLimit(getTokenRoomLimiter(), roomId);
-      if (!result.success) {
-        return tooManyRequests(
-          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
-        );
-      }
-    } catch {
-      return NextResponse.json(
-        { error: "Proteção de segurança indisponível. Tente novamente." },
-        { status: 503, headers: { "Cache-Control": "no-store" } }
       );
     }
 
@@ -162,6 +76,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Convite inválido. Solicite um novo link de sala." },
         { status: 403, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    // Somente dados válidos e convites assinados consomem cotas de emissão.
+    // Limite compartilhado específico para esta sala.
+    try {
+      const result = await strictRateLimit(getTokenRoomLimiter(), roomId);
+      if (!result.success) {
+        return tooManyRequests(
+          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Proteção de segurança indisponível. Tente novamente." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    // Limite global compartilhado entre reinícios do servidor.
+    try {
+      const result = await strictRateLimit(getTokenGlobalLimiter(), "global");
+      if (!result.success) {
+        return tooManyRequests(
+          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Proteção de segurança indisponível. Tente novamente." },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
       );
     }
 

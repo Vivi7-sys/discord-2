@@ -39,6 +39,7 @@ export async function releaseShareReservation(
 ): Promise<boolean> {
   const script = `
     if redis.call("GET", KEYS[1]) == ARGV[1] then
+      redis.call("DEL", KEYS[2])
       return redis.call("DEL", KEYS[1])
     end
     return 0
@@ -46,7 +47,7 @@ export async function releaseShareReservation(
 
   const result = await getRedis().eval(
     script,
-    [reservationKey(roomId)],
+    [reservationKey(roomId), `${reservationKey(roomId)}:pending`],
     [identity]
   );
 
@@ -83,4 +84,30 @@ export async function isShareReservationOld(
   );
 
   return result === 1;
+}
+
+
+// Marcador durável escrito ANTES do RPC. Impede reconciliação por idade
+// de liberar uma reserva cujo grant ainda pode estar em voo.
+export async function markShareGrantPending(roomId: string, identity: string): Promise<boolean> {
+  return await getRedis().eval(`
+    if redis.call("GET", KEYS[1]) == ARGV[1] then
+      redis.call("SET", KEYS[2], ARGV[1], "EX", ARGV[2])
+      return 1
+    end
+    return 0
+  `, [reservationKey(roomId), `${reservationKey(roomId)}:pending`], [identity, String(RESERVATION_SECONDS)]) === 1;
+}
+
+export async function hasPendingShareGrant(roomId: string, identity: string): Promise<boolean> {
+  return await getRedis().get(`${reservationKey(roomId)}:pending`) === identity;
+}
+
+export async function clearPendingShareGrant(roomId: string, identity: string): Promise<boolean> {
+  return await getRedis().eval(`
+    if redis.call("GET", KEYS[1]) == ARGV[1] and redis.call("GET", KEYS[2]) == ARGV[1] then
+      return redis.call("DEL", KEYS[2])
+    end
+    return 0
+  `, [reservationKey(roomId), `${reservationKey(roomId)}:pending`], [identity]) === 1;
 }

@@ -20,7 +20,11 @@ se a rede falhar, o erro e Cancelar vez permitem repetir. Nenhuma reserva nova �
 criada ao abrir o modal de configurações. O diálogo nativo contém o foco, impede
 interação com o fundo e restaura o foco ao fechar.
 
-Alta solicita 1920×1080/30 FPS, teto 5 Mbps (LiveKit h1080fps30).
+Alta é o padrão e solicita 1920×1080/30 FPS, teto 5 Mbps (LiveKit h1080fps30).
+Máxima solicita 1920×1080/60 FPS, com teto customizado de 8 Mbps para dar margem
+à maior taxa de quadros. O mesmo preset alimenta frameRate da captura e
+maxFramerate/maxBitrate da publicação. O teto não garante taxa entregue;
+hardware, navegador e congestionamento podem reduzir FPS/resolução/bitrate.
 Econômico e Equilibrado conservam as metas anteriores. VP8 mantém compatibilidade;
 simulcast mantém as camadas padrão do SDK instalado: uma camada adicional com
 metade da resolução e aproximadamente um quarto do bitrate, mantendo o FPS.

@@ -131,6 +131,8 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
         ref={sectionRef}
         className={`stream stream-active${controlsVisible ? "" : " stream-controls-hidden"}`}
         aria-label="Transmissão de tela"
+        tabIndex={0}
+        onKeyDown={revealControls}
         onMouseEnter={revealControls}
         onMouseMove={(event) => {
           const x = event.clientX;

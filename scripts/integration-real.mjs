@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
-import { randomBytes, createHmac, randomUUID } from "node:crypto";
+import { randomBytes, createHmac, createHash, randomUUID } from "node:crypto";
 import { createServer } from "node:net";
 import { writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
@@ -17,6 +17,12 @@ const roomId = nonce + createHmac("sha256", process.env.ROOM_INVITE_SECRET).upda
 const metadata = `discord2-integration:${run}`;
 const mutexKey = `discord2:room:mutex:v1:${roomId}`;
 const reservationKey = `discord2:room:publisher:v1:${roomId}`;
+const verificationChallenge = `verification-test:${run}`;
+const verificationKeys = [
+  `discord2:integration:${run}:rate:verify:capacity:v1`,
+  ...[verificationChallenge, verificationChallenge + ":over-budget"].map(value =>
+    `discord2:integration:${run}:rate:verify:token:v1:${createHash("sha256").update(value).digest("hex")}`),
+];
 const redis = Redis.fromEnv({ signal: () => AbortSignal.timeout(8000), retry: { retries: 0 } });
 const endpoint = new URL(process.env.LIVEKIT_URL);
 endpoint.protocol = endpoint.protocol === "wss:" ? "https:" : endpoint.protocol === "ws:" ? "http:" : endpoint.protocol;
@@ -148,6 +154,17 @@ try {
     assert.equal(await locks.hasRedisRoomLock(roomId, newer, identity), false);
     assert.equal(await locks.releaseRedisRoomLock(roomId, newer), true);
   });
+  await scenario("atomic_verification_budget_across_clients", async () => {
+    const loader = require("./test-support/load-typescript.cjs");
+    const first = loader()("src/lib/security/verification-rate-limit.ts").limitTurnstileVerification;
+    const second = loader()("src/lib/security/verification-rate-limit.ts").limitTurnstileVerification;
+    const attempts = await Promise.all([first(verificationChallenge), second(verificationChallenge)]);
+    assert.equal(attempts.filter(result => result.success).length, 1);
+    assert.equal(await redis.get(verificationKeys[0]), 1);
+    await redis.set(verificationKeys[0], 600, { ex: 60 });
+    assert.equal((await second(verificationChallenge + ":over-budget")).success, false);
+    assert.equal(await redis.exists(verificationKeys[2]), 0);
+  });
   const [api1, api2] = await Promise.all([apiServer(), apiServer()]);
   const [a, b] = await Promise.all([token(api1.base), token(api2.base)]);
   const clientA = rtcClient();
@@ -250,10 +267,14 @@ try {
       const [room] = await service.listRooms([roomId]);
       if (room && room.metadata !== metadata) throw new Error("Ownership mismatch");
       if (room) await service.deleteRoom(roomId);
-      await redis.del(mutexKey, reservationKey);
-      cleaned = (await service.listRooms([roomId])).length === 0 && !await redis.exists(mutexKey, reservationKey);
+      await redis.del(mutexKey, reservationKey, `${reservationKey}:pending`);
+      cleaned = (await service.listRooms([roomId])).length === 0 && !await redis.exists(mutexKey, reservationKey, `${reservationKey}:pending`);
     } catch { cleaned = false; }
   }
+  try {
+    await redis.del(...verificationKeys);
+    if (await redis.exists(...verificationKeys)) cleaned = false;
+  } catch { cleaned = false; }
   results.push({ scenario: "isolated_resource_cleanup", status: cleaned ? "passed" : "failed", type: "real-integration" });
   console.log(JSON.stringify(results.at(-1)));
   const report = {

@@ -26,7 +26,7 @@ const Dialog = moduleObject.exports.default;
   const root = createRoot(document.getElementById('root'));
   const trigger = document.getElementById('trigger');
   let starts = 0, cancels = 0, quality, audio;
-  const props = { audioMode: 'browser', qualityProfile: 'equilibrado', canStart: true,
+  const props = { audioMode: 'browser', qualityProfile: 'alta', canStart: true,
     onStart: () => { starts++; }, onCancel: () => { cancels++; },
     onQualityProfileChange: value => { quality = value; }, onAudioModeChange: value => { audio = value; } };
   trigger.focus();
@@ -34,10 +34,13 @@ const Dialog = moduleObject.exports.default;
   assert.equal(starts, 0, 'abrir não inicia captura');
   assert.equal(document.querySelector('dialog').open, true);
   assert.equal(document.activeElement, document.querySelector('select'));
-  assert.equal(document.querySelectorAll('option').length, 6);
+  assert.equal(document.querySelectorAll('option').length, 7);
   const selects = document.querySelectorAll('select');
-  await act(async () => { selects[0].value = 'alta'; selects[0].dispatchEvent(new Event('change', { bubbles: true })); selects[1].value = 'none'; selects[1].dispatchEvent(new Event('change', { bubbles: true })); });
-  assert.equal(quality, 'alta'); assert.equal(audio, 'none');
+  assert.equal(selects[0].value, 'alta');
+  assert.equal(selects[0].options.length, 4);
+  assert.equal(selects[0].options[3].textContent, 'Máxima qualidade — 1080p / até 60 FPS');
+  await act(async () => { selects[0].value = 'maxima'; selects[0].dispatchEvent(new Event('change', { bubbles: true })); selects[1].value = 'none'; selects[1].dispatchEvent(new Event('change', { bubbles: true })); });
+  assert.equal(quality, 'maxima'); assert.equal(audio, 'none');
   await act(async () => document.querySelector('dialog').dispatchEvent(new Event('cancel', { bubbles: false, cancelable: true })));
   assert.equal(cancels, 1); assert.equal(starts, 0);
   const buttons = document.querySelectorAll('dialog button');

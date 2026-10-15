@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Redis } from "@upstash/redis";
-import { TrackSource } from "livekit-server-sdk";
+import { grantReservedShare } from "../src/lib/security/grant-reserved-share";
+import { ServerError, TrackSource } from "livekit-server-sdk";
 import type { LocalTrack } from "livekit-client";
 import { readRequestJson } from "../src/lib/security/request-json";
 import { strictRateLimit } from "../src/lib/security/strict-rate-limit";
@@ -14,12 +15,18 @@ import { rateLimitPrefix } from "../src/lib/security/rate-limit-prefix";
 import { createRoomInvite, verifyRoomInvite } from "../src/lib/room/server-invite";
 import { applyRemoteAudioVolume } from "../src/lib/room/remote-audio-volume";
 
-import { QUALITY_PRESETS, browserAudioOptions, findVirtualAudioDevice } from "../src/lib/capture/screen-options";
+import { DEFAULT_QUALITY_PROFILE, QUALITY_PRESETS, browserAudioOptions, findVirtualAudioDevice } from "../src/lib/capture/screen-options";
 
 test("captura mantém perfis menores e solicita 1080p30 com teto LiveKit de 5 Mbps", () => {
   assert.deepEqual(QUALITY_PRESETS.alta, { width: 1920, height: 1080, fps: 30, bitrate: 5_000_000 });
   assert.deepEqual(QUALITY_PRESETS.economico, { width: 854, height: 480, fps: 20, bitrate: 900_000 });
   assert.deepEqual(QUALITY_PRESETS.equilibrado, { width: 1280, height: 720, fps: 30, bitrate: 2_500_000 });
+});
+
+test("máxima solicita 1080p60 com teto de 8 Mbps e padrão continua em 1080p30", () => {
+  assert.deepEqual(QUALITY_PRESETS.maxima, { width: 1920, height: 1080, fps: 60, bitrate: 8_000_000 });
+  assert.equal(DEFAULT_QUALITY_PROFILE, "alta");
+  assert.equal(QUALITY_PRESETS[DEFAULT_QUALITY_PROFILE].fps, 30);
 });
 
 test("áudio pede exclusão da própria aba só com suporte e mantém reprodução local", () => {
@@ -318,7 +325,7 @@ test("fronteira HTTP do SDK Redis: configuração, serialização e falhas", asy
     assert.deepEqual(commands.at(-1)!.slice(2), [1, "discord2:room:mutex:v1:room", "wrong-owner"]);
     result = 1;
     assert.equal(await releaseShareReservation("room", "participant"), true);
-    assert.deepEqual(commands.at(-1)!.slice(2), [1, "discord2:room:publisher:v1:room", "participant"]);
+    assert.deepEqual(commands.at(-1)!.slice(2), [2, "discord2:room:publisher:v1:room", "discord2:room:publisher:v1:room:pending", "participant"]);
     assert.match(commands.at(-1)![1] as string, /return redis\.call\("DEL", KEYS\[1\]\)/);
   });
 
@@ -346,4 +353,73 @@ test("fonte virtual nunca escolhe entrada padrão, microfone, saída ou disposit
   assert.equal(findVirtualAudioDevice(devices), undefined);
   const virtual = { kind: "audioinput" as const, deviceId: "virtual-only", label: "Screen Share Audio" };
   assert.equal(findVirtualAudioDevice([...devices, virtual]), virtual);
+});
+
+// Regressão: confirmação do grant deve distinguir rejeição e resultado incerto.
+
+function grantScenario(options: { error?: Error; published?: boolean; tracks?: boolean; lookupFails?: boolean; pending?: boolean; lock?: boolean } = {}) {
+  let released = 0;
+  let cleared = 0;
+  let grants = 0;
+  const deps = {
+    hasPending: async () => options.pending ?? false,
+    markPending: async () => true,
+    ownsLock: async () => options.lock ?? true,
+    grant: async () => { grants++; if (options.error) throw options.error; },
+    list: async () => {
+      if (options.lookupFails) throw new Error("lookup offline");
+      return [{ identity: "owner", permission: { canPublish: options.published ?? false },
+        tracks: options.tracks ? [{ source: TrackSource.SCREEN_SHARE }] : [] }];
+    },
+    release: async () => { released++; },
+    clearPending: async () => { cleared++; },
+  };
+  return { deps, stats: () => ({ released, cleared, grants }) };
+}
+
+const refusedGrant = () => new ServerError("denied", "test only", 403, "permission_denied");
+test("grant rejeitado explicitamente + viewer confirmado devolve reserva imediatamente", async () => {
+  const scenario = grantScenario({ error: refusedGrant() });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "denied");
+  assert.equal(scenario.stats().released, 1);
+});
+
+test("timeout sem grant visível conserva reserva: leitura viewer não prova cancelamento do RPC", async () => {
+  const scenario = grantScenario({ error: new Error("fetch timeout") });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+  assert.equal(scenario.stats().released, 0);
+});
+
+test("resposta perdida com canPublish confirmado é sucesso sem liberar reserva", async () => {
+  const scenario = grantScenario({ error: new Error("lost response"), published: true });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "granted");
+  assert.deepEqual(scenario.stats(), { released: 0, cleared: 1, grants: 1 });
+});
+
+test("reconsulta indisponível, tracks ainda ativas e tentativa anterior incerta nunca liberam reserva", async () => {
+  for (const options of [{ lookupFails: true }, { tracks: true }, { pending: true }]) {
+    const scenario = grantScenario({ error: refusedGrant(), ...options });
+    assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+    assert.equal(scenario.stats().released, 0);
+  }
+});
+
+test("grant não executa sem lease válido e falha Redis conserva estado", async () => {
+  const scenario = grantScenario({ lock: false });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+  assert.equal(scenario.stats().grants, 0);
+  scenario.deps.hasPending = async () => { throw new Error("Redis offline"); };
+  assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+});
+
+test("rejeição genérica 5xx é ambígua mesmo com viewer confirmado", async () => {
+  const scenario = grantScenario({ error: new ServerError("internal", "test only", 500, "internal") });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+  assert.equal(scenario.stats().released, 0);
+});
+
+test("cancelamento durante grant não deixa uma rejeição posterior limpar incerteza anterior", async () => {
+  const scenario = grantScenario({ pending: true, error: refusedGrant() });
+  assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
+  assert.equal(scenario.stats().released, 0);
 });

@@ -1,7 +1,7 @@
 import RoomIcon from "./RoomIcon";
 
 export type AudioMode = "none" | "browser" | "linux-virtual";
-export type QualityProfile = "economico" | "equilibrado" | "alta";
+export type QualityProfile = "economico" | "equilibrado" | "alta" | "maxima";
 
 type RoomControlsProps = {
   connected: boolean;
@@ -9,6 +9,7 @@ type RoomControlsProps = {
   busy: boolean;
   anotherSharing: boolean;
   broadcastAllowed: boolean;
+  hasReservation: boolean;
   onRequestBroadcast: () => void;
   onCancelBroadcast: () => void;
   audioStatus: string | null;
@@ -24,6 +25,7 @@ export default function RoomControls({
   busy,
   anotherSharing,
   broadcastAllowed,
+  hasReservation,
   onRequestBroadcast,
   onCancelBroadcast,
   audioStatus,
@@ -32,7 +34,7 @@ export default function RoomControls({
   onRejectVirtualAudio,
   onToggleShare,
 }: RoomControlsProps) {
-  const actionLabel = busy ? "Aguarde…" : sharing ? "Parar transmissão" :
+  const actionLabel = sharing ? "Parar transmissão" : busy ? "Aguarde…" :
     broadcastAllowed ? "Compartilhar tela" : "Solicitar transmissão";
   // Play solicita a vez; ao liberar, volta ao ícone de compartilhar tela.
   const actionIcon = sharing ? "stop" : broadcastAllowed ? "share" : "play";
@@ -44,12 +46,12 @@ export default function RoomControls({
         className={`room-icon-btn room-broadcast-btn desktop-broadcast-only${sharing ? " room-broadcast-stop" : ""}`}
         aria-label={actionLabel}
         title={actionLabel}
-        disabled={!connected || busy || (anotherSharing && !sharing)}
+        disabled={!connected || (busy && !sharing) || (anotherSharing && !sharing)}
         onClick={sharing || broadcastAllowed ? onToggleShare : onRequestBroadcast}
       >
         <RoomIcon name={actionIcon} size={21} />
       </button>
-      {broadcastAllowed && !sharing && (
+      {(broadcastAllowed || hasReservation) && !sharing && (
         <button type="button" className="room-icon-btn desktop-broadcast-only"
           aria-label="Cancelar vez" title="Cancelar vez"
           disabled={!connected || busy} onClick={onCancelBroadcast}>

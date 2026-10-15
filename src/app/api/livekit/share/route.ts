@@ -1,10 +1,14 @@
 import { readRequestJson, RequestBodyError } from "@/lib/security/request-json";
+import { grantReservedShare } from "@/lib/security/grant-reserved-share";
 import { strictRateLimit } from "@/lib/security/strict-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { RoomServiceClient, TokenVerifier } from "livekit-server-sdk";
 import { isShareActionEnabled, screenPermission, viewerPermission } from "@/lib/security/share-permissions";
 import {
   getShareReservation,
+  markShareGrantPending,
+  hasPendingShareGrant,
+  clearPendingShareGrant,
   isShareReservationOld,
   reserveShare,
   releaseShareReservation,
@@ -25,57 +29,6 @@ const scope = globalThis as typeof globalThis & {
   discord2RoomQueues?: Map<string, Promise<void>>;
 };
 const roomQueues = scope.discord2RoomQueues ??= new Map<string, Promise<void>>();
-
-// Fase 9B: limitação inicial da API de transmissão (apenas um processo).
-// Não é uma proteção distribuída: em produção, combinar com limites na borda
-// e, caso haja mais de uma instância, estado/controle compartilhado.
-const SHARE_WINDOW_MS = 60_000;
-const SHARE_GLOBAL_LIMIT = 120; // todas as tentativas, inclusive inválidas
-const SHARE_ACQUIRE_LIMIT = 12; // solicitações de transmissão por participante
-
-type ShareRateWindow = { count: number; resetAt: number };
-type ShareRateState = {
-  global: ShareRateWindow;
-  acquires: Map<string, ShareRateWindow>;
-};
-const shareRateScope = globalThis as typeof globalThis & {
-  discord2ShareRateState?: ShareRateState;
-};
-const shareRate = shareRateScope.discord2ShareRateState ??= {
-  global: { count: 0, resetAt: 0 },
-  acquires: new Map<string, ShareRateWindow>(),
-};
-
-function consumeShareWindow(bucket: ShareRateWindow, limit: number, now: number): number | null {
-  if (now >= bucket.resetAt) {
-    bucket.count = 0;
-    bucket.resetAt = now + SHARE_WINDOW_MS;
-  }
-  if (bucket.count >= limit) {
-    return Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
-  }
-  bucket.count += 1;
-  return null;
-}
-
-function globalShareRetry(): number | null {
-  const now = Date.now();
-  if (now >= shareRate.global.resetAt) {
-    for (const [identity, bucket] of shareRate.acquires) {
-      if (now >= bucket.resetAt) shareRate.acquires.delete(identity);
-    }
-  }
-  return consumeShareWindow(shareRate.global, SHARE_GLOBAL_LIMIT, now);
-}
-
-function acquireShareRetry(identity: string): number | null {
-  let bucket = shareRate.acquires.get(identity);
-  if (!bucket) {
-    bucket = { count: 0, resetAt: 0 };
-    shareRate.acquires.set(identity, bucket);
-  }
-  return consumeShareWindow(bucket, SHARE_ACQUIRE_LIMIT, Date.now());
-}
 
 function shareTooManyRequests(seconds: number) {
   return NextResponse.json(
@@ -100,8 +53,6 @@ async function withRoomLock<T>(roomId: string, work: () => Promise<T>): Promise<
 }
 
 export async function POST(request: NextRequest) {
-  const globalRetry = globalShareRetry();
-
   const { LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET } = process.env;
   if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     return NextResponse.json({ error: "LiveKit não configurado." }, { status: 500 });
@@ -121,29 +72,6 @@ export async function POST(request: NextRequest) {
   if (!isShareActionEnabled(action, process.env.NODE_ENV, process.env.ENABLE_SHARE_IN_PRODUCTION)) {
     return NextResponse.json({ error: "Transmissao ainda indisponivel." }, { status: 403 });
   }
-  // Mesmo com o limite global atingido, permitir a tentativa de
-  // encerrar transmissão. A autorização continua obrigatória.
-  if (globalRetry !== null && action !== "release") {
-    return shareTooManyRequests(globalRetry);
-  }
-
-  // Não bloquear a liberação de transmissão, mesmo se o Redis falhar.
-  if (action === "acquire") {
-    try {
-      const result = await strictRateLimit(getShareGlobalLimiter(), "global");
-      if (!result.success) {
-        return shareTooManyRequests(
-          Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
-        );
-      }
-    } catch {
-      return NextResponse.json(
-        { error: "Proteção de segurança indisponível. Tente novamente." },
-        { status: 503, headers: { "Cache-Control": "no-store" } }
-      );
-    }
-  }
-
   if (typeof roomId !== "string" || !/^[a-f0-9]{64}$/.test(roomId) ||
       (action !== "acquire" && action !== "release")) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
@@ -153,7 +81,6 @@ export async function POST(request: NextRequest) {
   if (!authorization.startsWith("Bearer ")) {
     return NextResponse.json({ error: "Autorização necessária." }, { status: 401 });
   }
-
 
   let identity: string;
   try {
@@ -180,9 +107,6 @@ export async function POST(request: NextRequest) {
   // Limitar pedidos de adquirir transmissão, sem impedir o participante
   // de liberar a vaga quando já alcançou o limite.
   if (action === "acquire") {
-    const acquireRetry = acquireShareRetry(identity);
-    if (acquireRetry !== null) return shareTooManyRequests(acquireRetry);
-
     try {
       const result = await strictRateLimit(getShareAcquireLimiter(), identity);
       if (!result.success) {
@@ -196,8 +120,16 @@ export async function POST(request: NextRequest) {
         { status: 503, headers: { "Cache-Control": "no-store" } }
       );
     }
-  }
+    // A cota individual vem antes da global: repetir um JWT não esgota
+    // indiscriminadamente o orçamento das outras identidades.
+    try {
+      const result = await strictRateLimit(getShareGlobalLimiter(), "global");
+      if (!result.success) return shareTooManyRequests(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)));
+    } catch {
+      return NextResponse.json({ error: "Proteção de segurança indisponível. Tente novamente." }, { status: 503 });
+    }
 
+  }
 
   try {
     const endpoint = new URL(LIVEKIT_URL);
@@ -238,15 +170,17 @@ export async function POST(request: NextRequest) {
             // A permissão já foi revogada no LiveKit.
             // Tenta limpar a reserva mesmo se a trava falhou.
             // A remoção é condicional: só o dono libera sua reserva.
+            let reservationHeld = false;
             try {
               await releaseShareReservation(roomId, identity);
             } catch {
+              reservationHeld = true;
               // Se o Redis realmente estiver indisponível,
               // a reserva precisará ser reconciliada depois.
             }
 
             return NextResponse.json(
-              { ok: true },
+              { ok: true, reservationHeld },
               { headers: { "Cache-Control": "no-store" } }
             );
           } catch {
@@ -270,6 +204,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      let reservationHeld = false;
       try {
       // LiveKit é a fonte de verdade: a permissão existe somente enquanto o
       // participante estiver na sala. Sair da sala libera a vaga naturalmente.
@@ -301,7 +236,8 @@ export async function POST(request: NextRequest) {
         if (
           reservedPerson &&
           !reservedPerson.permission?.canPublish &&
-          await isShareReservationOld(roomId, holder, 60)
+          await isShareReservationOld(roomId, holder, 60) &&
+          !await hasPendingShareGrant(roomId, holder)
         ) {
           const freshPeople = await service.listParticipants(roomId);
 
@@ -352,15 +288,22 @@ export async function POST(request: NextRequest) {
         }
 
         if (!person.permission?.canPublish) {
-          if (!await hasRedisRoomLock(roomId, lockOwner, identity)) {
-            return NextResponse.json(
-              { error: "A operação expirou. Solicite a transmissão novamente." },
-              { status: 409 }
-            );
-          }
-          await service.updateParticipant(roomId, identity, {
-            permission: screenPermission,
+          const outcome = await grantReservedShare(identity, {
+            hasPending: () => hasPendingShareGrant(roomId, identity),
+            markPending: () => markShareGrantPending(roomId, identity),
+            ownsLock: () => hasRedisRoomLock(roomId, lockOwner!, identity),
+            grant: () => service.updateParticipant(roomId, identity, { permission: screenPermission }),
+            list: () => service.listParticipants(roomId),
+            clearPending: () => clearPendingShareGrant(roomId, identity),
+            release: () => releaseShareReservation(roomId, identity),
           });
+          if (outcome !== "granted") {
+            return NextResponse.json({
+              error: outcome === "denied" ? "O LiveKit recusou a permissão. A reserva foi liberada; tente novamente."
+                : "Não foi possível confirmar a permissão. Sua reserva foi mantida; tente novamente ou use Cancelar vez.",
+              reservationHeld: outcome === "uncertain",
+            }, { status: 502, headers: { "Cache-Control": "no-store" } });
+          }
         }
       } else {
         // Revoga a permissão antes de liberar a reserva.
@@ -370,11 +313,12 @@ export async function POST(request: NextRequest) {
         try {
           await releaseShareReservation(roomId, identity);
         } catch {
+          reservationHeld = true;
           // A permissão já foi revogada no LiveKit.
           // A reserva pendente precisará ser reconciliada depois.
         }
       }
-      return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+      return NextResponse.json({ ok: true, reservationHeld }, { headers: { "Cache-Control": "no-store" } });
       } finally {
         // A trava possui expiração de segurança no Redis.
         try {
