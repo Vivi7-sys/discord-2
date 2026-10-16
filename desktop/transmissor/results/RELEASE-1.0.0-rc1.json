@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0~rc1",
+  "status": "candidate-human-public-media-validation-pending",
+  "recoveryCommit": "b831975",
+  "artifact": "desktop/transmissor/dist/discord2-transmissor_1.0.0~rc1_amd64.deb",
+  "sha256": "118c093ac2b28593ed271a9fe0d6d42b7af16bf392f3767c75a71193bc1e6a26",
+  "tests": {
+    "python": 32,
+    "nodeMedia": 4,
+    "nodeShutdownFault": 1,
+    "siteSecurity": 41,
+    "siteApi": 11,
+    "build": true,
+    "lint": true,
+    "extractedRuntimeAndGtk": true,
+    "disposableDpkgInstallUpgradeRemove": true,
+    "aptUpgradeSimulation": true,
+    "hostInstallationChanged": false
+  },
+  "publicAuthenticatedLifecycleEvidence": "results/LIFECYCLE-1792175639539.json",
+  "localRealLifecycleEvidence": "results/LIFECYCLE-1792175480106.json",
+  "captureInThisRound": false,
+  "priorRealImageUsbAudioCellphone": "confirmed-by-user-on-0.1.1",
+  "noPushOrDeploy": true
+}

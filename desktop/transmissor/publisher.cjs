@@ -82,12 +82,12 @@ async function finishStop() {
   }
   // Revoking publish permission already removes publications on the server.
   // Disconnect instead of sending a second unpublish RPC for those removed tracks.
-  await room.disconnect();
+  await Promise.allSettled([room.disconnect()]);
   await Promise.allSettled(tracks.map(t=>t.close(false)));
   await Promise.allSettled(sources.map(s=>s.close()));
   await rtc.dispose(); token=undefined; event('stopped');
 }
-room.on(rtc.RoomEvent.Disconnected,()=>{if(!stopping)void stop().finally(()=>process.exit(1));});
+room.on(rtc.RoomEvent.Disconnected,()=>{if(!stopping){event('error',{stage:'connection',reason:'Disconnected'});void stop().finally(()=>process.exit(1));}});
 async function main() {
   const videoReader=new Reader(input(0,1024*1024));
   await start(await videoReader.config());

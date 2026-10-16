@@ -1,12 +1,12 @@
 # Instalação no Pop!_OS 24.04 / COSMIC Wayland
 
-Pacote de desenvolvimento amd64: `dist/discord2-transmissor_0.1.1_amd64.deb`.
+Pacote de desenvolvimento amd64: `dist/discord2-transmissor_1.0.0~rc1_amd64.deb`.
 Preparado e extraído para verificação; **a instalação no sistema e o lançamento pelo menu ainda precisam ser testados**.
 
 Na raiz do projeto:
 
 ```sh
-sudo apt install ./desktop/transmissor/dist/discord2-transmissor_0.1.1_amd64.deb
+sudo apt install ./desktop/transmissor/dist/discord2-transmissor_1.0.0~rc1_amd64.deb
 ```
 
 Depois abra **Discord 2 Transmissor** no menu Aplicativos (ícone D2). Cole seu convite, informe o nome, escolha Tela ou Janela e o perfil. Clique em **Selecionar e iniciar** e autorize a seleção no portal. **Parar** encerra a captura e libera a transmissão; fechar a janela também aguarda o encerramento. Não há início automático de captura.

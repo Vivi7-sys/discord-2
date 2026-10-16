@@ -1,19 +1,21 @@
 {
   "name": "discord2-transmissor",
   "private": true,
-  "version": "0.1.1",
+  "version": "1.0.0-rc1",
   "dependencies": {
     "@livekit/rtc-node": "1.1.0"
   },
   "scripts": {
     "start": "/usr/bin/python3 launch.py",
-    "test": "/usr/bin/python3 -m unittest discover -s tests && node tests/media.test.cjs",
+    "test": "/usr/bin/python3 -m unittest discover -s tests && node tests/media.test.cjs && node --test tests/publisher.test.cjs",
     "build:native": "node native/build.cjs",
     "lint": "node ../../node_modules/eslint/bin/eslint.js .",
     "check:desktop": "/usr/bin/python3 launch.py --check",
     "validate:desktop": "node manual-validation.mjs",
     "reference": "/usr/bin/python3 reference.py",
     "build:deb": "/usr/bin/python3 packaging/build-deb.py",
-    "check:deb": "/usr/bin/python3 packaging/check-deb.py"
+    "check:deb": "/usr/bin/python3 packaging/check-deb.py",
+    "test:lifecycle": "node tests/lifecycle-real.mjs",
+    "check:package-lifecycle": "/usr/bin/python3 packaging/lifecycle-deb.py"
   }
 }

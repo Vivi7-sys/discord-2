@@ -1,0 +1,14 @@
+{
+  "type": "real-native-publisher-lifecycle-no-media",
+  "publicBackend": false,
+  "timestamp": "2026-10-16T18:29:10.516Z",
+  "desktopCapture": false,
+  "syntheticFrames": false,
+  "mediaValidated": false,
+  "passed": false,
+  "tokenStatus": 503,
+  "failure": "AssertionError",
+  "participantsAtExit": 0,
+  "reservationAbsent": true,
+  "ownRoomDeleted": true
+}

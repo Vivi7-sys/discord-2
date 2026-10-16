@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = json.loads((ROOT/'package.json').read_text())['version']
+VERSION = json.loads((ROOT/'package.json').read_text())['version'].replace('-rc', '~rc')
 FILES = ('app.py launch.py capture.py audio.py metrics.py frame_ring.py publisher.cjs '
          'media.cjs rtc-native.cjs rtc-stats.cjs gpu-stats.cjs profiles.json native/shm.node').split()
 
@@ -28,7 +28,7 @@ def build():
             target = runtime/name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT/name, target)
-        for guide in ('INSTALACAO.md', 'ENUMERACAO-AUDIO.md'):
+        for guide in ('README.md', 'INSTALACAO.md', 'ENUMERACAO-AUDIO.md', 'VALIDACAO-1.0.md'):
             shutil.copyfile(ROOT/guide, runtime/guide)
         licenses = []
         for name, metadata in lock['packages'].items():

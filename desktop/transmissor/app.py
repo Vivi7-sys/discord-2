@@ -34,6 +34,27 @@ def configuration(invite, name, fps, audio):
     return dict(base=f'{u.scheme}://{u.netloc}', roomId=parts[1], name=name.strip(), fps=fps, audio=bool(audio), codec='h264')
 
 
+def transmission_error(stage, reason):
+    """Only fixed messages; never surface server/SDK text containing credentials."""
+    if reason == 'API 429':
+        return 'Muitas tentativas. Aguarde um minuto antes de tentar novamente.'
+    if stage == 'token' and reason == 'API 403':
+        return 'Convite inválido ou expirado. Cole um novo convite do site Discord 2.'
+    if stage == 'acquire' and reason == 'API 403':
+        return 'O servidor não autorizou a transmissão. Confira se o compartilhamento está habilitado no site.'
+    if stage == 'acquire' and reason == 'API 409':
+        return 'Outra pessoa está transmitindo. Aguarde a liberação da vaga.'
+    if reason == 'API 401':
+        return 'Autorização recusada. Pare e entre novamente com o convite.'
+    if reason == 'API 409':
+        return 'Sala indisponível ou incompatível. Confira o convite e o limite de seis participantes.'
+    if stage == 'connection':
+        return 'Conexão perdida. Captura encerrada; confira a rede e tente iniciar novamente.'
+    if stage in ('connect', 'token', 'acquire'):
+        return 'Não foi possível conectar à sala. Confira a rede, o convite e a disponibilidade do site.'
+    return 'Não foi possível publicar a mídia. Pare e tente iniciar novamente; salve o diagnóstico se persistir.'
+
+
 class Session:
     def __init__(self, status):
         self.status = status
@@ -164,7 +185,7 @@ class Session:
                         if state == 'metrics':
                             self.publisher_metrics = {k: v for k, v in event.items() if k != 'state'}
                         if state == 'error':
-                            self.failure = 'Falha no estágio: ' + event.get('stage', 'SDK') + ' (' + event.get('reason', 'erro') + ')'
+                            self.failure = transmission_error(event.get('stage'), event.get('reason'))
                             self.status(self.failure)
                         events.put(state)
                         if state == 'release-unconfirmed':
@@ -246,8 +267,10 @@ class Session:
             if self.portal:
                 self.portal.close()
             self.mark('resourcesClosed')
-            self.status(self.failure or ('Falha na transmissão; captura encerrada' if failed else
-                        'Parado; liberação não confirmada' if self.release_pending else 'Parado'), True)
+            message = self.failure or ('Falha na transmissão; captura encerrada' if failed else 'Parado')
+            if self.release_pending:
+                message += ' Liberação da vaga não confirmada; o servidor verificará a desconexão na próxima tentativa.'
+            self.status(message, True)
 
 
 class Window(Gtk.Window):
@@ -262,7 +285,7 @@ class Window(Gtk.Window):
         self.closing = False
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.add(box)
-        self.invite = Gtk.Entry(placeholder_text='Cole o convite da sala')
+        self.invite = Gtk.Entry(placeholder_text='Cole o convite do site Discord 2')
         self.name = Gtk.Entry(placeholder_text='Seu nome (2 a 24 caracteres)')
         self.kind = Gtk.ComboBoxText()
         self.kind.append_text('Tela'); self.kind.append_text('Janela'); self.kind.set_active(0)

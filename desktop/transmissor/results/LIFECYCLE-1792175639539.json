@@ -1,0 +1,25 @@
+{
+  "type": "real-native-publisher-lifecycle-no-media",
+  "publicBackend": true,
+  "timestamp": "2026-10-16T18:33:06.077Z",
+  "desktopCapture": false,
+  "syntheticFrames": false,
+  "mediaValidated": false,
+  "passed": true,
+  "testCredentialsOnlyInParent": true,
+  "tokenStatus": 200,
+  "trackPublished": true,
+  "collision": {
+    "stage": "acquire",
+    "reason": "API 409"
+  },
+  "exclusivePublisher": true,
+  "stopReleased": true,
+  "restart": true,
+  "abruptDisconnect": true,
+  "slotRecoveredAfterDisconnect": true,
+  "finalRelease": true,
+  "participantsAtExit": 0,
+  "reservationAbsent": true,
+  "ownRoomDeleted": true
+}

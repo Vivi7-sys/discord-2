@@ -1,0 +1,10 @@
+{
+  "type": "public-endpoint-contract-only",
+  "timestamp": "2026-10-16T18:27:32.627Z",
+  "base": "https://discord-2-kuau.onrender.com",
+  "authenticatedConnection": false,
+  "health": 200,
+  "invalidInvite": 403,
+  "missingAuthorization": 401,
+  "passed": true
+}

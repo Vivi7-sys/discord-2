@@ -1,0 +1,10 @@
+{
+  "type": "real-native-publisher-lifecycle-no-media",
+  "publicBackend": false,
+  "timestamp": "2026-10-16T18:28:06.264Z",
+  "desktopCapture": false,
+  "syntheticFrames": false,
+  "mediaValidated": false,
+  "passed": false,
+  "failure": "TypeError"
+}
