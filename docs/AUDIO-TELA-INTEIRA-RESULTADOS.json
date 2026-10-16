@@ -1,0 +1,473 @@
+{
+  "test": "assisted-whole-screen-audio",
+  "capture": {
+    "at": "2026-10-15T21:06:58.676Z",
+    "side": "sender",
+    "prefix": "[D2 audio]",
+    "data": {
+      "stage": "capture",
+      "audioTracks": 1,
+      "audioRequested": true,
+      "surface": "monitor"
+    }
+  },
+  "publicationEvents": [
+    {
+      "at": "2026-10-15T21:06:59.030Z",
+      "side": "sender",
+      "prefix": "[D2 audio]",
+      "data": {
+        "stage": "publish",
+        "kind": "video",
+        "success": true
+      }
+    },
+    {
+      "at": "2026-10-15T21:07:00.105Z",
+      "side": "sender",
+      "prefix": "[D2 audio]",
+      "data": {
+        "stage": "publish",
+        "kind": "audio",
+        "success": true
+      }
+    }
+  ],
+  "senderSource": {
+    "samples": 84,
+    "energyStates": {
+      "unknown": 1,
+      "silent": 2,
+      "signal": 81
+    },
+    "kbpsRange": [
+      0,
+      0
+    ],
+    "audioLevelRange": [
+      0,
+      0.3326517532883694
+    ],
+    "last": {
+      "at": "2026-10-15T21:14:00.524Z",
+      "side": "sender",
+      "prefix": "[D2 media]",
+      "data": {
+        "source": "screen_share_audio",
+        "direction": "media-source",
+        "kind": "audio",
+        "energy": "signal",
+        "audioLevel": 0,
+        "kbps": 0
+      }
+    }
+  },
+  "senderOutbound": {
+    "samples": 84,
+    "energyStates": {
+      "unknown": 84
+    },
+    "kbpsRange": [
+      4,
+      303
+    ],
+    "audioLevelRange": null,
+    "last": {
+      "at": "2026-10-15T21:14:00.354Z",
+      "side": "sender",
+      "prefix": "[D2 media]",
+      "data": {
+        "source": "screen_share_audio",
+        "direction": "outbound-rtp",
+        "kind": "audio",
+        "energy": "unknown",
+        "packets": 20871,
+        "kbps": 216
+      }
+    }
+  },
+  "controlInbound": {
+    "samples": 14,
+    "energyStates": {
+      "unknown": 1,
+      "signal": 13
+    },
+    "kbpsRange": [
+      207,
+      328
+    ],
+    "audioLevelRange": [
+      0,
+      0.19260231330301827
+    ],
+    "last": {
+      "at": "2026-10-15T21:13:11.018Z",
+      "side": "control",
+      "prefix": "[D2 media]",
+      "data": {
+        "source": "screen_share_audio",
+        "direction": "inbound-rtp",
+        "kind": "audio",
+        "energy": "signal",
+        "audioLevel": 0.02328562273018586,
+        "packets": 3583,
+        "kbps": 257
+      }
+    }
+  },
+  "controlPlayback": [
+    {
+      "at": "2026-10-15T21:12:01.246Z",
+      "side": "control",
+      "prefix": "[D2 audio]",
+      "data": {
+        "stage": "playback",
+        "muted": true,
+        "success": true,
+        "paused": false,
+        "volume": 0
+      }
+    }
+  ],
+  "controlLastPlayerState": {
+    "at": "2026-10-15T21:13:11.219Z",
+    "side": "control",
+    "prefix": "[D2 control playback]",
+    "data": {
+      "muted": false,
+      "readyState": 4,
+      "paused": false,
+      "volume": 0.65,
+      "currentTime": 70.218342,
+      "mediaError": 0
+    }
+  },
+  "phoneDiagnosticSamples": 129,
+  "livekitSnapshots": [
+    {
+      "at": "2026-10-15T21:08:36.350Z",
+      "participants": 1,
+      "publishers": 1,
+      "viewers": 0,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T21:10:43.018Z",
+      "participants": 1,
+      "publishers": 1,
+      "viewers": 0,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T21:12:43.970Z",
+      "participants": 2,
+      "publishers": 1,
+      "viewers": 1,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T21:15:18.626Z",
+      "participants": 1,
+      "publishers": 1,
+      "viewers": 0,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ]
+    },
+    {
+      "at": "2026-10-15T21:21:24.841Z",
+      "participants": 2,
+      "publishers": 1,
+      "viewers": 1,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Control receiver is a desktop Brave tab, not the phone.",
+    "HTML playback success does not prove physical audible output.",
+    "No audio recording, microphone capture or routing changes were performed."
+  ],
+  "validation": {
+    "npm test": "passed: 41 unit/security/capture + 11 API tests",
+    "npm run test:ui": "passed: share dialog + 10 room regressions",
+    "npm run lint": "passed",
+    "npm run build": "passed",
+    "git diff --check": "passed"
+  },
+  "phoneReceiver": {
+    "firstSampleAt": "2026-10-15T21:20:32.280Z",
+    "lastSampleAt": "2026-10-15T21:22:02.348Z",
+    "inbound": {
+      "samples": 18,
+      "energyStates": {
+        "unknown": 1,
+        "signal": 17
+      },
+      "kbpsRange": [
+        152,
+        249
+      ],
+      "audioLevelRange": [
+        0,
+        0.32300790429395426
+      ],
+      "last": {
+        "at": "2026-10-15T21:22:02.335Z",
+        "side": "receiver",
+        "prefix": "[D2 media]",
+        "data": {
+          "source": "screen_share_audio",
+          "direction": "inbound-rtp",
+          "kind": "audio",
+          "energy": "signal",
+          "audioLevel": 0.2752464369640187,
+          "packets": 4019,
+          "kbps": 173
+        }
+      }
+    },
+    "playbackEvents": [
+      {
+        "at": "2026-10-15T21:20:36.729Z",
+        "side": "receiver",
+        "prefix": "[D2 audio]",
+        "data": {
+          "stage": "playback",
+          "muted": false,
+          "success": true,
+          "paused": false,
+          "volume": 1
+        }
+      }
+    ],
+    "firstPlayerState": {
+      "at": "2026-10-15T21:20:37.348Z",
+      "side": "receiver",
+      "prefix": "[D2 assisted playback]",
+      "data": {
+        "muted": false,
+        "readyState": 4,
+        "paused": false,
+        "volume": 1,
+        "currentTime": 0.597298,
+        "mediaError": 0
+      }
+    },
+    "lastPlayerState": {
+      "at": "2026-10-15T21:22:02.316Z",
+      "side": "receiver",
+      "prefix": "[D2 assisted playback]",
+      "data": {
+        "muted": false,
+        "readyState": 4,
+        "paused": false,
+        "volume": 1,
+        "currentTime": 85.589528,
+        "mediaError": 0
+      }
+    },
+    "lastTrackState": {
+      "at": "2026-10-15T21:22:02.348Z",
+      "side": "receiver",
+      "prefix": "[D2 capture/playback]",
+      "data": {
+        "local": false,
+        "subscribed": true,
+        "muted": false,
+        "readyState": "live",
+        "enabled": true,
+        "publicationMuted": false,
+        "channelCount": 2,
+        "source": "screen_share_audio"
+      }
+    }
+  },
+  "conclusion": "Both the isolated Brave profile and the usual saved profile succeeded on the local project. The usual profile fails on the published origin, where audio publication exists. The remaining comparison is published code/origin-specific behavior; source energy and playback on that failing origin remain unmeasured.",
+  "routingWithReceiver": {
+    "at": "2026-10-15T21:21:39.376Z",
+    "bravePlaybackSink": "USB",
+    "braveCaptureSource": "USB sink monitor",
+    "captureMuted": false,
+    "captureCorked": false,
+    "usbMonitorPercent": 21,
+    "usbMonitorDb": -40.94,
+    "physicalMicrophoneState": "SUSPENDED",
+    "virtualSourceState": "IDLE",
+    "agentChangedRoutingOrVolume": false
+  },
+  "savedProfileComparison": {
+    "publishedOrigin": "https://discord-2-kuau.onrender.com",
+    "braveMainProcessLoopbackFlagPresent": true,
+    "braveMainProcessRemoteDebugging": false,
+    "publishedHasNewAudioDiagnostics": false,
+    "publishedHasPreviousPublicationMessage": true,
+    "publishedCaptureOptionsEquivalentToLocal": true,
+    "publishedRoomSnapshot": {
+      "at": "2026-10-15T21:31:07.680Z",
+      "participants": 2,
+      "publishers": 1,
+      "viewers": 1,
+      "tracks": [
+        {
+          "source": 3,
+          "type": 1,
+          "muted": false
+        },
+        {
+          "source": 4,
+          "type": 0,
+          "muted": false
+        }
+      ],
+      "scope": "published"
+    },
+    "pipewireMonitorPercentDuringFailingReport": 8,
+    "pipewireMonitorDbDuringFailingReport": -66.33,
+    "localTestOnUsualProfileStatus": "passed: user confirmation and measured signal at receiver",
+    "limitations": [
+      "Published room has audio publication, but server metadata does not expose source energy or phone player state.",
+      "The old build and monitor attenuation are observed differences, not proven causes.",
+      "The main Brave process has the loopback feature flag; missing startup flag is not the explanation."
+    ],
+    "localCaptures": [
+      {
+        "at": "2026-10-15T21:34:25.837Z",
+        "side": "sender",
+        "prefix": "[D2 audio]",
+        "data": {
+          "stage": "capture",
+          "audioTracks": 1,
+          "audioRequested": true,
+          "surface": "monitor"
+        }
+      },
+      {
+        "at": "2026-10-15T21:35:14.620Z",
+        "side": "sender",
+        "prefix": "[D2 audio]",
+        "data": {
+          "stage": "capture",
+          "audioTracks": 1,
+          "audioRequested": true,
+          "surface": "monitor"
+        }
+      }
+    ],
+    "latestLocalSenderSource": {
+      "samples": 32,
+      "energyStates": {
+        "unknown": 1,
+        "signal": 31
+      },
+      "kbpsRange": [
+        0,
+        0
+      ],
+      "last": {
+        "at": "2026-10-15T21:37:54.432Z",
+        "side": "sender",
+        "prefix": "[D2 media]",
+        "data": {
+          "source": "screen_share_audio",
+          "direction": "media-source",
+          "kind": "audio",
+          "energy": "signal",
+          "audioLevel": 0.07953123569444868,
+          "kbps": 0
+        }
+      }
+    },
+    "latestLocalReceiverInbound": {
+      "samples": 27,
+      "energyStates": {
+        "silent": 4,
+        "unknown": 1,
+        "signal": 22
+      },
+      "kbpsRange": [
+        0,
+        263
+      ],
+      "last": {
+        "at": "2026-10-15T21:37:54.048Z",
+        "side": "receiver",
+        "prefix": "[D2 media]",
+        "data": {
+          "source": "screen_share_audio",
+          "direction": "inbound-rtp",
+          "kind": "audio",
+          "energy": "signal",
+          "audioLevel": 0.03607287820062868,
+          "packets": 5796,
+          "kbps": 252
+        }
+      }
+    },
+    "latestLocalReceiverPlayer": {
+      "at": "2026-10-15T21:37:54.863Z",
+      "side": "receiver",
+      "prefix": "[D2 assisted playback]",
+      "data": {
+        "muted": false,
+        "readyState": 4,
+        "paused": false,
+        "volume": 1,
+        "currentTime": 117.27015,
+        "mediaError": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "manual-gtk-portal-pipewire-website",
+  "preflight": {
+    "plugins": {
+      "pipewiresrc": true,
+      "pulsesrc": true,
+      "videoconvert": true,
+      "videoscale": true,
+      "videorate": true,
+      "appsink": true
+    },
+    "portal": {
+      "version": 5,
+      "AvailableSourceTypes": 3
+    },
+    "wayland": true,
+    "sharedMemory": true,
+    "ready": true
+  },
+  "sessions": [],
+  "humanAssessment": "pending",
+  "latencyAndAvSync": "not-measured",
+  "serverAtExit": {
+    "publishers": 0,
+    "reservationAbsent": true
+  },
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T17:34:41.453Z",
+  "validationComplete": false
+}

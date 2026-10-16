@@ -7,7 +7,7 @@ import ParticipantList from "./ParticipantList";
 import RoomControls from "./RoomControls";
 import ShareDialog from "./ShareDialog";
 import { DEFAULT_QUALITY_PROFILE, QUALITY_PRESETS, browserAudioOptions, findVirtualAudioDevice } from "@/lib/capture/screen-options";
-import { startMediaDiagnostics } from "@/lib/capture/media-diagnostics";
+import { audioDiagnostic, startMediaDiagnostics } from "@/lib/capture/media-diagnostics";
 import type { AudioMode, QualityProfile } from "./RoomControls";
 import RemoteScreenAudio from "./RemoteScreenAudio";
 import StreamVolumeControl from "./StreamVolumeControl";
@@ -615,6 +615,10 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           tracks.forEach((track) => track.stop());
           return;
         }
+        audioDiagnostic("capture", {
+          audioRequested: audioMode === "browser", audioTracks: tracks.filter(t => t.kind === Track.Kind.Audio).length,
+          surface: tracks[0]?.mediaStreamTrack.getSettings?.().displaySurface,
+        });
         const onEnded = () => {
           if (activeRoomRef.current !== room || captureTracksRef.current?.tracks !== tracks) return;
           // O SDK pode esperar uma publicação pendente antes de emitir
@@ -635,15 +639,25 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           isActive: () => generation === captureGenerationRef.current && activeRoomRef.current === room &&
             room.state === ConnectionState.Connected &&
             tracks[0]?.mediaStreamTrack.readyState === "live",
-          publish: (track) => room.localParticipant.publishTrack(track, {
-            screenShareEncoding: { maxBitrate: quality.bitrate, maxFramerate: quality.fps },
-            videoCodec: "vp8",
-            degradationPreference: "balanced",
-            simulcast: true,
-            audioPreset: AudioPresets.musicHighQualityStereo,
-            forceStereo: true,
-            dtx: false,
-          }),
+          publish: async (track) => {
+            try {
+              const publication = await room.localParticipant.publishTrack(track, {
+                source: track.kind === Track.Kind.Audio ? Track.Source.ScreenShareAudio : Track.Source.ScreenShare,
+                screenShareEncoding: { maxBitrate: quality.bitrate, maxFramerate: quality.fps },
+                videoCodec: "vp8",
+                degradationPreference: "balanced",
+                simulcast: true,
+                audioPreset: AudioPresets.musicHighQualityStereo,
+                forceStereo: true,
+                dtx: false,
+              });
+              audioDiagnostic("publish", { kind: track.kind, success: true });
+              return publication;
+            } catch (cause) {
+              audioDiagnostic("publish", { kind: track.kind, success: false });
+              throw cause;
+            }
+          },
           unpublish: (track) => room.localParticipant.unpublishTrack(track, true),
         });
         if (!published) {
@@ -656,7 +670,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
         if (audioMode === "browser") {
           const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShareAudio);
           setAudioStatus(publication?.audioTrack
-            ? "O navegador está transmitindo áudio da tela."
+            ? "Faixa de áudio da tela publicada. Isso não confirma presença de som."
             : "Vídeo transmitido sem áudio: o navegador não forneceu uma faixa de som. Para áudio de guia, tente Chrome, Edge ou Brave e habilite o compartilhamento de áudio. Para jogos no Linux, use a fonte virtual nas configurações.");
         } else if (audioMode === "linux-virtual") {
           void captureVirtualAudio(room, generation);

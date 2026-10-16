@@ -1,0 +1,119 @@
+{
+  "timestamp": "20261016T170855682984Z",
+  "scope": "synthetic-saturated-ring-only",
+  "order": "ABBA per profile",
+  "cases": [
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "maps": 90,
+      "pythonFrameBytes": 124416000,
+      "cpuSeconds": 0.167827,
+      "elapsedSeconds": 0.3913443609999945,
+      "copyMs": {
+        "map": 6.468185999999998,
+        "extract": 75.22574300000005,
+        "ring": 11.267799000000004
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.09557099999999999,
+      "elapsedSeconds": 0.11241873700004135,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.10181699999999996,
+      "elapsedSeconds": 0.10777239899999813,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "maps": 90,
+      "pythonFrameBytes": 124416000,
+      "cpuSeconds": 0.13922200000000004,
+      "elapsedSeconds": 0.15541386500001408,
+      "copyMs": {
+        "map": 1.8014470000000005,
+        "extract": 40.81941900000001,
+        "ring": 3.2424229999999983
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "maps": 90,
+      "pythonFrameBytes": 279936000,
+      "cpuSeconds": 0.26166199999999995,
+      "elapsedSeconds": 0.2792744000000198,
+      "copyMs": {
+        "map": 1.77118,
+        "extract": 88.50424700000002,
+        "ring": 3.315022
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.173914,
+      "elapsedSeconds": 0.21687027399997305,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.16233199999999998,
+      "elapsedSeconds": 0.18431602300000804,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "maps": 90,
+      "pythonFrameBytes": 279936000,
+      "cpuSeconds": 0.28879699999999997,
+      "elapsedSeconds": 0.4185472940000068,
+      "copyMs": {
+        "map": 2.091265,
+        "extract": 135.24085299999996,
+        "ring": 15.136797999999999
+      },
+      "variant": "before"
+    }
+  ]
+}

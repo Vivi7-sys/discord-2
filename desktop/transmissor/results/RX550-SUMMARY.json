@@ -1,0 +1,233 @@
+{
+  "RX550-early-drop-SDK-BGRX-h264-720p30-ganho0.json": {
+    "passed": true,
+    "profile": "720p30",
+    "fixture": "BGRx1080p60",
+    "sourceFps": [
+      36.02248416473996,
+      49.979101917864455
+    ],
+    "captureOutputFps": 7.971,
+    "sdkSubmitFps": 7.8674497893506805,
+    "encodedFrames": 66,
+    "encodedFpsSincePublisherStart": 6.284174467861005,
+    "sentFrames": 66,
+    "receiveFps": 6.934407270268398,
+    "encodePathMeanMs": 38.92424242424242,
+    "ownDrmEncodeBusyMsPerFrame": 5.160476136363637,
+    "stages": {},
+    "copyMs": {
+      "map": 107.365759,
+      "extract": 202.26663200000002,
+      "ring": 186.76089399999998
+    },
+    "rate": {
+      "in": 80,
+      "out": 80,
+      "drop": 0,
+      "duplicate": 0
+    },
+    "staleVideo": 0,
+    "hostBusyPercent": 97.07457766790276,
+    "audio": {
+      "capturedSeconds": 10.3,
+      "captureSpanSeconds": 10.228,
+      "receivedSeconds": 8.68,
+      "peakDbfs": -24.909405166287883,
+      "rmsDbfs": -29.244534191150326,
+      "clippedSamples": 0
+    }
+  },
+  "RX550-early-drop-SDK-NATIVA-h264-1080p30-ganho0.json": {
+    "passed": true,
+    "profile": "1080p30",
+    "fixture": "portal",
+    "sourceFps": [
+      23.810494574540506,
+      49.4026525817662
+    ],
+    "captureOutputFps": 10.351,
+    "sdkSubmitFps": 10.263424899716268,
+    "encodedFrames": 272,
+    "encodedFpsSincePublisherStart": 8.664409549031774,
+    "sentFrames": 272,
+    "receiveFps": 8.54597563894119,
+    "encodePathMeanMs": 56.481617647058826,
+    "ownDrmEncodeBusyMsPerFrame": 11.086001334558823,
+    "stages": {},
+    "copyMs": {
+      "map": 58.56506799999999,
+      "extract": 988.9485209999992,
+      "ring": 1225.1642699999993
+    },
+    "rate": {
+      "in": 322,
+      "out": 322,
+      "drop": 0,
+      "duplicate": 0
+    },
+    "staleVideo": 2,
+    "hostBusyPercent": 98.41294298921419,
+    "audio": {
+      "capturedSeconds": 25.76,
+      "captureSpanSeconds": 30.189,
+      "receivedSeconds": 30.49,
+      "peakDbfs": -24.881461261312868,
+      "rmsDbfs": -29.841151077376985,
+      "clippedSamples": 0
+    }
+  },
+  "RX550-early-drop-SDK-NATIVA-h264-720p30-ganho0.json": {
+    "passed": true,
+    "profile": "720p30",
+    "fixture": "portal",
+    "sourceFps": [
+      25.479325808927776,
+      45.612780742297254
+    ],
+    "captureOutputFps": 12.008,
+    "sdkSubmitFps": 11.830178459702191,
+    "encodedFrames": 306,
+    "encodedFpsSincePublisherStart": 9.251618804494626,
+    "sentFrames": 306,
+    "receiveFps": 8.825125525817061,
+    "encodePathMeanMs": 39.173202614379086,
+    "ownDrmEncodeBusyMsPerFrame": 5.603780601307189,
+    "stages": {},
+    "copyMs": {
+      "map": 88.12629699999978,
+      "extract": 686.998079,
+      "ring": 532.475215
+    },
+    "rate": {
+      "in": 393,
+      "out": 393,
+      "drop": 0,
+      "duplicate": 0
+    },
+    "staleVideo": 7,
+    "hostBusyPercent": 98.66057838660578,
+    "audio": {
+      "capturedSeconds": 24.42,
+      "captureSpanSeconds": 29.249,
+      "receivedSeconds": 29.83,
+      "peakDbfs": -24.6837849580941,
+      "rmsDbfs": -30.417389876218834,
+      "clippedSamples": 0
+    }
+  },
+  "RX550-early-drop-SDK-SINTETICA-h264-1080p30-ganho0.json": {
+    "passed": true,
+    "profile": "1080p30",
+    "fixture": null,
+    "sourceFps": null,
+    "captureOutputFps": 20.461,
+    "sdkSubmitFps": 20.342665963584565,
+    "encodedFrames": 375,
+    "encodedFpsSincePublisherStart": 12.255064564665487,
+    "sentFrames": 375,
+    "receiveFps": 11.811514403186738,
+    "encodePathMeanMs": 56.26133333333333,
+    "ownDrmEncodeBusyMsPerFrame": null,
+    "stages": {},
+    "copyMs": {
+      "map": 250.28351900000015,
+      "extract": 3299.626832999997,
+      "ring": 5303.592729999998
+    },
+    "rate": null,
+    "staleVideo": 3,
+    "hostBusyPercent": 98.68544600938968,
+    "audio": {
+      "capturedSeconds": 30.32,
+      "captureSpanSeconds": 30.311,
+      "receivedSeconds": 28.96,
+      "peakDbfs": -24.219188143724605,
+      "rmsDbfs": -29.875200061351915,
+      "clippedSamples": 0
+    }
+  },
+  "RX550-early-drop-SDK-SINTETICA-h264-720p30-ganho0.json": {
+    "passed": true,
+    "profile": "720p30",
+    "fixture": null,
+    "sourceFps": null,
+    "captureOutputFps": 27.629,
+    "sdkSubmitFps": 27.523564231374213,
+    "encodedFrames": 629,
+    "encodedFpsSincePublisherStart": 20.728771116705992,
+    "sentFrames": 629,
+    "receiveFps": 20.295543636671276,
+    "encodePathMeanMs": 27.518282988871224,
+    "ownDrmEncodeBusyMsPerFrame": 5.804077957074721,
+    "stages": {},
+    "copyMs": {
+      "map": 77.15089199999998,
+      "extract": 1682.7386340000012,
+      "ring": 2692.4602660000055
+    },
+    "rate": null,
+    "staleVideo": 0,
+    "hostBusyPercent": 98.380195599022,
+    "audio": {
+      "capturedSeconds": 30.08,
+      "captureSpanSeconds": 30.057,
+      "receivedSeconds": 28.9,
+      "peakDbfs": -25.012642239003632,
+      "rmsDbfs": -29.068117275709366,
+      "clippedSamples": 0
+    }
+  },
+  "RX550-legacy-SDK-NATIVA-h264-1080p30-ganho0.json": {
+    "passed": true,
+    "profile": "1080p30",
+    "fixture": null,
+    "sourceFps": null,
+    "captureOutputFps": 19.09,
+    "sdkSubmitFps": 5.880025626086039,
+    "encodedFrames": 154,
+    "encodedFpsSincePublisherStart": 4.7499591097148315,
+    "sentFrames": 154,
+    "receiveFps": 4.4342591537041205,
+    "encodePathMeanMs": 75.87012987012987,
+    "ownDrmEncodeBusyMsPerFrame": 11.064850181818182,
+    "stages": {
+      "waiting": {
+        "buffers": 136,
+        "meanElapsedMs": 99.93078994117644,
+        "maxElapsedMs": 489.31639
+      },
+      "convert": {
+        "buffers": 136,
+        "meanElapsedMs": 73.58533844117645,
+        "maxElapsedMs": 339.768575
+      },
+      "scale": {
+        "buffers": 136,
+        "meanElapsedMs": 53.711778875000014,
+        "maxElapsedMs": 361.169079
+      }
+    },
+    "copyMs": {
+      "map": 126.28426800000003,
+      "extract": 4747.060921000001,
+      "ring": 3617.030181000006
+    },
+    "rate": {
+      "in": 136,
+      "out": 925,
+      "drop": 0,
+      "duplicate": 786
+    },
+    "staleVideo": 435,
+    "hostBusyPercent": 99.22756063649003,
+    "audio": {
+      "capturedSeconds": 16.9,
+      "captureSpanSeconds": 30.093,
+      "receivedSeconds": 29.02,
+      "peakDbfs": -24.95149031281641,
+      "rmsDbfs": -32.03526555584577,
+      "clippedSamples": 0
+    }
+  }
+}

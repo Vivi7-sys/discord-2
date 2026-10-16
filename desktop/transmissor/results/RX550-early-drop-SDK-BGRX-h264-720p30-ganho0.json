@@ -1,0 +1,570 @@
+{
+  "type": "gstreamer-synthetic-native-livekit",
+  "passed": true,
+  "requestedFps": 30,
+  "profile": "720p30",
+  "width": 1280,
+  "height": 720,
+  "capturePipeline": "early-drop",
+  "measureStages": false,
+  "fixture": "BGRx1080p60",
+  "codec": "h264",
+  "testSeconds": 10,
+  "gainDb": 0,
+  "host": {
+    "logicalCpus": 2,
+    "busyPercent": 97.07457766790276,
+    "loadAverage": [
+      5.78,
+      7.97,
+      6.98
+    ]
+  },
+  "stages": [
+    "Selecione a tela ou janela no COSMIC",
+    "Conectando e reservando transmissão",
+    "Transmitindo — 720p / 30 FPS",
+    "Transmitindo — entrada 5.4 FPS; codificados 10.0 FPS",
+    "Transmitindo — entrada 9.6 FPS; codificados 5.0 FPS",
+    "Transmitindo — entrada 7.3 FPS; codificados 8.0 FPS",
+    "Transmitindo — entrada 7.2 FPS; codificados 7.0 FPS",
+    "Transmitindo — entrada 9.2 FPS; codificados 9.0 FPS",
+    "Parado"
+  ],
+  "capture": {
+    "capture": "started",
+    "videoBuffers": 79,
+    "audioBuffers": 515,
+    "audioPeak": 1638,
+    "diagnostics": {
+      "elapsedSeconds": 12.08,
+      "pythonCpuSeconds": 4.032,
+      "pythonCpuPercent": 33.38,
+      "sourceBuffers": [
+        368,
+        516
+      ],
+      "sourceFps": [
+        36.02248416473996,
+        49.979101917864455
+      ],
+      "video": {
+        "buffers": 79,
+        "bytes": 109209600,
+        "spanSeconds": 9.785,
+        "fps": 7.971,
+        "workMs": 338.826,
+        "writeMs": 73.798,
+        "maxAgeMs": 433.786,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 59,
+        "ptsSpanSeconds": 9.74,
+        "perSecond": [
+          8,
+          10,
+          8,
+          7,
+          7,
+          7,
+          8,
+          9,
+          9,
+          6
+        ],
+        "peak": 0,
+        "peakDbfs": null,
+        "sampleCount": 0,
+        "durationSeconds": 0,
+        "saturatedBlocks": 0,
+        "rmsDbfs": null,
+        "caps": "video/x-raw, width=(int)1280, height=(int)720, framerate=(fraction)30/1, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive, format=(string)I420"
+      },
+      "audio": {
+        "buffers": 515,
+        "bytes": 1977600,
+        "spanSeconds": 10.228,
+        "fps": 50.252,
+        "workMs": 1006.091,
+        "writeMs": 364.542,
+        "maxAgeMs": 72.34,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 51,
+        "ptsSpanSeconds": 10.268,
+        "perSecond": [
+          53,
+          50,
+          50,
+          48,
+          52,
+          50,
+          50,
+          50,
+          49,
+          51,
+          12
+        ],
+        "peak": 1638,
+        "peakDbfs": -26.02,
+        "sampleCount": 988800,
+        "durationSeconds": 10.3,
+        "saturatedBlocks": 0,
+        "rmsDbfs": -29.04,
+        "caps": "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2"
+      },
+      "inputAudio": {
+        "buffers": 0,
+        "bytes": 0,
+        "spanSeconds": 0,
+        "fps": 0,
+        "workMs": 0,
+        "writeMs": 0,
+        "maxAgeMs": 0,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 0,
+        "ptsSpanSeconds": 0,
+        "perSecond": [],
+        "peak": 1638,
+        "peakDbfs": -26.02,
+        "sampleCount": 988800,
+        "durationSeconds": 10.3,
+        "saturatedBlocks": 0,
+        "rmsDbfs": -29.04,
+        "caps": null
+      },
+      "gainDb": 0,
+      "limitedBlocks": 0,
+      "transport": "memfd-ring",
+      "sourceCaps": [
+        "video/x-raw, format=(string)BGRx, width=(int)1920, height=(int)1080, framerate=(fraction)60/1, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive",
+        "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2"
+      ],
+      "stages": {},
+      "copyMs": {
+        "map": 107.365759,
+        "extract": 202.26663200000002,
+        "ring": 186.76089399999998
+      },
+      "rate": {
+        "in": 80,
+        "out": 80,
+        "drop": 0,
+        "duplicate": 0
+      },
+      "ringDropped": 0,
+      "clockOffsetsMs": [
+        -0.001563,
+        -0.001594
+      ],
+      "ipcBytes": [
+        1264,
+        1983780
+      ],
+      "monitor": null,
+      "videoPipeBytes": 1048576,
+      "errors": []
+    },
+    "publisher": {
+      "video": {
+        "frames": 79,
+        "fps": 7.8674497893506805,
+        "spanSeconds": 9.914267277,
+        "workMs": 583.0230880000045,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 484.23,
+        "perSecond": [
+          7,
+          10,
+          7,
+          10,
+          6,
+          7,
+          8,
+          9,
+          9,
+          6
+        ],
+        "skippedStale": 0
+      },
+      "audio": {
+        "frames": 482,
+        "fps": 46.90356935353426,
+        "spanSeconds": 10.25508307,
+        "workMs": 9787.086779999996,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 582.041,
+        "perSecond": [
+          40,
+          40,
+          48,
+          44,
+          50,
+          47,
+          52,
+          51,
+          50,
+          50,
+          10
+        ],
+        "skippedStale": 13
+      },
+      "elapsedSeconds": 10.502572826,
+      "cpuSeconds": 1.849543,
+      "cpuPercent": 17.610380148198555,
+      "rtc": [
+        [
+          {
+            "type": "codec",
+            "mimeType": "video/H264",
+            "clockRate": 90000,
+            "channels": 0
+          },
+          {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 8,
+            "framesSent": 66,
+            "framesEncoded": 66,
+            "totalEncodeTime": 2.569,
+            "targetBitrate": 979000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 221262,
+            "packetsSent": 254
+          }
+        ],
+        [
+          {
+            "type": "codec",
+            "mimeType": "audio/opus",
+            "clockRate": 48000,
+            "channels": 2
+          },
+          {
+            "type": "outbound",
+            "frameWidth": 0,
+            "frameHeight": 0,
+            "framesPerSecond": 0,
+            "framesSent": 0,
+            "framesEncoded": 0,
+            "totalEncodeTime": 0,
+            "targetBitrate": 128000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "",
+            "powerEfficientEncoder": false,
+            "nackCount": 0,
+            "pliCount": 0,
+            "bytesSent": 300473,
+            "packetsSent": 476
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "seconds": 2.238864757,
+          "submittedFps": 5.36412440634492,
+          "outbound": {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 10,
+            "framesSent": 7,
+            "framesEncoded": 7,
+            "totalEncodeTime": 0.546,
+            "targetBitrate": 0,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 23547,
+            "packetsSent": 26
+          },
+          "gpu": [
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "347",
+                "drm-pdev": "0000:02:00.0",
+                "drm-engine-compute": "3624641 ns",
+                "drm-engine-enc": "39730159 ns"
+              }
+            },
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "348",
+                "drm-pdev": "0000:02:00.0"
+              }
+            }
+          ],
+          "audioQueueMs": 0,
+          "avInputSkewMs": -26.946
+        },
+        {
+          "seconds": 4.122369383,
+          "submittedFps": 9.55665623163869,
+          "outbound": {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 5,
+            "framesSent": 20,
+            "framesEncoded": 20,
+            "totalEncodeTime": 1.136,
+            "targetBitrate": 815833,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 67111,
+            "packetsSent": 76
+          },
+          "gpu": [
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "347",
+                "drm-pdev": "0000:02:00.0",
+                "drm-engine-compute": "9402873 ns",
+                "drm-engine-enc": "112679369 ns"
+              }
+            },
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "348",
+                "drm-pdev": "0000:02:00.0"
+              }
+            }
+          ],
+          "audioQueueMs": 0,
+          "avInputSkewMs": 223.497
+        },
+        {
+          "seconds": 6.048937492,
+          "submittedFps": 7.266702896682539,
+          "outbound": {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 8,
+            "framesSent": 36,
+            "framesEncoded": 36,
+            "totalEncodeTime": 1.665,
+            "targetBitrate": 979000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 120722,
+            "packetsSent": 135
+          },
+          "gpu": [
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "347",
+                "drm-pdev": "0000:02:00.0",
+                "drm-engine-compute": "15022885 ns",
+                "drm-engine-enc": "185316433 ns"
+              }
+            },
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "348",
+                "drm-pdev": "0000:02:00.0"
+              }
+            }
+          ],
+          "audioQueueMs": 87,
+          "avInputSkewMs": 100.927
+        },
+        {
+          "seconds": 8.143177771,
+          "submittedFps": 7.162526176454669,
+          "outbound": {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 7,
+            "framesSent": 49,
+            "framesEncoded": 49,
+            "totalEncodeTime": 2.089,
+            "targetBitrate": 979000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 164295,
+            "packetsSent": 191
+          },
+          "gpu": [
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "347",
+                "drm-pdev": "0000:02:00.0",
+                "drm-engine-compute": "20589267 ns",
+                "drm-engine-enc": "257775767 ns"
+              }
+            },
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "348",
+                "drm-pdev": "0000:02:00.0"
+              }
+            }
+          ],
+          "audioQueueMs": 54,
+          "avInputSkewMs": 164.018
+        },
+        {
+          "seconds": 10.208059098,
+          "submittedFps": 9.201531750320434,
+          "outbound": {
+            "type": "outbound",
+            "frameWidth": 1280,
+            "frameHeight": 720,
+            "framesPerSecond": 9,
+            "framesSent": 65,
+            "framesEncoded": 65,
+            "totalEncodeTime": 2.553,
+            "targetBitrate": 979000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 1,
+            "bytesSent": 217914,
+            "packetsSent": 251
+          },
+          "gpu": [
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "347",
+                "drm-pdev": "0000:02:00.0",
+                "drm-engine-compute": "25872828 ns",
+                "drm-engine-enc": "335421701 ns"
+              }
+            },
+            {
+              "device": "/dev/dri/renderD128",
+              "fields": {
+                "drm-driver": "amdgpu",
+                "drm-client-id": "348",
+                "drm-pdev": "0000:02:00.0"
+              }
+            }
+          ],
+          "audioQueueMs": 22,
+          "avInputSkewMs": 150.326
+        }
+      ],
+      "gpu": [
+        {
+          "device": "/dev/dri/renderD128",
+          "fields": {
+            "drm-driver": "amdgpu",
+            "drm-client-id": "347",
+            "drm-pdev": "0000:02:00.0",
+            "drm-engine-compute": "26222430 ns",
+            "drm-engine-enc": "340591425 ns"
+          }
+        },
+        {
+          "device": "/dev/dri/renderD128",
+          "fields": {
+            "drm-driver": "amdgpu",
+            "drm-client-id": "348",
+            "drm-pdev": "0000:02:00.0"
+          }
+        }
+      ]
+    },
+    "publisherStopped": true,
+    "publisherKilled": false
+  },
+  "received": {
+    "videoFrames": 60,
+    "audioFrames": 868,
+    "audioPeak": 1862,
+    "audioSamples": 833280,
+    "clippedSamples": 0,
+    "width": 1280,
+    "height": 720,
+    "frames1080p": 0,
+    "frameSizes": {
+      "1280x720": 60
+    },
+    "sources": [
+      4,
+      3
+    ],
+    "codecs": [
+      "audio/red",
+      "video/H264"
+    ],
+    "video": {
+      "frames": 60,
+      "fps": 6.934407270268398,
+      "spanSeconds": 8.508297494,
+      "workMs": 0,
+      "nonMonotonicPts": 0,
+      "maxAgeMs": null,
+      "perSecond": [
+        8,
+        6,
+        8,
+        6,
+        7,
+        7,
+        6,
+        8,
+        4
+      ],
+      "skippedStale": 0
+    },
+    "audioRmsDbfs": -29.244534191150326,
+    "audioPeakDbfs": -24.909405166287883,
+    "audioSpanSeconds": 8.617682181,
+    "audioDurationSeconds": 8.68,
+    "cpuSeconds": 1.874563,
+    "cpuPercent": 11.615741405502222
+  },
+  "receiverSnapshot": "capture-end",
+  "performance": {
+    "measuredReceiveFps": 6.934407270268398,
+    "completeWindows": 5,
+    "p10Fps": 6,
+    "minFps": 6,
+    "medianFps": 7,
+    "requestedFps": 30,
+    "targetMet": false
+  },
+  "validation": "media-transport-and-cleanup",
+  "captureProcessExit": 0,
+  "remainingPublishers": 0,
+  "publisherReleased": true,
+  "reservationReleased": true,
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T04:16:49.199Z"
+}

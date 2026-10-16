@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { RemoteAudioTrack, Room, RoomEvent, Track } from "livekit-client";
+import { audioDiagnostic } from "@/lib/capture/media-diagnostics";
 import { applyRemoteAudioVolume } from "@/lib/room/remote-audio-volume";
 
 // Apenas a trilha de áudio de tela é reproduzida, nunca o microfone.
@@ -74,11 +75,13 @@ export default function RemoteScreenAudio({
     void Promise.all([room.startAudio(), element.play()])
       .then(() => {
         if (!cancelled) {
+          audioDiagnostic("playback", { success: true, paused: element.paused, muted: element.muted, volume: element.volume });
           setBlockedTrack(null);
           setError(null);
         }
       })
-      .catch(() => {
+      .catch((cause: unknown) => {
+        audioDiagnostic("playback", { success: false, error: cause instanceof Error ? cause.name : "unknown" });
         if (!cancelled) {
           setBlockedTrack(track);
           setError(null);
@@ -107,9 +110,11 @@ export default function RemoteScreenAudio({
       const element = audioRef.current;
       if (!element) return;
       await Promise.all([room.startAudio(), element.play()]);
+      audioDiagnostic("playback", { success: true, userGesture: true, paused: element.paused, muted: element.muted, volume: element.volume });
       setError(null);
       setBlockedTrack(null);
-    } catch {
+    } catch (cause) {
+      audioDiagnostic("playback", { success: false, userGesture: true, error: cause instanceof Error ? cause.name : "unknown" });
       setBlockedTrack(track);
       setError("O navegador bloqueou o som. Clique novamente para habilitar a reprodução.");
     }
@@ -120,7 +125,7 @@ export default function RemoteScreenAudio({
       <audio ref={audioRef} autoPlay />
       {track && (
         <>
-          <span>Áudio da tela recebido.</span>
+          <span>Faixa de áudio da tela recebida.</span>
           {blockedTrack === track && (
             <>
               <button className="btn btn-secondary" type="button" onClick={() => void enablePlayback()}>

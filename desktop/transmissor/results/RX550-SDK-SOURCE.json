@@ -1,0 +1,18 @@
+{
+  "revision": "63128d01d955d9d8967544f46cff64a361232bf6",
+  "binding": "0.12.73",
+  "files": [
+    {
+      "url": "https://raw.githubusercontent.com/livekit/rust-sdks/63128d01d955d9d8967544f46cff64a361232bf6/webrtc-sys/src/vaapi/h264_encoder_impl.cpp",
+      "sha256": "e95fdb8fb6410bcc8bdd92661885461d7930627654f1dd47eb040a5bb2ee4be9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/livekit/rust-sdks/63128d01d955d9d8967544f46cff64a361232bf6/webrtc-sys/src/vaapi/vaapi_h264_encoder_wrapper.cpp",
+      "sha256": "6921b41c0f3a638648cac4a85cf5d96e54020df2451da060e10c9e3acce88be9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/livekit/rust-sdks/63128d01d955d9d8967544f46cff64a361232bf6/webrtc-sys/src/vaapi/vaapi_display_drm.cpp",
+      "sha256": "8ec3001e280b06301959f37e08d2adc6504aecb8cfe3684483362e4d318a1ddb"
+    }
+  ]
+}

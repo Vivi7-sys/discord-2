@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Discord 2 Transmissor
+Comment=Compartilhar tela e áudio com uma sala Discord 2
+Exec=/usr/bin/discord2-transmissor
+Icon=discord2-transmissor
+Terminal=false
+Categories=AudioVideo;
+StartupNotify=true

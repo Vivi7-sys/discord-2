@@ -1,0 +1,124 @@
+{
+  "kind": "recorded-speech-application-monitor",
+  "player": "paplay",
+  "fixture": "/usr/share/sounds/freedesktop/stereo/audio-channel-front-left.oga",
+  "syntheticBeep": false,
+  "gameTest": false,
+  "livekitTest": false,
+  "gainDb": 0,
+  "capture": {
+    "elapsedSeconds": 5.833,
+    "pythonCpuSeconds": 0.394,
+    "pythonCpuPercent": 6.76,
+    "sourceBuffers": [
+      0,
+      264
+    ],
+    "sourceFps": [
+      0,
+      49.5107326899254
+    ],
+    "video": {
+      "buffers": 0,
+      "bytes": 0,
+      "spanSeconds": 0,
+      "fps": 0,
+      "workMs": 0.0,
+      "writeMs": 0.0,
+      "maxAgeMs": 0,
+      "nonMonotonicPts": 0,
+      "ptsGaps": 0,
+      "ptsSpanSeconds": 0,
+      "perSecond": [],
+      "peak": 0,
+      "peakDbfs": null,
+      "sampleCount": 0,
+      "durationSeconds": 0.0,
+      "saturatedBlocks": 0,
+      "rmsDbfs": null,
+      "caps": null
+    },
+    "audio": {
+      "buffers": 264,
+      "bytes": 1013760,
+      "spanSeconds": 5.299,
+      "fps": 49.636,
+      "workMs": 73.054,
+      "writeMs": 14.403,
+      "maxAgeMs": 79.408,
+      "nonMonotonicPts": 0,
+      "ptsGaps": 0,
+      "ptsSpanSeconds": 5.26,
+      "perSecond": [
+        48,
+        50,
+        50,
+        51,
+        49,
+        16
+      ],
+      "peak": 16304,
+      "peakDbfs": -6.06,
+      "sampleCount": 506880,
+      "durationSeconds": 5.28,
+      "saturatedBlocks": 0,
+      "rmsDbfs": -26.85,
+      "caps": "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2, channel-mask=(bitmask)0x0000000000000003"
+    },
+    "inputAudio": {
+      "buffers": 0,
+      "bytes": 0,
+      "spanSeconds": 0,
+      "fps": 0,
+      "workMs": 0.0,
+      "writeMs": 0.0,
+      "maxAgeMs": 0,
+      "nonMonotonicPts": 0,
+      "ptsGaps": 0,
+      "ptsSpanSeconds": 0,
+      "perSecond": [],
+      "peak": 16304,
+      "peakDbfs": -6.06,
+      "sampleCount": 506880,
+      "durationSeconds": 5.28,
+      "saturatedBlocks": 0,
+      "rmsDbfs": -26.85,
+      "caps": null
+    },
+    "gainDb": 0,
+    "limitedBlocks": 0,
+    "transport": "pipe",
+    "sourceCaps": [
+      null,
+      "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2, channel-mask=(bitmask)0x0000000000000003"
+    ],
+    "stages": {},
+    "copyMs": {
+      "map": 5.569091,
+      "extract": 8.756875999999997,
+      "ring": 0.0
+    },
+    "rate": null,
+    "videoBeforeCopy": {
+      "stale": 0,
+      "capacity": 0,
+      "bytesAvoided": 0
+    },
+    "ringDropped": 0,
+    "clockOffsetsMs": [
+      null,
+      -0.002454
+    ],
+    "ipcBytes": [
+      0,
+      1016928
+    ],
+    "monitor": null,
+    "videoPipeBytes": null,
+    "errors": []
+  },
+  "passed": true,
+  "localOutputUnchanged": true,
+  "modulesRemoved": true,
+  "humanAudibility": "not-assessed"
+}

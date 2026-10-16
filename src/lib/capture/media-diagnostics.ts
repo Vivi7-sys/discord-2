@@ -1,6 +1,21 @@
 import type { Room, Track } from "livekit-client";
 
-type Sample = { timestamp: number; bytes: number; jitterDelay: number; emitted: number };
+export function audioEnergyState(current: { totalAudioEnergy?: number; totalSamplesDuration?: number }, previous?: { totalAudioEnergy?: number; totalSamplesDuration?: number }) {
+  if (!previous || current.totalAudioEnergy === undefined || previous.totalAudioEnergy === undefined ||
+      current.totalSamplesDuration === undefined || previous.totalSamplesDuration === undefined) return "unknown";
+  const duration = current.totalSamplesDuration - previous.totalSamplesDuration;
+  const energy = current.totalAudioEnergy - previous.totalAudioEnergy;
+  if (!Number.isFinite(duration) || !Number.isFinite(energy) || duration <= 0 || energy < 0) return "unknown";
+  return energy > 0 ? "signal" : "silent";
+}
+
+export function audioDiagnostic(stage: "capture" | "publish" | "playback", data: Record<string, string | number | boolean | undefined>) {
+  try {
+    if (localStorage.getItem("discord2-media-diagnostics") === "1") console.debug("[D2 audio]", { stage, ...data });
+  } catch { /* Diagnóstico opcional. */ }
+}
+
+type Sample = { timestamp: number; bytes: number; jitterDelay: number; emitted: number; totalAudioEnergy?: number; totalSamplesDuration?: number };
 
 /** Opt-in local, sem tráfego de telemetria, SDP, IPs, identidades ou React state. */
 export function startMediaDiagnostics(room: Room): () => void {
@@ -16,11 +31,24 @@ export function startMediaDiagnostics(room: Room): () => void {
     try {
       const participants = [room.localParticipant, ...room.remoteParticipants.values()];
       for (const participant of participants) {
+        const audio = [...participant.trackPublications.values()].filter(p => p.source === "screen_share_audio");
+        audioDiagnostic("publish", { local: participant === room.localParticipant, publications: audio.length });
+      }
+      for (const participant of participants) {
         for (const publication of participant.trackPublications.values()) {
           const track = publication.track;
-          if (!track) continue;
+          if (!track) {
+            if (publication.source === "screen_share_audio") audioDiagnostic("publish", {
+              local: participant === room.localParticipant, subscribed: publication.isSubscribed,
+              muted: publication.isMuted, trackAvailable: false,
+            });
+            continue;
+          }
           const settings = track.mediaStreamTrack.getSettings() as MediaTrackSettings & { restrictOwnAudio?: boolean; suppressLocalAudioPlayback?: boolean };
           console.debug("[D2 capture/playback]", {
+            subscribed: publication.isSubscribed, publicationMuted: publication.isMuted,
+            readyState: track.mediaStreamTrack.readyState, enabled: track.mediaStreamTrack.enabled, muted: track.mediaStreamTrack.muted,
+            displaySurface: settings.displaySurface, channelCount: settings.channelCount,
             source: publication.source, local: participant === room.localParticipant,
             width: settings.width, height: settings.height, fps: settings.frameRate,
             restrictOwnAudio: settings.restrictOwnAudio,
@@ -31,14 +59,16 @@ export function startMediaDiagnostics(room: Room): () => void {
           const samples = previous.get(track) ?? new Map<string, Sample>();
           previous.set(track, samples);
           report?.forEach((stat) => {
-            if (stat.type !== "outbound-rtp" && stat.type !== "inbound-rtp" && stat.type !== "remote-inbound-rtp") return;
+            if (stat.type !== "media-source" && stat.type !== "outbound-rtp" && stat.type !== "inbound-rtp" && stat.type !== "remote-inbound-rtp") return;
             const bytes = stat.bytesSent ?? stat.bytesReceived ?? 0;
             const old = samples.get(stat.id);
             const elapsed = old ? stat.timestamp - old.timestamp : 0;
             const emitted = stat.jitterBufferEmittedCount ?? 0;
             const jitterDelay = stat.jitterBufferDelay ?? 0;
             console.debug("[D2 media]", {
-              direction: stat.type, kind: stat.kind,
+              direction: stat.type, kind: stat.kind, source: publication.source,
+              energy: stat.kind === "audio" ? audioEnergyState(stat, old) : undefined,
+              audioLevel: stat.audioLevel, packets: stat.packetsSent ?? stat.packetsReceived,
               kbps: old && elapsed > 0 ? Math.round(8 * (bytes - old.bytes) / elapsed) : undefined,
               fps: stat.framesPerSecond, width: stat.frameWidth, height: stat.frameHeight,
               qualityLimit: stat.qualityLimitationReason,
@@ -48,13 +78,14 @@ export function startMediaDiagnostics(room: Room): () => void {
               rttMs: stat.roundTripTime === undefined ? undefined : stat.roundTripTime * 1000,
               packetsLost: stat.packetsLost, framesDropped: stat.framesDropped, freezes: stat.freezeCount,
             });
-            samples.set(stat.id, { timestamp: stat.timestamp, bytes, jitterDelay, emitted });
+            samples.set(stat.id, { totalAudioEnergy: stat.totalAudioEnergy, totalSamplesDuration: stat.totalSamplesDuration, timestamp: stat.timestamp, bytes, jitterDelay, emitted });
           });
         }
       }
     } catch { /* Stats opcionais não podem interromper reprodução/reconexão. */ }
     finally { running = false; }
   };
+  void poll();
   const timer = setInterval(() => { void poll(); }, 5000);
   return () => { stopped = true; clearInterval(timer); };
 }

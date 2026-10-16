@@ -1,0 +1,5 @@
+{
+  "1080p30": {"width":1920,"height":1080,"fps":30,"bitrate":5000000},
+  "1080p60": {"width":1920,"height":1080,"fps":60,"bitrate":8000000},
+  "720p30": {"width":1280,"height":720,"fps":30,"bitrate":3000000}
+}

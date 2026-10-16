@@ -1,0 +1,35 @@
+{
+  "type": "native-portal-pipewire-livekit",
+  "passed": true,
+  "requestedFps": 30,
+  "stages": [
+    "Selecione a tela ou janela no COSMIC",
+    "Conectando e reservando transmissão",
+    "Transmitindo — 1080p / 30 FPS",
+    "Parado"
+  ],
+  "capture": {
+    "capture": "started",
+    "videoBuffers": 43,
+    "audioBuffers": 213,
+    "audioPeak": 71
+  },
+  "received": {
+    "videoFrames": 36,
+    "audioFrames": 1584,
+    "audioPeak": 59,
+    "width": 1920,
+    "height": 1080,
+    "frames1080p": 36,
+    "sources": [
+      4,
+      3
+    ]
+  },
+  "captureProcessExit": 0,
+  "remainingPublishers": 0,
+  "publisherReleased": true,
+  "reservationReleased": true,
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T02:55:41.173Z"
+}

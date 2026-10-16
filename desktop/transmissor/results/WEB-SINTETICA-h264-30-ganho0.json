@@ -1,0 +1,349 @@
+{
+  "type": "gstreamer-synthetic-native-livekit",
+  "passed": true,
+  "requestedFps": 30,
+  "codec": "h264",
+  "testSeconds": 15,
+  "gainDb": 0,
+  "host": {
+    "logicalCpus": 2,
+    "busyPercent": 99.83521010711343,
+    "loadAverage": [
+      9.84,
+      6.51,
+      5.52
+    ]
+  },
+  "stages": [
+    "Selecione a tela ou janela no COSMIC",
+    "Conectando e reservando transmissão",
+    "Transmitindo — 1080p / 30 FPS",
+    "Transmitindo — entrada 9.9 FPS; codificados 12.0 FPS",
+    "Transmitindo — entrada 7.1 FPS; codificados 6.0 FPS",
+    "Transmitindo — entrada 6.6 FPS; codificados 7.0 FPS",
+    "Transmitindo — entrada 8.5 FPS; codificados 9.0 FPS",
+    "Transmitindo — entrada 9.8 FPS; codificados 10.0 FPS",
+    "Transmitindo — entrada 7.8 FPS; codificados 7.0 FPS",
+    "Transmitindo — entrada 8.2 FPS; codificados 7.0 FPS",
+    "Parado"
+  ],
+  "capture": {
+    "capture": "started",
+    "videoBuffers": 131,
+    "audioBuffers": 766,
+    "audioPeak": 1638,
+    "diagnostics": {
+      "elapsedSeconds": 18.145,
+      "pythonCpuSeconds": 2.237,
+      "pythonCpuPercent": 12.33,
+      "sourceBuffers": [
+        154,
+        767
+      ],
+      "video": {
+        "buffers": 131,
+        "bytes": 407462400,
+        "spanSeconds": 15.16,
+        "fps": 8.575,
+        "workMs": 5308.444,
+        "writeMs": 409.662,
+        "maxAgeMs": 271.737,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 96,
+        "ptsSpanSeconds": 15.203,
+        "perSecond": [
+          14,
+          13,
+          4,
+          8,
+          5,
+          8,
+          7,
+          9,
+          8,
+          12,
+          8,
+          7,
+          9,
+          9,
+          4,
+          6
+        ],
+        "peak": 0,
+        "peakDbfs": null,
+        "sampleCount": 0,
+        "durationSeconds": 0,
+        "saturatedBlocks": 0,
+        "rmsDbfs": null,
+        "caps": "video/x-raw, format=(string)I420, width=(int)1920, height=(int)1080, framerate=(fraction)30/1, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive"
+      },
+      "audio": {
+        "buffers": 766,
+        "bytes": 2941440,
+        "spanSeconds": 15.33,
+        "fps": 49.903,
+        "workMs": 3592.931,
+        "writeMs": 2089.348,
+        "maxAgeMs": 412.804,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 133,
+        "ptsSpanSeconds": 15.34,
+        "perSecond": [
+          49,
+          52,
+          45,
+          55,
+          45,
+          51,
+          52,
+          51,
+          48,
+          52,
+          50,
+          51,
+          42,
+          47,
+          59,
+          17
+        ],
+        "peak": 1638,
+        "peakDbfs": -26.02,
+        "sampleCount": 1470720,
+        "durationSeconds": 15.32,
+        "saturatedBlocks": 0,
+        "rmsDbfs": -29.04,
+        "caps": "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2"
+      },
+      "inputAudio": {
+        "buffers": 0,
+        "bytes": 0,
+        "spanSeconds": 0,
+        "fps": 0,
+        "workMs": 0,
+        "writeMs": 0,
+        "maxAgeMs": 0,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 0,
+        "ptsSpanSeconds": 0,
+        "perSecond": [],
+        "peak": 1638,
+        "peakDbfs": -26.02,
+        "sampleCount": 1470720,
+        "durationSeconds": 15.32,
+        "saturatedBlocks": 0,
+        "rmsDbfs": -29.04,
+        "caps": null
+      },
+      "gainDb": 0,
+      "limitedBlocks": 0,
+      "transport": "memfd-ring",
+      "ringDropped": 16,
+      "clockOffsetsMs": [
+        -0.0017,
+        -0.001948
+      ],
+      "ipcBytes": [
+        2096,
+        2950632
+      ],
+      "monitor": null,
+      "videoPipeBytes": 1048576,
+      "errors": []
+    },
+    "publisher": {
+      "video": {
+        "frames": 130,
+        "fps": 8.25415317588436,
+        "spanSeconds": 15.628496013,
+        "workMs": 3400.1989599999924,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 487.067,
+        "perSecond": [
+          14,
+          11,
+          4,
+          9,
+          5,
+          8,
+          8,
+          9,
+          9,
+          10,
+          8,
+          8,
+          8,
+          9,
+          5,
+          5
+        ],
+        "skippedStale": 1
+      },
+      "audio": {
+        "frames": 534,
+        "fps": 33.799544008043526,
+        "spanSeconds": 15.769443513,
+        "workMs": 14703.153281999988,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 857.538,
+        "perSecond": [
+          30,
+          27,
+          19,
+          28,
+          34,
+          33,
+          38,
+          38,
+          41,
+          33,
+          45,
+          44,
+          45,
+          43,
+          22,
+          14
+        ],
+        "skippedStale": 231
+      },
+      "elapsedSeconds": 15.892349245,
+      "cpuSeconds": 2.691175,
+      "cpuPercent": 16.93377711823624,
+      "rtc": [
+        [
+          {
+            "type": "codec",
+            "mimeType": "video/H264",
+            "clockRate": 90000,
+            "channels": 0
+          },
+          {
+            "type": "outbound",
+            "frameWidth": 1920,
+            "frameHeight": 1080,
+            "framesPerSecond": 6,
+            "framesSent": 100,
+            "framesEncoded": 100,
+            "totalEncodeTime": 9.623,
+            "targetBitrate": 979000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "VAAPI H264 Encoder",
+            "powerEfficientEncoder": true,
+            "nackCount": 0,
+            "pliCount": 2,
+            "bytesSent": 335163,
+            "packetsSent": 371
+          }
+        ],
+        [
+          {
+            "type": "codec",
+            "mimeType": "audio/opus",
+            "clockRate": 48000,
+            "channels": 2
+          },
+          {
+            "type": "outbound",
+            "frameWidth": 0,
+            "frameHeight": 0,
+            "framesPerSecond": 0,
+            "framesSent": 0,
+            "framesEncoded": 0,
+            "totalEncodeTime": 0,
+            "targetBitrate": 128000,
+            "qualityLimitationReason": 0,
+            "encoderImplementation": "",
+            "powerEfficientEncoder": false,
+            "nackCount": 0,
+            "pliCount": 0,
+            "bytesSent": 411615,
+            "packetsSent": 749
+          }
+        ]
+      ]
+    },
+    "publisherStopped": true,
+    "publisherKilled": false
+  },
+  "received": {
+    "videoFrames": 93,
+    "audioFrames": 1391,
+    "audioPeak": 1867,
+    "audioSamples": 1335360,
+    "clippedSamples": 0,
+    "width": 1920,
+    "height": 1080,
+    "frames1080p": 93,
+    "sources": [
+      4,
+      3
+    ],
+    "codecs": [
+      "audio/red",
+      "video/H264"
+    ],
+    "video": {
+      "frames": 93,
+      "fps": 6.916286465143462,
+      "spanSeconds": 13.301936012,
+      "workMs": 0,
+      "nonMonotonicPts": 0,
+      "maxAgeMs": null,
+      "perSecond": [
+        4,
+        4,
+        8,
+        7,
+        7,
+        7,
+        9,
+        7,
+        8,
+        10,
+        9,
+        7,
+        5,
+        1
+      ],
+      "skippedStale": 0
+    },
+    "audioRmsDbfs": -30.666732232336376,
+    "audioPeakDbfs": -24.886112340212794,
+    "audioSpanSeconds": 14.029742874,
+    "audioDurationSeconds": 13.91,
+    "cpuSeconds": 3.067654,
+    "cpuPercent": 11.497705919624263
+  },
+  "receiverSnapshot": "capture-end",
+  "performance": {
+    "measuredReceiveFps": 6.916286465143462,
+    "completeWindows": 10,
+    "p10Fps": 5,
+    "minFps": 5,
+    "medianFps": 7,
+    "requestedFps": 30,
+    "targetMet": false
+  },
+  "validation": "media-transport-and-cleanup",
+  "browser": {
+    "videoWidth": 1920,
+    "videoHeight": 1080,
+    "videoTime": 13.955534,
+    "decodedFrames": 98,
+    "droppedFrames": 42,
+    "audio": [
+      {
+        "paused": false,
+        "readyState": 4,
+        "currentTime": 14.094988,
+        "error": null
+      }
+    ]
+  },
+  "captureProcessExit": 0,
+  "remainingPublishers": 0,
+  "publisherReleased": true,
+  "reservationReleased": true,
+  "browserContextClosed": true,
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T03:38:24.993Z"
+}

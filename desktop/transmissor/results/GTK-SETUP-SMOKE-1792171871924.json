@@ -1,0 +1,14 @@
+{
+  "type": "gtk-setup-smoke-no-capture",
+  "gtkStarted": true,
+  "sessions": 0,
+  "roomDeleted": true,
+  "serverAtExit": {
+    "publishers": 0,
+    "reservationAbsent": true
+  },
+  "forcedProcessKill": false,
+  "captureValidated": false,
+  "report": "/home/vivi/screen-share/desktop/transmissor/results/GTK-MANUAL-2026-10-16T17-30-48-295Z-dd33bc9f.json",
+  "passed": true
+}

@@ -1,0 +1,35 @@
+{
+  "type": "gstreamer-synthetic-native-livekit",
+  "passed": true,
+  "requestedFps": 60,
+  "stages": [
+    "Selecione a tela ou janela no COSMIC",
+    "Conectando e reservando transmissão",
+    "Transmitindo — 1080p / 60 FPS",
+    "Parado"
+  ],
+  "capture": {
+    "capture": "started",
+    "videoBuffers": 36,
+    "audioBuffers": 602,
+    "audioPeak": 1638
+  },
+  "received": {
+    "videoFrames": 38,
+    "audioFrames": 1584,
+    "audioPeak": 1950,
+    "width": 1920,
+    "height": 1080,
+    "frames1080p": 33,
+    "sources": [
+      4,
+      3
+    ]
+  },
+  "captureProcessExit": 0,
+  "remainingPublishers": 0,
+  "publisherReleased": true,
+  "reservationReleased": true,
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T02:50:25.444Z"
+}

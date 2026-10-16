@@ -1,0 +1,62 @@
+[
+  {
+    "profile": "720p30",
+    "pipeline": "legacy",
+    "wallSeconds": 7.138554760000261,
+    "cpuSeconds": 3.3083399999999994,
+    "inputBuffers": 120,
+    "convertedBuffers": 120,
+    "outputBuffers": 61,
+    "rate": {
+      "in": 120,
+      "out": 61,
+      "drop": 59,
+      "duplicate": 0
+    }
+  },
+  {
+    "profile": "720p30",
+    "pipeline": "early-drop",
+    "wallSeconds": 3.5728424530025222,
+    "cpuSeconds": 1.9079710000000005,
+    "inputBuffers": 120,
+    "convertedBuffers": 60,
+    "outputBuffers": 60,
+    "rate": {
+      "in": 120,
+      "out": 60,
+      "drop": 61,
+      "duplicate": 0
+    }
+  },
+  {
+    "profile": "1080p30",
+    "pipeline": "legacy",
+    "wallSeconds": 5.939106443998753,
+    "cpuSeconds": 2.6494390000000005,
+    "inputBuffers": 120,
+    "convertedBuffers": 120,
+    "outputBuffers": 61,
+    "rate": {
+      "in": 120,
+      "out": 61,
+      "drop": 59,
+      "duplicate": 0
+    }
+  },
+  {
+    "profile": "1080p30",
+    "pipeline": "early-drop",
+    "wallSeconds": 2.9746614460018463,
+    "cpuSeconds": 1.5939490000000007,
+    "inputBuffers": 120,
+    "convertedBuffers": 60,
+    "outputBuffers": 60,
+    "rate": {
+      "in": 120,
+      "out": 60,
+      "drop": 61,
+      "duplicate": 0
+    }
+  }
+]

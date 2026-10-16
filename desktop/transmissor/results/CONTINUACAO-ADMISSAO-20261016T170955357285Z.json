@@ -1,0 +1,151 @@
+{
+  "timestamp": "20261016T170955357285Z",
+  "scope": "synthetic-saturated-ring-only",
+  "order": "ABBA per profile",
+  "cases": [
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "43579e09861bfb0d464513aa76f266b25a0d0d66a8c7eed791c7cc765075441c",
+        "ring": "9eae7e381300d1afdfed539f5c5496da2e0ad83464b2063a784c6c0049556de0"
+      },
+      "maps": 90,
+      "pythonFrameBytes": 124416000,
+      "cpuSeconds": 0.164794,
+      "elapsedSeconds": 0.7292266509999763,
+      "copyMs": {
+        "map": 17.21768,
+        "extract": 170.07949299999999,
+        "ring": 14.865812000000005
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "eb00e49e361621bc2cb3c4035034d1dd1f0d270da612a7b2163ebc27e2b260d4",
+        "ring": "b476f28cbd2c236f4396ac027f0c8d69308db05d60b775815189f8cc51e2ed86"
+      },
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.11275900000000003,
+      "elapsedSeconds": 0.21299172400006228,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "eb00e49e361621bc2cb3c4035034d1dd1f0d270da612a7b2163ebc27e2b260d4",
+        "ring": "b476f28cbd2c236f4396ac027f0c8d69308db05d60b775815189f8cc51e2ed86"
+      },
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.10314800000000002,
+      "elapsedSeconds": 0.11934708500007218,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "720p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "43579e09861bfb0d464513aa76f266b25a0d0d66a8c7eed791c7cc765075441c",
+        "ring": "9eae7e381300d1afdfed539f5c5496da2e0ad83464b2063a784c6c0049556de0"
+      },
+      "maps": 90,
+      "pythonFrameBytes": 124416000,
+      "cpuSeconds": 0.14549499999999996,
+      "elapsedSeconds": 0.1901631289999841,
+      "copyMs": {
+        "map": 1.753344,
+        "extract": 49.18966500000001,
+        "ring": 4.824954000000003
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "43579e09861bfb0d464513aa76f266b25a0d0d66a8c7eed791c7cc765075441c",
+        "ring": "9eae7e381300d1afdfed539f5c5496da2e0ad83464b2063a784c6c0049556de0"
+      },
+      "maps": 90,
+      "pythonFrameBytes": 279936000,
+      "cpuSeconds": 0.275651,
+      "elapsedSeconds": 0.4319039829999838,
+      "copyMs": {
+        "map": 2.165962999999999,
+        "extract": 132.55281,
+        "ring": 4.446828000000003
+      },
+      "variant": "before"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "eb00e49e361621bc2cb3c4035034d1dd1f0d270da612a7b2163ebc27e2b260d4",
+        "ring": "b476f28cbd2c236f4396ac027f0c8d69308db05d60b775815189f8cc51e2ed86"
+      },
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.19023800000000005,
+      "elapsedSeconds": 0.31486377999999604,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "eb00e49e361621bc2cb3c4035034d1dd1f0d270da612a7b2163ebc27e2b260d4",
+        "ring": "b476f28cbd2c236f4396ac027f0c8d69308db05d60b775815189f8cc51e2ed86"
+      },
+      "maps": 0,
+      "pythonFrameBytes": 0,
+      "cpuSeconds": 0.19658500000000007,
+      "elapsedSeconds": 0.32091771500006416,
+      "copyMs": {
+        "map": 0.0,
+        "extract": 0.0,
+        "ring": 0.0
+      },
+      "variant": "after"
+    },
+    {
+      "profile": "1080p30",
+      "buffers": 90,
+      "sourceHashes": {
+        "capture": "43579e09861bfb0d464513aa76f266b25a0d0d66a8c7eed791c7cc765075441c",
+        "ring": "9eae7e381300d1afdfed539f5c5496da2e0ad83464b2063a784c6c0049556de0"
+      },
+      "maps": 90,
+      "pythonFrameBytes": 279936000,
+      "cpuSeconds": 0.273501,
+      "elapsedSeconds": 0.3389156419999608,
+      "copyMs": {
+        "map": 2.019115,
+        "extract": 99.10732299999998,
+        "ring": 3.371865
+      },
+      "variant": "before"
+    }
+  ]
+}

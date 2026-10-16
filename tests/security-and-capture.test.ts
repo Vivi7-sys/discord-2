@@ -1,3 +1,4 @@
+import { audioEnergyState, startMediaDiagnostics } from "../src/lib/capture/media-diagnostics";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Redis } from "@upstash/redis";
@@ -422,4 +423,60 @@ test("cancelamento durante grant não deixa uma rejeição posterior limpar ince
   const scenario = grantScenario({ pending: true, error: refusedGrant() });
   assert.equal(await grantReservedShare("owner", scenario.deps), "uncertain");
   assert.equal(scenario.stats().released, 0);
+});
+
+test("energia distingue silêncio de sinal apenas com amostras válidas do intervalo", () => {
+  const previous = { totalAudioEnergy: 1, totalSamplesDuration: 10 };
+  assert.equal(audioEnergyState({ totalAudioEnergy: 1, totalSamplesDuration: 15 }, previous), "silent");
+  assert.equal(audioEnergyState({ totalAudioEnergy: 2, totalSamplesDuration: 15 }, previous), "signal");
+  assert.equal(audioEnergyState({}, previous), "unknown");
+  assert.equal(audioEnergyState(previous), "unknown");
+  assert.equal(audioEnergyState(previous, previous), "unknown");
+  assert.equal(audioEnergyState({ totalAudioEnergy: 0, totalSamplesDuration: 1 }, previous), "unknown");
+});
+
+test("volume zero usa mute nativo no celular mesmo sem suporte a volume HTML", () => {
+  const element = { muted: false };
+  const track = { setVolume() {} };
+  applyRemoteAudioVolume(track, element, 0, false, false);
+  assert.equal(element.muted, true);
+  applyRemoteAudioVolume(track, element, 80, false, false);
+  assert.equal(element.muted, false);
+});
+
+test("diagnósticos são opt-in e omitem identificadores, dispositivos e dados brutos", async () => {
+  const storage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const debug = console.debug;
+  const logs: unknown[] = [];
+  let calls = 0;
+  let stop = () => {};
+  try {
+    console.debug = (...args) => { logs.push(args); };
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { getItem: () => null } });
+    const track = {
+      mediaStreamTrack: { readyState: "live", enabled: true, muted: false,
+        getSettings: () => ({ deviceId: "secret-device", groupId: "secret-group", channelCount: 2 }) },
+      getRTCStatsReport: async () => { calls++; return new Map([["secret-id", {
+        id: "secret-id", type: "media-source", kind: "audio", timestamp: 1,
+        totalAudioEnergy: 0, totalSamplesDuration: 1, arbitrary: "secret-payload",
+      }]]); },
+    };
+    const participant = { identity: "secret-person", trackPublications: new Map([["secret-sid", { source: "screen_share_audio", track }]]) };
+    const room = { localParticipant: participant, remoteParticipants: new Map() } as unknown as Parameters<typeof startMediaDiagnostics>[0];
+    stop = startMediaDiagnostics(room);
+    stop();
+    assert.equal(calls, 0);
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { getItem: () => "1" } });
+    stop = startMediaDiagnostics(room);
+    await new Promise(resolve => setImmediate(resolve));
+    stop();
+    assert.equal(calls, 1);
+    assert.ok(JSON.stringify(logs).includes('unknown'));
+    assert.equal(JSON.stringify(logs).includes('secret-'), false);
+  } finally {
+    stop();
+    console.debug = debug;
+    if (storage) Object.defineProperty(globalThis, "localStorage", storage);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  }
 });

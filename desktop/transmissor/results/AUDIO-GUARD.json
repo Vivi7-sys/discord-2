@@ -1,0 +1,9 @@
+{
+  "validMonitorBuffers": 12,
+  "validMonitorPeak": 1638,
+  "moveAllowed": true,
+  "policyBlocked": true,
+  "captureStopped": true,
+  "passed": true,
+  "modulesRemoved": true
+}

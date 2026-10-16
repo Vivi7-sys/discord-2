@@ -1,0 +1,11 @@
+{
+  "validMonitorBuffers": 98,
+  "validMonitorPeak": 1638,
+  "moveAllowed": true,
+  "buffersAfterMove": 101,
+  "currentDeviceMatchesOriginal": false,
+  "policyBlocked": true,
+  "captureStopped": true,
+  "passed": true,
+  "modulesRemoved": true
+}

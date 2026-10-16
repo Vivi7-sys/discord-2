@@ -1,0 +1,247 @@
+{
+  "type": "native-portal-pipewire-livekit",
+  "passed": false,
+  "requestedFps": 30,
+  "profile": "1080p30",
+  "width": 1920,
+  "height": 1080,
+  "codec": "h264",
+  "testSeconds": 30,
+  "gainDb": 0,
+  "audioTest": {
+    "toneHz": 997,
+    "linearAmplitude": 0.05,
+    "isolatedMonitor": true,
+    "localPlayback": true
+  },
+  "stages": [
+    "Selecione a tela ou janela no COSMIC",
+    "Conectando e reservando transmissão",
+    "Falha no pipeline de captura",
+    "Não foi possível transmitir. Confira dependências, permissão e backend.",
+    "Falha na transmissão; captura encerrada"
+  ],
+  "capture": {
+    "capture": "failed",
+    "videoBuffers": 0,
+    "audioBuffers": 0,
+    "audioPeak": 0,
+    "diagnostics": {
+      "elapsedSeconds": 30.418,
+      "pythonCpuSeconds": 0.081,
+      "pythonCpuPercent": 0.27,
+      "sourceBuffers": [
+        0,
+        0
+      ],
+      "sourceFps": [
+        0,
+        0
+      ],
+      "video": {
+        "buffers": 0,
+        "bytes": 0,
+        "spanSeconds": 0,
+        "fps": 0,
+        "workMs": 0,
+        "writeMs": 0,
+        "maxAgeMs": 0,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 0,
+        "ptsSpanSeconds": 0,
+        "perSecond": [],
+        "peak": 0,
+        "peakDbfs": null,
+        "sampleCount": 0,
+        "durationSeconds": 0,
+        "saturatedBlocks": 0,
+        "rmsDbfs": null,
+        "caps": null
+      },
+      "audio": {
+        "buffers": 0,
+        "bytes": 0,
+        "spanSeconds": 0,
+        "fps": 0,
+        "workMs": 0,
+        "writeMs": 0,
+        "maxAgeMs": 0,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 0,
+        "ptsSpanSeconds": 0,
+        "perSecond": [],
+        "peak": 0,
+        "peakDbfs": null,
+        "sampleCount": 0,
+        "durationSeconds": 0,
+        "saturatedBlocks": 0,
+        "rmsDbfs": null,
+        "caps": null
+      },
+      "inputAudio": {
+        "buffers": 0,
+        "bytes": 0,
+        "spanSeconds": 0,
+        "fps": 0,
+        "workMs": 0,
+        "writeMs": 0,
+        "maxAgeMs": 0,
+        "nonMonotonicPts": 0,
+        "ptsGaps": 0,
+        "ptsSpanSeconds": 0,
+        "perSecond": [],
+        "peak": 0,
+        "peakDbfs": null,
+        "sampleCount": 0,
+        "durationSeconds": 0,
+        "saturatedBlocks": 0,
+        "rmsDbfs": null,
+        "caps": null
+      },
+      "gainDb": 0,
+      "limitedBlocks": 0,
+      "transport": "memfd-ring",
+      "capsCorrections": 0,
+      "sourceCaps": [
+        null,
+        null
+      ],
+      "stages": {
+        "waiting": {
+          "buffers": 0,
+          "totalMs": 0,
+          "maxMs": 0
+        },
+        "convert": {
+          "buffers": 0,
+          "totalMs": 0,
+          "maxMs": 0
+        },
+        "scale": {
+          "buffers": 0,
+          "totalMs": 0,
+          "maxMs": 0
+        }
+      },
+      "copyMs": {
+        "map": 0,
+        "extract": 0,
+        "ring": 0
+      },
+      "rate": {
+        "in": 0,
+        "out": 0,
+        "drop": 0,
+        "duplicate": 0
+      },
+      "ringDropped": 0,
+      "clockOffsetsMs": [
+        null,
+        null
+      ],
+      "ipcBytes": [
+        0,
+        0
+      ],
+      "monitor": null,
+      "videoPipeBytes": 1048576,
+      "errors": [
+        {
+          "domain": "gst-resource-error-quark",
+          "code": 1
+        }
+      ]
+    },
+    "publisher": {
+      "video": {
+        "frames": 0,
+        "fps": 0,
+        "spanSeconds": 0,
+        "workMs": 0,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 0,
+        "perSecond": [],
+        "skippedStale": 0
+      },
+      "audio": {
+        "frames": 0,
+        "fps": 0,
+        "spanSeconds": 0,
+        "workMs": 0,
+        "nonMonotonicPts": 0,
+        "maxAgeMs": 0,
+        "perSecond": [],
+        "skippedStale": 0
+      },
+      "elapsedSeconds": 0.754663277,
+      "cpuSeconds": 0.178665,
+      "cpuPercent": 23.67479715062377,
+      "rtc": [
+        [],
+        []
+      ],
+      "samples": [],
+      "gpu": [
+        {
+          "device": "/dev/dri/renderD128",
+          "fields": {
+            "drm-driver": "amdgpu",
+            "drm-client-id": "314",
+            "drm-pdev": "0000:02:00.0"
+          }
+        }
+      ]
+    },
+    "publisherStopped": true,
+    "publisherKilled": false
+  },
+  "received": {
+    "videoFrames": 0,
+    "audioFrames": 0,
+    "audioPeak": 0,
+    "audioSamples": 0,
+    "clippedSamples": 0,
+    "width": 0,
+    "height": 0,
+    "frames1080p": 0,
+    "sources": [],
+    "codecs": [],
+    "video": {
+      "frames": 0,
+      "fps": 0,
+      "spanSeconds": 0,
+      "workMs": 0,
+      "nonMonotonicPts": 0,
+      "maxAgeMs": null,
+      "perSecond": [],
+      "skippedStale": 0
+    },
+    "audioRmsDbfs": null,
+    "audioPeakDbfs": null,
+    "audioSpanSeconds": 0,
+    "audioDurationSeconds": 0,
+    "cpuSeconds": 1.006756,
+    "cpuPercent": 2.128920649699754
+  },
+  "receiverSnapshot": "process-end",
+  "performance": {
+    "measuredReceiveFps": 0,
+    "completeWindows": 0,
+    "p10Fps": 0,
+    "minFps": 0,
+    "medianFps": 0,
+    "requestedFps": 30,
+    "targetMet": false
+  },
+  "validation": "media-transport-and-cleanup",
+  "captureProcessExit": 0,
+  "assertion": {
+    "actual": false,
+    "expected": true,
+    "operator": "=="
+  },
+  "failure": "capture-or-assertion-failed",
+  "audioModulesRemoved": true,
+  "roomDeleted": true,
+  "timestamp": "2026-10-16T04:08:19.609Z"
+}

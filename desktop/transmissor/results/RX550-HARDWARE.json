@@ -1,0 +1,201 @@
+{
+  "capabilities": {
+    "device": "/dev/dri/renderD128",
+    "pciDevice": "0000:02:00.0",
+    "driver": "amdgpu",
+    "vendor": "Mesa Gallium driver 25.2.8-0ubuntu0.24.04.2 for AMD Radeon RX 550 Series (radeonsi, polaris11, ACO, DRM 3.64, 7.0.11-76070011-generic)",
+    "api": "1.20",
+    "profiles": [
+      {
+        "profile": "VAProfileMPEG2Simple",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileMPEG2Main",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileVC1Simple",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileVC1Main",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileVC1Advanced",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileH264ConstrainedBaseline",
+        "entrypoints": [
+          "VAEntrypointVLD",
+          "VAEntrypointEncSlice"
+        ]
+      },
+      {
+        "profile": "VAProfileH264Main",
+        "entrypoints": [
+          "VAEntrypointVLD",
+          "VAEntrypointEncSlice"
+        ]
+      },
+      {
+        "profile": "VAProfileH264High",
+        "entrypoints": [
+          "VAEntrypointVLD",
+          "VAEntrypointEncSlice"
+        ]
+      },
+      {
+        "profile": "VAProfileHEVCMain",
+        "entrypoints": [
+          "VAEntrypointVLD",
+          "VAEntrypointEncSlice"
+        ]
+      },
+      {
+        "profile": "VAProfileHEVCMain10",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileJPEGBaseline",
+        "entrypoints": [
+          "VAEntrypointVLD"
+        ]
+      },
+      {
+        "profile": "VAProfileNone",
+        "entrypoints": [
+          "VAEntrypointVideoProc"
+        ]
+      }
+    ]
+  },
+  "cases": [
+    {
+      "width": 1280,
+      "height": 720,
+      "stage": "source",
+      "frames": 240,
+      "wallSeconds": 1.7779096080012096,
+      "throughputFps": 134.98998988470325,
+      "cpuSeconds": 0.7649949999999999,
+      "ffmpegTiming": {
+        "user": 0.559,
+        "system": 0.024,
+        "wall": 1.362
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "stage": "nv12",
+      "frames": 240,
+      "wallSeconds": 2.4289010600004985,
+      "throughputFps": 98.81011785632418,
+      "cpuSeconds": 0.9180340000000002,
+      "ffmpegTiming": {
+        "user": 0.686,
+        "system": 0.056,
+        "wall": 1.923
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "stage": "upload",
+      "frames": 240,
+      "wallSeconds": 4.721586548999767,
+      "throughputFps": 50.830371848386896,
+      "cpuSeconds": 1.4795039999999997,
+      "ffmpegTiming": {
+        "user": 0.919,
+        "system": 0.186,
+        "wall": 3.365
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "stage": "encode",
+      "frames": 240,
+      "wallSeconds": 3.649371545001486,
+      "throughputFps": 65.7647479957819,
+      "cpuSeconds": 1.6154650000000004,
+      "ffmpegTiming": {
+        "user": 0.932,
+        "system": 0.296,
+        "wall": 2.701
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "stage": "source",
+      "frames": 240,
+      "wallSeconds": 2.2677693589976116,
+      "throughputFps": 105.83086813823238,
+      "cpuSeconds": 1.3015589999999995,
+      "ffmpegTiming": {
+        "user": 1.077,
+        "system": 0.049,
+        "wall": 1.956
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "stage": "nv12",
+      "frames": 240,
+      "wallSeconds": 3.3787880309973843,
+      "throughputFps": 71.03138693466794,
+      "cpuSeconds": 1.5549819999999996,
+      "ffmpegTiming": {
+        "user": 1.296,
+        "system": 0.073,
+        "wall": 2.825
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "stage": "upload",
+      "frames": 240,
+      "wallSeconds": 4.275815378001425,
+      "throughputFps": 56.12964517475946,
+      "cpuSeconds": 2.3987240000000005,
+      "ffmpegTiming": {
+        "user": 1.75,
+        "system": 0.276,
+        "wall": 3.569
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "stage": "encode",
+      "frames": 240,
+      "wallSeconds": 5.110377396998956,
+      "throughputFps": 46.96326344526704,
+      "cpuSeconds": 2.4964130000000004,
+      "ffmpegTiming": {
+        "user": 1.746,
+        "system": 0.386,
+        "wall": 4.524
+      }
+    }
+  ]
+}

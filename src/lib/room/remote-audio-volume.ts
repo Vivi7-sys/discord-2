@@ -10,5 +10,5 @@ export function applyRemoteAudioVolume(
 ) {
   track?.setVolume(muted ? 0 : Math.max(0, Math.min(1, volume / 100)));
   // Com mix Web Audio, o SDK mantém a saída HTML muda para evitar reprodução dupla.
-  element.muted = muted || webAudioMix;
+  element.muted = muted || volume <= 0 || webAudioMix;
 }

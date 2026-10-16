@@ -1,0 +1,120 @@
+{
+  "mode": "ffi",
+  "format": "RGBA",
+  "requestedFps": 30,
+  "capture": {
+    "elapsedSeconds": 10.843,
+    "pythonCpuSeconds": 3.096,
+    "pythonCpuPercent": 28.56,
+    "sourceBuffers": [
+      72,
+      1001
+    ],
+    "video": {
+      "buffers": 72,
+      "bytes": 597196800,
+      "spanSeconds": 9.066,
+      "fps": 7.832,
+      "workMs": 5315.188,
+      "writeMs": 4952.103,
+      "maxAgeMs": 7580.242,
+      "nonMonotonicPts": 0,
+      "ptsGaps": 0,
+      "ptsSpanSeconds": 2.367,
+      "perSecond": [
+        3,
+        5,
+        9,
+        8,
+        9,
+        9,
+        10,
+        9,
+        9,
+        1
+      ],
+      "peak": 0,
+      "peakDbfs": null,
+      "rmsDbfs": null,
+      "caps": "video/x-raw, format=(string)RGBA, width=(int)1920, height=(int)1080, framerate=(fraction)30/1, multiview-mode=(string)mono, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive"
+    },
+    "audio": {
+      "buffers": 1000,
+      "bytes": 1920000,
+      "spanSeconds": 9.978,
+      "fps": 100.12,
+      "workMs": 1983.717,
+      "writeMs": 1636.793,
+      "maxAgeMs": 357.43,
+      "nonMonotonicPts": 0,
+      "ptsGaps": 0,
+      "ptsSpanSeconds": 9.99,
+      "perSecond": [
+        100,
+        101,
+        99,
+        102,
+        94,
+        104,
+        101,
+        101,
+        97,
+        101
+      ],
+      "peak": 1638,
+      "peakDbfs": -26.02,
+      "rmsDbfs": -29.04,
+      "caps": "audio/x-raw, format=(string)S16LE, layout=(string)interleaved, rate=(int)48000, channels=(int)2"
+    },
+    "errors": []
+  },
+  "consumer": {
+    "mode": "ffi",
+    "format": "RGBA",
+    "video": {
+      "frames": 72,
+      "fps": 7.941945598275344,
+      "spanSeconds": 8.939874886,
+      "workMs": 1094.408638000002,
+      "nonMonotonicPts": 0,
+      "maxAgeMs": 7590.274,
+      "perSecond": [
+        3,
+        6,
+        8,
+        9,
+        9,
+        9,
+        10,
+        9,
+        9
+      ],
+      "skippedStale": 0
+    },
+    "audio": {
+      "frames": 1000,
+      "fps": 99.76444660452503,
+      "spanSeconds": 10.013587345,
+      "workMs": 9859.981577000022,
+      "nonMonotonicPts": 0,
+      "maxAgeMs": 835.862,
+      "perSecond": [
+        101,
+        100,
+        98,
+        102,
+        101,
+        95,
+        104,
+        100,
+        93,
+        104,
+        2
+      ],
+      "skippedStale": 0
+    },
+    "elapsedSeconds": 10.088070341,
+    "cpuSeconds": 3.403861,
+    "cpuPercent": 33.741447917606266
+  }
+}
