@@ -1,3 +1,17 @@
+# Discord 2 Transmissor 1.0.0 estável
+
+O usuário confirmou manualmente no Pop!_OS: candidata 1.0.0-rc1 instalada pelo menu, conexão com o Discord 2 público e imagem/áudio reais recebidos no celular pelo navegador. Isso resolve o bloqueio de validação de mídia pública registrado na rodada anterior. A instalação, seleção de monitor USB e reprodução local já estavam validadas. Não há nova medição de FPS, latência ou sincronização quantificada.
+
+A 1.0.0 promove a candidata sem alterar o código GTK, captura, publicação, visual, ícone ou perfis. Apenas versão, documentação e verificação de atualização do pacote foram ajustadas. O SDK LiveKit permanece fixado em 1.1.0. Nenhuma funcionalidade nova, alteração do site, push, deploy ou GitHub Release foi feita.
+
+Parada com liberação explícita, reinício, exclusividade e recuperação após encerramento abrupto são conferidos novamente com API pública/SFU reais em sala exclusiva descartável, sem capturar mídia. Encerramento pela janela GTK é testado com sessão simulada; limpeza de IPC, memória compartilhada, descritores, fontes e SDK tem testes automatizados. Não se apresenta o fechamento simulado como nova captura de desktop real.
+
+Pacote definitivo: `desktop/transmissor/dist/discord2-transmissor_1.0.0_amd64.deb`. Extração, carregamento do runtime e GTK, instalação da candidata, atualização para estável e remoção em raiz dpkg descartável; dependências conferidas com simulação apt no host. A instalação existente do usuário não é alterada por esses testes. Auditoria do conteúdo verifica ausência de credenciais do ambiente, arquivos .env, chaves privadas e caminhos temporários de desenvolvimento. Resultados e SHA-256: `results/RELEASE-1.0.0.json`.
+
+Não há bloqueio técnico de distribuição identificado para o alvo validado: **Pop!_OS 24.04, COSMIC/Wayland, amd64**. Compatibilidade com outras distribuições e arquiteturas não foi validada. O pacote não é assinado como repositório apt; autorização de publicação continua pendente. Áudio de chamadas na mesma saída pode ser capturado, microfones não são oferecidos e reprodução local não é silenciada. Não há promessa de isolamento de eco. A capacidade efetiva de 1080p30/60 depende do hardware, sem redução silenciosa da qualidade.
+
+## Histórico da candidata (pendências de mídia pública superadas pela confirmação acima)
+
 # Discord 2 Transmissor 1.0.0~rc1 — validação e entrega
 
 Candidata Linux amd64 para Pop!_OS 24.04 / COSMIC Wayland. Não é uma declaração de distribuição estável 1.0. Nenhuma alteração de design/site/backend, push ou deploy foi realizada nesta finalização.

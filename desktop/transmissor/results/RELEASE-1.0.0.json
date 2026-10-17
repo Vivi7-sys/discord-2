@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "status": "stable",
+  "target": "Pop!_OS 24.04 COSMIC Wayland amd64",
+  "artifact": "desktop/transmissor/dist/discord2-transmissor_1.0.0_amd64.deb",
+  "sha256": "b0e2ad6b4b5356aca469a1e39e1cf799c4d53d275c204d782d2704438c12a1c9",
+  "runtimeAndNativeAddonIdenticalToValidatedRc": true,
+  "publicManualMedia": "User confirmed installed rc1 menu launch, public Discord 2 connection, real image and USB audio received in cellphone browser.",
+  "publicLifecycleEvidence": "results/LIFECYCLE-1792197622661.json",
+  "publicLifecyclePassed": true,
+  "tests": {
+    "python": 32,
+    "nodeMedia": 4,
+    "nodeShutdownFault": 1,
+    "lint": true,
+    "nativeBuildAndDeb": true,
+    "extractedRuntimeGtkAudioSelection": true,
+    "gtkCloseWithSimulatedSession": true,
+    "dpkgInstallRcUpgradeStableAndRemoveInDisposableRoot": true,
+    "aptUpgradeSimulationFromRc": true,
+    "additionalAptPackages": 0,
+    "aptRemovals": 0,
+    "nativeLibrariesResolved": true,
+    "credentialAndPrivateKeyAudit": true
+  },
+  "hostInstallationChanged": false,
+  "newFeatures": false,
+  "technicalDistributionBlockersIdentified": [],
+  "publicationAuthorizedOrPerformed": false
+}

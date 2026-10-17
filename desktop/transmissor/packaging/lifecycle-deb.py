@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[1]
 version=json.loads((root/'package.json').read_text())['version'].replace('-rc','~rc')
-old=root/'dist/discord2-transmissor_0.1.1_amd64.deb'
+old=root/'dist/discord2-transmissor_1.0.0~rc1_amd64.deb'
 new=root/'dist'/f'discord2-transmissor_{version}_amd64.deb'
 for artifact in (old,new):assert artifact.is_file(),artifact
 with tempfile.TemporaryDirectory(prefix='d2-dpkg-root-') as directory:
@@ -27,4 +27,4 @@ with tempfile.TemporaryDirectory(prefix='d2-dpkg-root-') as directory:
     assert not (target/'usr/bin/discord2-transmissor').exists()
     assert not (target/'usr/lib/discord2-transmissor').exists()
     assert not (target/'usr/share/applications/discord2-transmissor.desktop').exists()
-    print(json.dumps({'disposableDpkgRoot':True,'install011':True,'upgradeCandidate':True,'removeCandidate':True,'hostChanged':False,'dependencyResolutionTested':False}))
+    print(json.dumps({'disposableDpkgRoot':True,'installPreviousVersion':True,'upgradeVersion':version,'removedVersion':version,'hostChanged':False,'dependencyResolutionTested':False}))

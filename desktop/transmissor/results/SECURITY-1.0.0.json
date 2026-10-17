@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "filesAudited": 1106,
+  "credentialValueHits": [],
+  "privateKeyHits": [],
+  "forbiddenFiles": [],
+  "developmentTemporaryPaths": [],
+  "runtimeDifferencesFromRc": [],
+  "iconAndDesktopUnchanged": true,
+  "nativeLibrariesResolved": [
+    "shm.node",
+    "rtc-node.linux-x64-gnu.node"
+  ],
+  "sha256": "b0e2ad6b4b5356aca469a1e39e1cf799c4d53d275c204d782d2704438c12a1c9"
+}
