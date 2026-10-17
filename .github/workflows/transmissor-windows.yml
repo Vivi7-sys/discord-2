@@ -46,7 +46,7 @@ jobs:
         working-directory: desktop/transmissor-windows
         run: python launch.py --self-test --report self-test.json
       - name: Install installer compiler
-        run: choco install innosetup --version=6.4.3 --yes --no-progress
+        run: choco install innosetup --version=6.7.1 --yes --no-progress
       - name: Build application and installer
         run: python desktop/transmissor-windows/packaging/build.py
       - name: Install, check and uninstall in disposable runner

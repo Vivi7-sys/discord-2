@@ -20,7 +20,7 @@ A captura WGC é baseada em Direct3D, mas isso **não comprova encoding H.264 pe
 
 ## Build em Windows x64
 
-No checkout que contém estes arquivos e `desktop/transmissor/profiles.json`, usando Python 3.12 x64 e Inno Setup 6.4.3:
+No checkout que contém estes arquivos e `desktop/transmissor/profiles.json`, usando Python 3.12 x64 e Inno Setup 6.7.1:
 
 ```powershell
 py -3.12 -m venv desktop/transmissor-windows/.venv
