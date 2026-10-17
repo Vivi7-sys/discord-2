@@ -1,0 +1,9 @@
+.venv/
+wheelhouse/
+build/
+dist/
+__pycache__/
+*.pyc
+*.spec
+
+packaging/d2.ico

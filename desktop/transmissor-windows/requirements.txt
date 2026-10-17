@@ -1,0 +1,6 @@
+livekit==1.1.21
+windows-capture==2.0.1
+PyAudioWPatch==0.2.12.9
+opencv-python==5.0.0.93
+numpy==2.5.4
+httpx==0.28.1
