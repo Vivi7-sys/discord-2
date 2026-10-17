@@ -85,3 +85,35 @@ class ApplicationAudio(unittest.TestCase):
             with self.assertRaises(SafeError):validate_target(Target('window',hwnd,'fixture',pid,born+1),22000)
         finally:
             process.terminate();process.wait(timeout=10);process.stdout.close()
+
+    def test_stream_passes_exact_identity_and_copies_pcm_then_joins(self):
+        import d2win.application_audio as adapter
+        stopped=threading.Event();received=Mock();failed=Mock();kernel=Mock()
+        kernel.CreateEventW.return_value=42
+        kernel.SetEvent.side_effect=lambda _:stopped.set()
+        dll=Mock();target=Target('window',7,'game',20,30)
+        def native_run(hwnd,pid,born,stop,callback):
+            self.assertEqual((hwnd,pid,born,stop),(7,20,30,42))
+            callback(None,0,0,0)
+            buffer=ctypes.create_string_buffer(b'\x10\x00\xf0\xff')
+            callback(ctypes.addressof(buffer),1,20000,0)
+            stopped.wait(2)
+            return 0
+        dll.d2_loopback_run.side_effect=native_run
+        with patch.object(adapter,'validate_target'),patch.object(adapter,'load_native',return_value=dll),patch.object(ctypes,'WinDLL',return_value=kernel,create=True),patch.object(ctypes,'WINFUNCTYPE',ctypes.CFUNCTYPE,create=True):
+            stream=ApplicationStream(target,received,failed)
+            stream.start_stream()
+            stream.close()
+        failed.assert_not_called();received.assert_called_once()
+        self.assertEqual(received.call_args.args[0],b'\x10\x00\xf0\xff')
+        kernel.CloseHandle.assert_called_once_with(42)
+        self.assertTrue(stream.done.is_set())
+
+    def test_native_activation_error_closes_handle_and_never_delivers_audio(self):
+        import d2win.application_audio as adapter
+        received=Mock();failed=Mock();kernel=Mock();kernel.CreateEventW.return_value=42
+        dll=Mock();dll.d2_loopback_run.return_value=-1
+        with patch.object(adapter,'validate_target'),patch.object(adapter,'load_native',return_value=dll),patch.object(ctypes,'WinDLL',return_value=kernel,create=True),patch.object(ctypes,'WINFUNCTYPE',ctypes.CFUNCTYPE,create=True):
+            stream=ApplicationStream(Target('window',7,'game',20,30),received,failed)
+            with self.assertRaises(SafeError):stream.start_stream()
+        received.assert_not_called();failed.assert_called_once();kernel.CloseHandle.assert_called_once_with(42)

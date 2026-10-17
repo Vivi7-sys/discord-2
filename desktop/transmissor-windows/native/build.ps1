@@ -10,6 +10,14 @@ $dll = Join-Path $build 'd2_application_loopback.dll'
 Push-Location $build
 try {
     # /MT avoids depending on a development-computer VC runtime installation.
-    & cmd.exe /d /s /c "`"`"$vcvars`" && cl.exe /nologo /std:c++17 /EHsc /O2 /MT /W4 /DUNICODE /D_UNICODE /LD `"$source`" /link /OUT:`"$dll`" Mmdevapi.lib Ole32.lib User32.lib`""
+    # Batch file avoids differing PowerShell 5/7 native quoting around vcvars paths.
+    @(
+        '@echo off'
+        "call `"$vcvars`""
+        'if errorlevel 1 exit /b %errorlevel%'
+        "cl.exe /nologo /std:c++17 /EHsc /O2 /MT /W4 /DUNICODE /D_UNICODE /LD `"$source`" /link /OUT:`"$dll`" Mmdevapi.lib Ole32.lib User32.lib"
+        'exit /b %errorlevel%'
+    ) | Set-Content -Path 'compile.cmd' -Encoding ascii
+    & cmd.exe /d /c compile.cmd
     if ($LASTEXITCODE -ne 0 -or !(Test-Path $dll)) { throw 'Application loopback DLL build failed' }
 } finally { Pop-Location }

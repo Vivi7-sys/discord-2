@@ -27,7 +27,10 @@ def native_path():
 def load_native():
     if sys.platform != 'win32':
         raise SafeError('Application Loopback só está disponível no Windows.')
-    dll = ctypes.CDLL(str(native_path()))  # Absolute path; no PATH/current-directory lookup.
+    try:
+        dll = ctypes.CDLL(str(native_path()))  # Absolute path; no PATH/current-directory lookup.
+    except OSError:
+        raise SafeError('Componente de áudio do aplicativo ausente ou incompatível. Reinstale o transmissor.') from None
     dll.d2_loopback_abi.restype = ctypes.c_uint32
     if dll.d2_loopback_abi() != 1:
         raise SafeError('Componente de áudio incompatível. Reinstale o aplicativo.')
