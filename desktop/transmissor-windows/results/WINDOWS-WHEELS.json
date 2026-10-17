@@ -1,0 +1,248 @@
+{
+  "python": "3.12",
+  "platform": "win_amd64",
+  "resolvedWheels": 23,
+  "nativeRuntimePEFiles": [
+    {
+      "wheel": "opencv_python-5.0.0.93-cp37-abi3-win_amd64.whl",
+      "binary": "cv2/cv2.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "opencv_python-5.0.0.93-cp37-abi3-win_amd64.whl",
+      "binary": "cv2/opencv_videoio_ffmpeg500_64.dll",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "pyaudiowpatch-0.2.12.9-cp312-cp312-win_amd64.whl",
+      "binary": "_portaudiowpatch.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/fft/_pocketfft_umath.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/linalg/lapack_lite.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/linalg/_umath_linalg.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/bit_generator.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/mtrand.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_bounded_integers.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_common.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_generator.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_mt19937.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_pcg64.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_philox.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/random/_sfc64.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_multiarray_tests.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_multiarray_umath.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_operand_flag_tests.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_rational_tests.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_simd.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_struct_ufunc_tests.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy/_core/_umath_tests.cp312-win_amd64.pyd",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy.libs/libscipy_openblas64_-ed4f167a5330424524f45258e7ca2c8d.dll",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+      "binary": "numpy.libs/msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "livekit-1.1.21-py3-none-win_amd64.whl",
+      "binary": "livekit/rtc/resources/livekit_ffi.dll",
+      "machine": "AMD64"
+    },
+    {
+      "wheel": "windows_capture-2.0.1-cp39-abi3-win_amd64.whl",
+      "binary": "windows_capture/windows_capture.pyd",
+      "machine": "AMD64"
+    }
+  ],
+  "buildToolLaunchers": [
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_avif.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imaging.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imagingcms.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imagingft.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imagingmath.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imagingmorph.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_imagingtk.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pillow-13.0.0-cp312-cp312-win_amd64.whl",
+      "binary": "PIL/_webp.cp312-win_amd64.pyd",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pyinstaller-6.22.3-py3-none-win_amd64.whl",
+      "binary": "PyInstaller/bootloader/Windows-64bit-intel/run.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pyinstaller-6.22.3-py3-none-win_amd64.whl",
+      "binary": "PyInstaller/bootloader/Windows-64bit-intel/run_d.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pyinstaller-6.22.3-py3-none-win_amd64.whl",
+      "binary": "PyInstaller/bootloader/Windows-64bit-intel/runw.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "pyinstaller-6.22.3-py3-none-win_amd64.whl",
+      "binary": "PyInstaller/bootloader/Windows-64bit-intel/runw_d.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/cli-32.exe",
+      "machine": "0x14c"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/cli-64.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/cli-arm64.exe",
+      "machine": "0xaa64"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/cli.exe",
+      "machine": "0x14c"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/gui-32.exe",
+      "machine": "0x14c"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/gui-64.exe",
+      "machine": "0x8664"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/gui-arm64.exe",
+      "machine": "0xaa64"
+    },
+    {
+      "wheel": "setuptools-84.0.0-py3-none-any.whl",
+      "binary": "setuptools/gui.exe",
+      "machine": "0x14c"
+    },
+    {
+      "wheel": "protobuf-7.36.2-cp310-abi3-win_amd64.whl",
+      "binary": "google/_upb/_message.pyd",
+      "machine": "0x8664"
+    }
+  ],
+  "missingDependencies": [],
+  "windowsExecuted": false,
+  "captureValidated": false,
+  "lockedHashes": true
+}

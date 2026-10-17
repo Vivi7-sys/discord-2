@@ -1,0 +1,35 @@
+{
+  "version": "0.1.1-beta1",
+  "branch": "build/windows-transmissor-0.1.0",
+  "commit": "8061d76",
+  "workflowRun": 38994633655,
+  "workflowConclusion": "success",
+  "localTests": {
+    "passed": 34,
+    "skippedWindowsOnly": 2
+  },
+  "windowsRunnerTests": {
+    "passed": 36,
+    "realDesktopCapture": false,
+    "realAudioCapture": false
+  },
+  "checks": [
+    "MSVC x64 native DLL build",
+    "HWND/PID/creation identity on child window",
+    "no-fallback policy and failure cleanup",
+    "packaged DLL/SDK/GUI imports",
+    "installer installation",
+    "installed payload SHA-256 comparison",
+    "installed runtime self-test",
+    "uninstall",
+    "downloaded installer SHA-256"
+  ],
+  "installer": "dist/ci-38994633655/Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe",
+  "sha256": "ea3b980729f12c2060c008d99a8e587e457fef5516ff2a9f16c6a40f9d9c9c2b",
+  "realWindowsCaptureValidated": false,
+  "applicationAudioIsolationValidated": false,
+  "manualTest": "TESTE-WINDOWS.md",
+  "privateRepositoryConfirmed": true,
+  "mainUnchanged": "0c84dcf640ec14336fac3defe5a2ccd9f56f090b",
+  "releasePublished": false
+}

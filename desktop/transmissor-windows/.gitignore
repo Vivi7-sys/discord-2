@@ -1,0 +1,9 @@
+.venv/
+wheelhouse/
+build/
+dist/
+__pycache__/
+*.pyc
+packaging/d2.ico
+self-test.json
+ui-preview.png

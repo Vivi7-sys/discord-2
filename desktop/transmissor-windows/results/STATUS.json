@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0",
+  "status": "implemented-prototype-windows-build-and-capture-unvalidated",
+  "architecture": "Windows x64; target Windows 10 build 19041+ / Windows 11",
+  "ui": "Tk/ttk",
+  "videoCapture": "Windows.Graphics.Capture via windows-capture 2.0.1",
+  "audioCapture": "WASAPI Loopback via PyAudioWPatch 0.2.12.9",
+  "rtc": "livekit Python native SDK 1.1.21",
+  "reuses": "unchanged Linux profiles.json and existing signed invitation/token/share protocol",
+  "tests": {
+    "unitTestsOnLinux": 22,
+    "pythonCompile": true,
+    "integrationJsLint": true,
+    "workflowYamlParsed": true,
+    "publicApiNativePythonSdkLifecycle": "results/SDK-PUBLIC-1792200618599.json",
+    "realWindowsDesktopCapture": false,
+    "realWindowsLoopbackCapture": false,
+    "realWindowsPlaybackOrAvSync": false,
+    "nativeHandleAndRuntimeDisposeOnLinux": true,
+    "windowsWheelsLocked": 23,
+    "amd64RuntimePEFilesInspected": 26,
+    "windowsDependencyMarkerClosure": true,
+    "linuxRegressionFirstRun": "releaseConfirmed assertion failed in unchanged lifecycle test",
+    "linuxRegressionRepeat": {
+      "python": 32,
+      "node": 5,
+      "passed": true
+    },
+    "uiStateTestsWithWidgetDoubles": 3,
+    "actualWindowsGuiExecuted": false
+  },
+  "windowsBuildExecuted": false,
+  "installerGenerated": false,
+  "expectedInstaller": "desktop/transmissor-windows/dist/Discord2Transmissor-0.1.0-windows-x64-setup.exe",
+  "windowsHardwareVideoEncodingImplementedOrProven": false,
+  "linuxInstallerSha256": "b0e2ad6b4b5356aca469a1e39e1cf799c4d53d275c204d782d2704438c12a1c9",
+  "linuxTrackedCodeChanged": false,
+  "commitCreated": false,
+  "pushOrWorkflowDispatchOrReleaseOrDeploy": false,
+  "blockers": [
+    "Windows runner build and installer verification not executed; no Windows environment available and pushing workflow is not authorized",
+    "Real monitor/window and WASAPI capture on Windows 10/11 needs human test",
+    "GPU encoding Windows backend not provided/proven by pinned SDK; further native backend integration/validation needed"
+  ],
+  "knownServerCredentialValuesInNewFiles": []
+}

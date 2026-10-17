@@ -1,0 +1,88 @@
+name: Windows transmitter candidate (private artifacts)
+on:
+  push:
+    branches: [build/windows-transmissor-0.1.2-beta1]
+    paths:
+      - '.github/workflows/transmissor-windows.yml'
+      - 'desktop/transmissor-windows/**'
+      - 'desktop/transmissor/profiles.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/transmissor-windows.yml'
+      - 'desktop/transmissor-windows/**'
+      - 'desktop/transmissor/profiles.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    if: >-
+      github.event.repository.private == true &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/build/windows-transmissor-0.1.2-beta1') ||
+       (github.event_name == 'pull_request' && github.head_ref == 'build/windows-transmissor-0.1.2-beta1' && github.event.pull_request.head.repo.full_name == github.repository))
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Require private source repository
+        shell: pwsh
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          if ($env:REPOSITORY_PRIVATE -ne 'true') { throw 'Private source repository required' }
+      - name: Install pinned Windows dependencies
+        run: python -m pip install --require-hashes -r desktop/transmissor-windows/requirements-windows.lock
+      - name: Build native render-only Application Loopback DLL (MSVC x64)
+        shell: pwsh
+        run: ./desktop/transmissor-windows/native/build.ps1
+      - name: Unit and SDK compatibility tests (no real desktop capture)
+        run: python -m unittest discover -s desktop/transmissor-windows/tests -v
+      - name: Render Qt interface with fixture devices (no capture)
+        run: python desktop/transmissor-windows/tests/preview_qt.py desktop/transmissor-windows/ui-preview.png
+      - name: Controlled CPU conversion benchmark (synthetic, no WGC)
+        run: python desktop/transmissor-windows/tests/benchmark_conversion.py desktop/transmissor-windows/benchmark-conversion.json
+      - name: Import native Windows adapters, GUI and SDK (no capture)
+        working-directory: desktop/transmissor-windows
+        run: python launch.py --self-test --report self-test.json
+      - name: Install installer compiler
+        run: choco install innosetup --version=6.7.1 --yes --no-progress
+      - name: Build application and installer
+        run: python desktop/transmissor-windows/packaging/build.py
+      - name: Install, check and uninstall in disposable runner
+        shell: pwsh
+        run: |
+          $installer = Resolve-Path 'desktop/transmissor-windows/dist/Discord2Transmissor-0.1.2-beta1-windows-x64-setup.exe'
+          python desktop/transmissor-windows/packaging/verify.py --dist desktop/transmissor-windows/dist
+          if ($LASTEXITCODE -ne 0) { throw 'Installer checksum failed' }
+          $target = Join-Path $env:RUNNER_TEMP 'Discord2InstallerCheck'
+          $p = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$target") -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw 'Installation failed' }
+          python desktop/transmissor-windows/packaging/verify.py --dist desktop/transmissor-windows/dist --installed $target
+          if ($LASTEXITCODE -ne 0) { throw 'Installed payload differs' }
+          $report = Join-Path $env:RUNNER_TEMP 'installed-check.json'
+          $p = Start-Process (Join-Path $target 'Discord2Transmissor.exe') -ArgumentList @('--self-test','--report',$report) -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or !(Test-Path $report)) { throw 'Installed runtime check failed' }
+          $check = Get-Content $report -Raw | ConvertFrom-Json
+          if (-not $check.nativeSdkLoaded) { throw 'SDK not loaded' }
+          $p = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or (Test-Path (Join-Path $target 'Discord2Transmissor.exe'))) { throw 'Uninstall failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discord2-windows-x64-candidate-unvalidated-capture
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            desktop/transmissor-windows/dist/*-setup.exe
+            desktop/transmissor-windows/dist/SHA256SUMS
+            desktop/transmissor-windows/dist/packaged-self-test.json
+            desktop/transmissor-windows/dist/payload-audit.json
+            desktop/transmissor-windows/ui-preview.png
+            desktop/transmissor-windows/benchmark-conversion.json

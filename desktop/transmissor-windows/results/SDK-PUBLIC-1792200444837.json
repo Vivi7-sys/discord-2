@@ -1,0 +1,12 @@
+{
+  "type": "windows-session-python-sdk-on-linux-public-api",
+  "desktopCapture": false,
+  "windowsCaptureValidated": false,
+  "syntheticFramesFed": false,
+  "mediaValidated": false,
+  "passed": false,
+  "failure": "Error",
+  "participantsAtExit": 0,
+  "reservationAbsent": true,
+  "ownRoomDeleted": true
+}

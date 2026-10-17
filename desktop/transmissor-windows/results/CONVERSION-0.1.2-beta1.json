@@ -1,0 +1,76 @@
+{
+  "synthetic": true,
+  "platform": "Linux",
+  "opencv": "5.0.0",
+  "note": "CPU conversion only, single OpenCV thread for both. Does not predict Windows FPS.",
+  "cases": [
+    {
+      "input": [
+        1920,
+        1080
+      ],
+      "output": [
+        1920,
+        1080
+      ],
+      "before": {
+        "medianMs": 26.021,
+        "p95Ms": 37.041
+      },
+      "after": {
+        "medianMs": 4.541,
+        "p95Ms": 5.842
+      }
+    },
+    {
+      "input": [
+        2560,
+        1440
+      ],
+      "output": [
+        1920,
+        1080
+      ],
+      "before": {
+        "medianMs": 83.259,
+        "p95Ms": 87.909
+      },
+      "after": {
+        "medianMs": 71.6,
+        "p95Ms": 74.063
+      }
+    },
+    {
+      "input": [
+        1920,
+        1080
+      ],
+      "output": [
+        1280,
+        720
+      ],
+      "before": {
+        "medianMs": 34.623,
+        "p95Ms": 38.048
+      },
+      "after": {
+        "medianMs": 34.841,
+        "p95Ms": 37.486
+      }
+    }
+  ],
+  "syntheticPacing": [
+    {
+      "requestedFps": 30,
+      "durationSeconds": 10,
+      "oldAccepted": 149,
+      "newAccepted": 300
+    },
+    {
+      "requestedFps": 60,
+      "durationSeconds": 10,
+      "oldAccepted": 299,
+      "newAccepted": 600
+    }
+  ]
+}
