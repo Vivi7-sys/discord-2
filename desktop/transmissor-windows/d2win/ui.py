@@ -11,9 +11,9 @@ QWidget { background: #15151e; color: #ededf5; font-family: 'Segoe UI'; font-siz
 QLabel#brand { font-size: 25px; font-weight: 700; }
 QLabel#badge { background: #5845c9; border-radius: 12px; font-size: 24px; font-weight: 800; padding: 14px; }
 QLabel#muted { color: #aaa9bf; font-size: 12px; }
-QGroupBox { border: 1px solid #363545; border-radius: 12px; margin-top: 14px; padding: 22px 16px 14px; font-weight: 600; }
+QGroupBox { border: 1px solid #363545; border-radius: 12px; margin-top: 14px; padding: 18px 16px 10px; font-weight: 600; }
 QGroupBox::title { subcontrol-origin: margin; left: 18px; padding: 0 6px; }
-QLineEdit, QComboBox { background: #232330; border: 1px solid #454457; border-radius: 7px; padding: 9px 12px; min-height: 20px; }
+QLineEdit, QComboBox { background: #232330; border: 1px solid #454457; border-radius: 7px; padding: 7px 12px; min-height: 20px; }
 QLineEdit:focus, QComboBox:focus { border: 1px solid #a99aff; }
 QComboBox QAbstractItemView { background: #232330; selection-background-color: #5845c9; padding: 5px; }
 QPushButton { background: #30303f; border: 1px solid #454457; border-radius: 8px; padding: 11px 16px; font-weight: 600; }
@@ -21,6 +21,10 @@ QPushButton:hover { background: #414155; }
 QPushButton#primary { background: #7060e8; border-color: #8a7bf5; color: white; }
 QPushButton#primary:hover { background: #8271f2; }
 QPushButton:disabled, QComboBox:disabled, QLineEdit:disabled { color: #77758c; background: #1d1d28; border-color: #30303f; }
+QScrollBar:vertical { background: #1d1d28; width: 12px; border: none; }
+QScrollBar::handle:vertical { background: #454457; min-height: 32px; border-radius: 5px; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
 QLabel#status { background: #232330; border-radius: 8px; padding: 14px; }
 '''
 
@@ -71,7 +75,7 @@ class App(Controller):
         self.window = Window(); self.window.finished = False; self.window.controller = self
         self.root = Root(self.window)
         self.window.setWindowTitle('Discord 2 • Transmissor')
-        self.window.resize(680, 980); self.window.setMinimumSize(560, 700)
+        self.window.resize(680, 900); self.window.setMinimumSize(560, 700)
         icon = resource('d2.ico')
         if icon.is_file(): self.window.setWindowIcon(QtGui.QIcon(str(icon)))
         self.window.setStyleSheet(STYLE)
@@ -81,16 +85,16 @@ class App(Controller):
         self.discovery = None; self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='d2-devices')
         outer = W.QVBoxLayout(self.window); outer.setContentsMargins(0, 0, 0, 0)
         scroll = W.QScrollArea(); scroll.setWidgetResizable(True); scroll.setFrameShape(W.QFrame.Shape.NoFrame)
-        content = W.QWidget(); content.setMinimumHeight(1020)
-        scroll.setWidget(content); outer.addWidget(scroll)
-        layout = W.QVBoxLayout(content); layout.setContentsMargins(24, 24, 24, 24); layout.setSpacing(14)
+        content = W.QWidget(); content.setMinimumHeight(700)
+        scroll.setWidget(content); outer.addWidget(scroll, 1)
+        layout = W.QVBoxLayout(content); layout.setContentsMargins(24, 24, 24, 24); layout.setSpacing(10)
         header = W.QHBoxLayout()
         badge = W.QLabel('D2'); badge.setObjectName('badge'); header.addWidget(badge)
         titles = W.QVBoxLayout(); title = W.QLabel('Compartilhe seu momento'); title.setObjectName('brand')
         subtitle = W.QLabel('TRANSMISSOR WINDOWS  •  0.1.2-beta1'); subtitle.setObjectName('muted')
         titles.addWidget(title); titles.addWidget(subtitle); header.addLayout(titles); header.addStretch(); layout.addLayout(header)
         def group(title):
-            box = W.QGroupBox(title); form = W.QFormLayout(box); form.setSpacing(12)
+            box = W.QGroupBox(title); form = W.QFormLayout(box); form.setSpacing(8)
             form.setFieldGrowthPolicy(W.QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
             layout.addWidget(box); return form
         def entry(form, title, placeholder):
@@ -116,17 +120,20 @@ class App(Controller):
         note.setObjectName('muted'); note.setWordWrap(True); form.addRow(note)
         refresh = W.QPushButton('Atualizar telas, janelas e saídas'); refresh.clicked.connect(lambda: self.refresh())
         self.refresh_button = Field(refresh); self.controls.append(self.refresh_button); layout.addWidget(refresh)
+        layout.addStretch()
+        footer_widget = W.QWidget()
+        footer = W.QVBoxLayout(footer_widget); footer.setContentsMargins(24, 8, 24, 16); footer.setSpacing(10)
+        outer.addWidget(footer_widget)
         actions = W.QHBoxLayout()
         start = W.QPushButton('Iniciar transmissão'); start.setObjectName('primary'); start.clicked.connect(self.start)
         stop = W.QPushButton('Parar'); stop.clicked.connect(self.stop); stop.setEnabled(False)
         self.start_button = Field(start); self.stop_button = Field(stop)
-        actions.addWidget(start, 3); actions.addWidget(stop, 1); layout.addLayout(actions)
+        actions.addWidget(start, 3); actions.addWidget(stop, 1); footer.addLayout(actions)
         status = W.QLabel('Pronto para compartilhar'); status.setObjectName('status'); status.setWordWrap(True)
-        self.status = Label(status); layout.addWidget(status)
+        self.status = Label(status); footer.addWidget(status)
         self.metrics_label = W.QLabel('FPS reais aparecem durante a transmissão. Recepção: medir no espectador.')
-        self.metrics_label.setObjectName('muted'); self.metrics_label.setWordWrap(True); layout.addWidget(self.metrics_label)
-        save = W.QPushButton('Salvar diagnóstico'); save.clicked.connect(self.save_report); layout.addWidget(save)
-        layout.addStretch()
+        self.metrics_label.setObjectName('muted'); self.metrics_label.setWordWrap(True); footer.addWidget(self.metrics_label)
+        save = W.QPushButton('Salvar diagnóstico'); save.clicked.connect(self.save_report); footer.addWidget(save)
         self.kind.widget.currentIndexChanged.connect(self.kind_changed)
         self.audio_mode.widget.currentIndexChanged.connect(lambda: self.audio_mode_changed())
         self.preview = preview
