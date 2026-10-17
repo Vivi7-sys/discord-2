@@ -24,6 +24,9 @@ class Configuration(unittest.TestCase):
         self.assertEqual(PROFILES['1080p60']['fps'],60)
         self.assertEqual(PROFILES['1080p30']['bitrate'],5000000)
         self.assertEqual(configuration(INVITE,' Vivi ', '1080p60').name,'Vivi')
+    def test_encoder_choice_is_explicit_and_validated(self):
+        self.assertEqual(configuration(INVITE,'Vivi','1080p60','sdk').encoder_mode,'sdk')
+        with self.assertRaises(ValueError):configuration(INVITE,'Vivi','720p30','unknown')
     def test_invalid_invites_and_names(self):
         for invite in [INVITE+'?token=x', INVITE+'#x',INVITE.replace('https:','http:'),
                        INVITE.replace('https://','https://u:p@'), INVITE+'/', 'file:///sala/'+'a'*64]:

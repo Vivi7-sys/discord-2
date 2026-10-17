@@ -19,7 +19,7 @@ class Session:
         self.report = {'schema': 2, 'platform': 'windows', 'profile': config.profile,
                        'acquired': False, 'releaseConfirmed': False, 'disconnected': False,
                        'captureClosed': False, 'tracksClosed': False, 'sourcesClosed': False,
-                       'encodedRejected': 0, 'videoSubmitted': 0, 'audioSubmitted': 0, 'staleDropped': 0,
+                       'hardwareEncoded': 0, 'encodedRejected': 0, 'videoSubmitted': 0, 'audioSubmitted': 0, 'staleDropped': 0,
                        'samples': [], 'captureObserved': False, 'audioObserved': False, 'synthetic': False}
         self.failure = None
         self.telemetry = telemetry or (lambda _: None)
@@ -81,7 +81,7 @@ class Session:
             self.report['stage'] = 'publish-video'
             # Probe only after authentication and exclusive reservation. Test doubles
             # keep using the original raw source contract.
-            if hasattr(rtc, 'EncodedVideoSource'):
+            if self.config.encoder_mode == 'auto' and hasattr(rtc, 'EncodedVideoSource'):
                 from .encoder import select_encoder
                 encoder, attempts = await asyncio.to_thread(select_encoder, media)
                 self.report['encoderProbe'] = attempts
@@ -129,6 +129,8 @@ class Session:
                 def native_submit():
                     if encoder:
                         payload, key = encoder.encode(data, timestamp, video.take_feedback())
+                        self.report['hardwareEncoded'] += 1
+                        self.report['hardwareEncodeMs'] = encoder.last_encode_ms
                         frame = rtc.EncodedVideoFrame(payload, media['width'], media['height'], rtc.VideoCodec.H264,
                             rtc.EncodedFrameType.ENCODED_FRAME_KEY if key else rtc.EncodedFrameType.ENCODED_FRAME_DELTA, timestamp)
                         if not video.capture_frame(frame):
@@ -136,7 +138,6 @@ class Session:
                             # The next accepted AU must not depend on a rejected P frame.
                             encoder.force_keyframe = True
                             return False
-                        self.report['hardwareEncodeMs'] = encoder.last_encode_ms
                     else:
                         video.capture_frame(rtc.VideoFrame(media['width'], media['height'], rtc.VideoBufferType.I420, data), timestamp_us=timestamp)
                     return True
@@ -179,6 +180,8 @@ class Session:
                 while not self.cancel.is_set():
                     sample = await diagnostics.sample(track, self.capture, self.report)
                     if encoder:
+                        sample['encodedFps'] = sample['externalEncodedFps']
+                        sample['encodeMs'] = None
                         sample['encoder'] = encoder.name
                         sample['hardwareEncodeMs'] = self.report.get('hardwareEncodeMs')
                     sample['submitMs'] = self.report.get('lastSubmitMs')

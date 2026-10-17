@@ -23,3 +23,7 @@ Limites: inclui **todo o processo da janela e seus descendentes**, não somente 
 7. Pare/reinicie três vezes, feche durante conexão e durante transmissão, feche a origem e interrompa a rede. A interface deve continuar respondendo, liberar a vaga e permitir nova tentativa manual. Teste um segundo transmissor para confirmar exclusividade.
 
 Comparação justa: repita o mesmo cenário na 0.1.1-beta1; anote FPS do navegador e congelamentos. O CI e o benchmark de conversão CPU são sintéticos e não substituem essas medições físicas. Não envie convites, tokens nem dumps completos do navegador; basta transcrever os contadores acima.
+
+Opcional: cole `tests/receiver-console.js` no Console do espectador para medir a taxa real do elemento de vídeo e frames apresentados/descartados, sem modificar o site. Pare com `d2ReceiverDiagnostics.stop()`. A medição do elemento de vídeo não é FPS de pacotes RTP; use webrtc-internals para separar recebimento e decodificação.
+
+Se o caminho automático por hardware falhar ou ficar sem imagem em algum driver, pare, selecione **Codificação → LiveKit • compatibilidade** e repita a mesma cena/perfil. Salve os dois relatórios para comparar. Isso mantém a captura e os modos de áudio; não amplia a captura de som. `captureToSubmitMs` começa no callback Python do WGC, excluindo o staging GPU e qualquer espera anterior a ele.

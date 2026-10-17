@@ -13,11 +13,12 @@ class Diagnostics:
         now = time.monotonic()
         counters = dict(capture.metrics)
         counters['videoSubmitted'] = report['videoSubmitted']
+        counters['hardwareEncoded'] = report.get('hardwareEncoded', 0)
         previous_time, previous = self.previous or (now, counters)
         elapsed = now - previous_time
         result = {'elapsedSeconds': round(now - self.cpu_wall, 3),
                   'capturedFps': None, 'submittedFps': None, 'encodedFps': None,
-                  'receivedFps': None, 'encodeMs': None, 'encoder': None,
+                  'externalEncodedFps': None, 'receivedFps': None, 'encodeMs': None, 'encoder': None,
                   'gpuPercent': None, 'endToEndLatencyMs': None,
                   'cpuProcessPercent': round(100 * (time.process_time()-self.cpu_time) / max(.001, now-self.cpu_wall), 2),
                   'rawDropped': getattr(getattr(capture, 'raw_video', None), 'dropped', 0),
@@ -25,6 +26,7 @@ class Diagnostics:
                   'audioDropped': capture.audio.dropped,
                   'staleDropped': report['staleDropped']}
         if elapsed > 0:
+            result['externalEncodedFps'] = round((counters['hardwareEncoded']-previous['hardwareEncoded'])/elapsed, 2)
             result['capturedFps'] = round((counters.get('capturedVideo', 0)-previous.get('capturedVideo', 0))/elapsed, 2)
             result['submittedFps'] = round((counters['videoSubmitted']-previous['videoSubmitted'])/elapsed, 2)
         self.previous = now, counters
@@ -38,6 +40,8 @@ class Diagnostics:
                 wrapper = stat.outbound_rtp
                 outbound = wrapper.outbound
                 if wrapper.stream.kind != 'video':
+                    continue
+                if not outbound.HasField('frames_encoded'):
                     continue
                 frames, seconds = outbound.frames_encoded, outbound.total_encode_time
                 if self.previous_rtc:

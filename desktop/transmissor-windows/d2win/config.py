@@ -24,13 +24,14 @@ class Config:
     room_id: str
     name: str
     profile: str
+    encoder_mode: str = 'auto'
 
     @property
     def media(self):
         return PROFILES[self.profile]
 
 
-def configuration(invite, name, profile):
+def configuration(invite, name, profile, encoder_mode='auto'):
     try:
         url = urlsplit(invite.strip())
         port = url.port  # Validate malformed port as well.
@@ -45,9 +46,9 @@ def configuration(invite, name, profile):
         raise ValueError('Cole o convite completo HTTPS /sala/… do Discord 2.') from None
     name = re.sub(' +', ' ', name.strip())
     if (not 2 <= len(name.encode('utf-16-le')) // 2 <= 24
-            or any(ord(c) < 32 or ord(c) == 127 for c in name) or profile not in PROFILES):
+            or any(ord(c) < 32 or ord(c) == 127 for c in name) or profile not in PROFILES or encoder_mode not in ('auto', 'sdk')):
         raise ValueError('Confira o nome (2 a 24 caracteres) e o perfil de qualidade.')
-    return Config(f'{url.scheme}://{url.netloc}', url.path.split('/')[2], name, profile)
+    return Config(f'{url.scheme}://{url.netloc}', url.path.split('/')[2], name, profile, encoder_mode)
 
 
 class SafeError(Exception):

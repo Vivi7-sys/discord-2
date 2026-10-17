@@ -81,7 +81,10 @@ class Encoding(unittest.TestCase):
             for i in range(5):
                 feedback=types.SimpleNamespace(keyframe_requested=i==3,rate_control=None)
                 data,key=encoder.encode(image.tobytes(),1_000_000+i*16667,feedback)
-                if i in (0,3):self.assertTrue(key)
+                if i in (0,3):
+                    self.assertTrue(key)
+                    independent=av.CodecContext.create('h264','r')
+                    self.assertEqual(len(independent.decode(av.Packet(data))),1)
                 frame=rtc.EncodedVideoFrame(data,320,180,rtc.VideoCodec.H264,
                     rtc.EncodedFrameType.ENCODED_FRAME_KEY if key else rtc.EncodedFrameType.ENCODED_FRAME_DELTA,1_000_000+i*16667)
                 self.assertEqual(len(decoder.decode(av.Packet(frame.data))),1)

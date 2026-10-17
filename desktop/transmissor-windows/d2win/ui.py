@@ -81,7 +81,7 @@ class App(Controller):
         self.discovery = None; self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='d2-devices')
         outer = W.QVBoxLayout(self.window); outer.setContentsMargins(0, 0, 0, 0)
         scroll = W.QScrollArea(); scroll.setWidgetResizable(True); scroll.setFrameShape(W.QFrame.Shape.NoFrame)
-        content = W.QWidget(); content.setMinimumHeight(960)
+        content = W.QWidget(); content.setMinimumHeight(1020)
         scroll.setWidget(content); outer.addWidget(scroll)
         layout = W.QVBoxLayout(content); layout.setContentsMargins(24, 24, 24, 24); layout.setSpacing(14)
         header = W.QHBoxLayout()
@@ -108,6 +108,7 @@ class App(Controller):
         self.kind = combo(form, 'Compartilhar', ['Tela', 'Janela'])
         self.target = combo(form, 'Origem', [])
         self.quality = combo(form, 'Qualidade', ['720p / 30 FPS', '1080p / 30 FPS', '1080p / 60 FPS'], 1)
+        self.encoder = combo(form, 'Codificação', ['Automática • GPU quando disponível', 'LiveKit • compatibilidade'])
         form = group('03   ÁUDIO')
         self.audio_mode = combo(form, 'Capturar', ['Aplicativo selecionado', 'Sistema inteiro', 'Sem áudio'], 2)
         self.audio = combo(form, 'Saída do sistema', ['Sem áudio'])
@@ -164,7 +165,7 @@ class App(Controller):
             v = sample.get(key)
             return '—' if v is None else f'{v:.1f}'
         self.metrics_label.setText(f"FPS capturados {value('capturedFps')}  •  enviados ao SDK {value('submittedFps')}  •  codificados {value('encodedFps')}\n"
-                                  f"Codificação {value('encodeMs')} ms  •  fila captura→SDK {value('captureToSubmitMs')} ms  •  CPU processo {value('cpuProcessPercent')}%")
+                                  f"Codificação {value('hardwareEncodeMs') if sample.get('hardwareEncodeMs') is not None else value('encodeMs')} ms  •  fila captura→SDK {value('captureToSubmitMs')} ms  •  CPU processo {value('cpuProcessPercent')}%")
 
     def save_report(self):
         if self.last_report is None:
@@ -184,5 +185,9 @@ class App(Controller):
 
 def main():
     application = W.QApplication.instance() or W.QApplication([])
-    app = App(); app.window.show()
-    application.exec()
+    try:
+        app = App(); app.window.show()
+        application.exec()
+    except Exception:
+        W.QMessageBox.critical(None, 'Discord 2 Transmissor',
+                              'Não foi possível abrir o aplicativo. Confira a instalação e use Windows 10/11 x64 atualizado.')

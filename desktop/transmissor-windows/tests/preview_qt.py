@@ -9,7 +9,7 @@ from d2win.ui import App
 application=QApplication([])
 app=App(preview=True)
 app.target['values']=['Tela 1: 2560 × 1440']
-app.window.resize(680, 1060)
+app.window.resize(720, 1120)
 app.window.show();application.processEvents()
 path=Path(sys.argv[1]) if len(sys.argv)>1 else Path('ui-preview.png')
 app.window.grab().save(str(path))

@@ -12,7 +12,7 @@ from .config import SafeError
 # from automatic hardware detection rather than mislabel it as acceleration.
 CANDIDATES = ('h264_nvenc', 'h264_qsv', 'h264_amf')
 OPTIONS = {
-    'h264_nvenc': {'preset': 'p1', 'tune': 'ull', 'rc': 'cbr', 'zerolatency': '1', 'forced-idr': '1'},
+    'h264_nvenc': {'preset': 'p1', 'tune': 'ull', 'rc': 'cbr', 'zerolatency': '1', 'forced-idr': '1', 'delay': '0', 'rc-lookahead': '0'},
     'h264_qsv': {'preset': 'veryfast', 'async_depth': '1', 'look_ahead': '0', 'forced_idr': '1'},
     'h264_amf': {'usage': 'ultralowlatency', 'quality': 'speed', 'rc': 'cbr', 'header_insertion_mode': 'idr'},
 }

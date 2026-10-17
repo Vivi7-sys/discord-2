@@ -98,3 +98,33 @@ class Lifecycle(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(session.report['captureClosed']);self.assertTrue(session.report['releaseConfirmed'])
             self.assertTrue(session.report['sourcesClosed']);self.assertTrue(session.report['tracksClosed'])
             self.assertEqual(backend.released,1)
+
+    async def test_slow_video_submission_does_not_block_loop_and_is_drained_on_stop(self):
+        import threading
+        import time
+        from d2win.media import now_us
+        entered=threading.Event();finished=threading.Event();sources=[]
+        class Video(Source):
+            def __init__(self,*args,**kwargs):
+                super().__init__(*args,**kwargs);sources.append(self)
+            def capture_frame(self,*args,**kwargs):
+                entered.set();time.sleep(.1)
+                if self.closed:raise AssertionError('Disposed while submitting')
+                finished.set()
+        class ActiveCapture(Capture):
+            def start(self):self.video.put((bytes(12),now_us()))
+        room=FakeRoom();backend=FakeBackend(None);rtc=sdk(room)
+        rtc.VideoSource=Video;rtc.VideoFrame=lambda *args:args
+        rtc.VideoBufferType=types.SimpleNamespace(I420=0)
+        session=Session(configuration('https://example.test/sala/'+'a'*64,'Vivi','720p30'),None,None,
+                        lambda _:None,ActiveCapture,lambda _:backend,rtc)
+        running=asyncio.create_task(session.run())
+        async with asyncio.timeout(3):
+            while not entered.is_set():await asyncio.sleep(.005)
+            # Heartbeat can run during a native video call; stop must wait for it.
+            await asyncio.sleep(.01)
+            self.assertFalse(finished.is_set())
+            session.stop()
+            await running
+        self.assertTrue(finished.is_set());self.assertTrue(sources[0].closed)
+        self.assertTrue(session.report['releaseConfirmed'])

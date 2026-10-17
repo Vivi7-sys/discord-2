@@ -64,7 +64,8 @@ class Controller:
         if self.process:
             return
         try:
-            config = configuration(self.invite.get(), self.name.get(), ('720p30','1080p30','1080p60')[self.quality.current()])
+            config = configuration(self.invite.get(), self.name.get(), ('720p30','1080p30','1080p60')[self.quality.current()],
+                                   ('auto','sdk')[self.encoder.current()])
             target = self.target_items[self.target.current()]
             if self.target.current() < 0:
                 raise ValueError()

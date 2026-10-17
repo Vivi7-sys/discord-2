@@ -3,7 +3,6 @@ import importlib.util
 from pathlib import Path
 import sys
 import threading
-import types
 import unittest
 from unittest.mock import Mock, patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -22,8 +21,7 @@ class Value:
 
 spec=importlib.util.spec_from_file_location('d2win.ui_fixture',Path(__file__).resolve().parents[1]/'d2win/controller.py')
 ui=importlib.util.module_from_spec(spec)
-tk=types.ModuleType('tkinter');tk.ttk=types.SimpleNamespace(Combobox=Combo);tk.messagebox=Mock()
-with patch.dict(sys.modules,{'tkinter':tk}):spec.loader.exec_module(ui)
+spec.loader.exec_module(ui)
 
 def window():
     app=ui.Controller.__new__(ui.Controller)
