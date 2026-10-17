@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import cv2
 from d2win.media import FramePacer, letterbox_i420, Latest
-from d2win.diagnostics import Diagnostics
+from d2win.diagnostics import Diagnostics, gpu_usage
 from d2win.encoder import HardwareEncoder, select_encoder, CANDIDATES
 from livekit import rtc
 from livekit.rtc._proto import stats_pb2
@@ -41,6 +41,7 @@ class DiagnosticTests(unittest.IsolatedAsyncioTestCase):
     async def test_actual_pinned_protobuf_and_counter_deltas(self):
         wrapper = stats_pb2.RtcStats()
         wrapper.outbound_rtp.stream.kind='video'
+        wrapper.outbound_rtp.outbound.frames_sent=8
         wrapper.outbound_rtp.outbound.frames_encoded=10
         wrapper.outbound_rtp.outbound.total_encode_time=.1
         wrapper.outbound_rtp.outbound.encoder_implementation='controlled-test'
@@ -52,12 +53,15 @@ class DiagnosticTests(unittest.IsolatedAsyncioTestCase):
         diagnostics=Diagnostics()
         first=await diagnostics.sample(track,capture,report)
         self.assertIsNone(first['encodedFps']);self.assertIsNone(first['receivedFps'])
+        wrapper.outbound_rtp.outbound.frames_sent=10
         wrapper.outbound_rtp.outbound.frames_encoded=12
         wrapper.outbound_rtp.outbound.total_encode_time=.12
         second=await diagnostics.sample(track,capture,report)
         self.assertAlmostEqual(second['encodeMs'],10)
         self.assertEqual(second['encoder'],'controlled-test')
         self.assertEqual(second['bytesSent'],2048)
+        self.assertEqual(second['framesSent'],10)
+        self.assertGreater(second['sentFps'],0)
         self.assertIsNone(second['endToEndLatencyMs'])
 
 
@@ -89,3 +93,12 @@ class Encoding(unittest.TestCase):
                     rtc.EncodedFrameType.ENCODED_FRAME_KEY if key else rtc.EncodedFrameType.ENCODED_FRAME_DELTA,1_000_000+i*16667)
                 self.assertEqual(len(decoder.decode(av.Packet(frame.data))),1)
             encoder.close();self.assertIsNone(encoder.context)
+
+
+class GpuCounters(unittest.TestCase):
+    def test_device_wide_counters_and_unavailable_provider(self):
+        with patch('shutil.which',return_value=None):self.assertIsNone(gpu_usage())
+        with patch('shutil.which',return_value='nvidia-smi'),patch('subprocess.run',return_value=types.SimpleNamespace(returncode=0,stdout='0, 12, 34\n')):
+            self.assertEqual(gpu_usage(),[{'index':0,'deviceBusyPercent':12,'deviceEncodeBusyPercent':34}])
+        with patch('shutil.which',return_value='nvidia-smi'),patch('subprocess.run',return_value=types.SimpleNamespace(returncode=0,stdout='0, N/A, N/A\n')):
+            self.assertIsNone(gpu_usage())

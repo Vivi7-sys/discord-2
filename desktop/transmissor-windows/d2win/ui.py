@@ -164,7 +164,7 @@ class App(Controller):
         def value(key):
             v = sample.get(key)
             return '—' if v is None else f'{v:.1f}'
-        self.metrics_label.setText(f"FPS capturados {value('capturedFps')}  •  enviados ao SDK {value('submittedFps')}  •  codificados {value('encodedFps')}\n"
+        self.metrics_label.setText(f"FPS capturados {value('capturedFps')}  •  enviados ao SDK {value('submittedFps')}  •  codificados {value('encodedFps')}  •  RTP {value('sentFps')}\n"
                                   f"Codificação {value('hardwareEncodeMs') if sample.get('hardwareEncodeMs') is not None else value('encodeMs')} ms  •  fila captura→SDK {value('captureToSubmitMs')} ms  •  CPU processo {value('cpuProcessPercent')}%")
 
     def save_report(self):
