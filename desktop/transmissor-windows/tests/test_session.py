@@ -42,7 +42,7 @@ class Capture:
 def sdk(room):
     return types.SimpleNamespace(Room=lambda:room,RoomOptions=lambda **kw:kw,
         VideoSource=Source,AudioSource=Source,LocalVideoTrack=Track,LocalAudioTrack=Track,
-        TrackPublishOptions=lambda **kw:kw,VideoEncoding=lambda **kw:kw,AudioEncoding=lambda **kw:kw,
+        TrackPublishOptions=lambda **kw:types.SimpleNamespace(**kw,audio_encoding=types.SimpleNamespace()),VideoEncoding=lambda **kw:kw,AudioEncoding=lambda **kw:kw,
         TrackSource=types.SimpleNamespace(SOURCE_SCREENSHARE=1,SOURCE_SCREENSHARE_AUDIO=2),
         VideoCodec=types.SimpleNamespace(H264=0))
 
@@ -85,3 +85,16 @@ class Lifecycle(unittest.IsolatedAsyncioTestCase):
         await asyncio.wait_for(task,1)
         self.assertFalse(session.report['acquired']);self.assertEqual(backend.released,0)
         self.assertTrue(backend.closed)
+
+    async def test_application_audio_failure_releases_and_next_session_can_start(self):
+        from d2win.audio_choice import AudioChoice
+        class FailedCapture(Capture):
+            def start(self):raise SafeError('Application loopback unavailable; no fallback')
+        for factory in (FailedCapture,Capture):
+            room=FakeRoom();backend=FakeBackend(None)
+            session=Session(configuration('https://example.test/sala/'+'a'*64,'Vivi','720p30'),None,AudioChoice('application'),
+                            lambda _:None,factory,lambda _:backend,sdk(room))
+            await session.run()
+            self.assertTrue(session.report['captureClosed']);self.assertTrue(session.report['releaseConfirmed'])
+            self.assertTrue(session.report['sourcesClosed']);self.assertTrue(session.report['tracksClosed'])
+            self.assertEqual(backend.released,1)

@@ -86,7 +86,8 @@ class Session:
                                              video_encoding=rtc.VideoEncoding(max_bitrate=media['bitrate'], max_framerate=media['fps']))
             await self.step(room.local_participant.publish_track(track, options))
             audio = None
-            if self.output is not None:
+            from .audio_choice import normalize
+            if normalize(self.output).mode != 'none':
                 self.report['stage'] = 'publish-audio'
                 audio = rtc.AudioSource(48000, 2, queue_size_ms=100)
                 sources.append(audio)

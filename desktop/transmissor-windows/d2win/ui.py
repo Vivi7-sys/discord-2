@@ -5,7 +5,8 @@ from pathlib import Path
 import time
 import tkinter as tk
 from tkinter import ttk, messagebox
-from .config import configuration, resource
+from .config import configuration, resource, SafeError
+from .audio_choice import selection
 from .native_windows import outputs, targets, require_windows
 from .worker import run_worker
 
@@ -15,8 +16,8 @@ class App:
         require_windows()
         self.root = tk.Tk()
         self.root.title('Discord 2 Transmissor')
-        self.root.geometry('510x570')
-        self.root.minsize(460, 540)
+        self.root.geometry('510x660')
+        self.root.minsize(460, 630)
         icon = resource('d2.ico')
         if icon.is_file():
             self.root.iconbitmap(str(icon))
@@ -41,19 +42,33 @@ class App:
         self.kind = combo('Compartilhar', ['Tela', 'Janela']); self.kind.current(0)
         self.target = combo('Tela/janela', [])
         self.quality = combo('Qualidade', ['720p / 30 FPS', '1080p / 30 FPS', '1080p / 60 FPS']); self.quality.current(1)
-        self.audio = combo('Áudio da saída', ['Sem áudio']); self.audio.current(0)
+        self.audio_mode = combo('Modo de áudio', ['Áudio do aplicativo (árvore da janela)', 'Áudio do sistema inteiro (saída)', 'Sem áudio']); self.audio_mode.current(1)
+        self.audio = combo('Saída — usada somente no modo sistema inteiro', ['Sem áudio']); self.audio.current(0)
         self.refresh_button = ttk.Button(box, text='Atualizar telas e saídas', command=self.refresh)
         self.refresh_button.pack(fill='x'); self.controls.append(self.refresh_button)
-        ttk.Label(box, text='Microfones não são oferecidos. Chamadas na mesma saída\npodem ser capturadas. A reprodução local é preservada.', wraplength=460).pack(pady=8, anchor='w')
+        ttk.Label(box, text='Aplicativo: inclui o processo da janela e seus filhos (build 20348+).\nSistema inteiro: inclui chamadas na saída escolhida.\nSem microfones. Reprodução local preservada.', wraplength=460).pack(pady=8, anchor='w')
         buttons = ttk.Frame(box); buttons.pack(fill='x')
         self.start_button = ttk.Button(buttons, text='Iniciar', command=self.start); self.start_button.pack(side='left', expand=True, fill='x')
         self.stop_button = ttk.Button(buttons, text='Parar', command=self.stop, state='disabled'); self.stop_button.pack(side='left', expand=True, fill='x', padx=(8, 0))
         self.status = tk.StringVar(value='Parado')
         ttk.Label(box, textvariable=self.status, wraplength=460).pack(fill='x', pady=10)
-        self.kind.bind('<<ComboboxSelected>>', lambda *_: self.refresh())
+        self.kind.bind('<<ComboboxSelected>>', lambda *_: self.kind_changed())
+        self.audio_mode.bind('<<ComboboxSelected>>', lambda *_: self.audio_mode_changed())
         self.root.protocol('WM_DELETE_WINDOW', self.close)
         self.refresh(initial=True)
         self.root.after(100, self.poll)
+
+    def kind_changed(self):
+        # A switch to a window offers application audio; never silently global.
+        self.audio_mode.current(0 if self.kind.current() == 1 else 2)
+        self.refresh()
+        self.audio_mode_changed()
+
+    def audio_mode_changed(self, announce=True):
+        self.audio.configure(state='readonly' if self.audio_mode.current() == 1 else 'disabled')
+        if announce and self.audio_mode.current() == 0:
+            from .application_audio import supported, UNSUPPORTED
+            self.status.set('Áudio somente da árvore do processo selecionado; processos compartilhados podem incluir outras janelas.' if supported() else UNSUPPORTED)
 
     def refresh(self, initial=False):
         if self.process:
@@ -81,6 +96,7 @@ class App:
         if initial:
             selected = next((i+1 for i, d in enumerate(self.audio_items) if d.default), 0)
         self.audio.current(selected)
+        self.audio_mode_changed(announce=False)
         if error:
             self.status.set(error)
 
@@ -89,6 +105,8 @@ class App:
             widget.configure(state=('readonly' if isinstance(widget, ttk.Combobox) else 'normal') if enabled else 'disabled')
         self.start_button.configure(state='normal' if enabled else 'disabled')
         self.stop_button.configure(state='disabled' if enabled else 'normal')
+        if enabled:
+            self.audio_mode_changed(announce=False)
 
     def start(self):
         if self.process:
@@ -98,8 +116,9 @@ class App:
             target = self.target_items[self.target.current()]
             if self.target.current() < 0:
                 raise ValueError()
-            output = self.audio_items[self.audio.current()-1] if self.audio.current() > 0 else None
-        except (ValueError, IndexError) as error:
+            selected_output = self.audio_items[self.audio.current()-1] if self.audio.current() > 0 else None
+            output = selection(self.audio_mode.current(), target, selected_output)
+        except (ValueError, IndexError, SafeError) as error:
             self.status.set(str(error) or 'Selecione uma tela ou janela válida.'); return
         context = mp.get_context('spawn')
         self.receiver, sender = context.Pipe(duplex=False)

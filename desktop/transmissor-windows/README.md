@@ -1,6 +1,6 @@
-# Discord 2 Transmissor para Windows — protótipo 0.1.0
+# Discord 2 Transmissor para Windows — BETA 0.1.1-beta1
 
-Implementação separada da versão Linux 1.0.0. **Ainda não validada em Windows real e sem instalador gerado nesta sessão Linux. Não anunciar como versão Windows pronta.**
+Implementação separada da versão Linux 1.0.0. **Captura real desta BETA ainda não validada em computador Windows. Não anunciar isolamento de chamadas como comprovado.**
 
 Alvo: Windows 10 **2004/build 19041 ou posterior** e Windows 11, x64. O SDK, captura e interface são nativos; não dependem de Brave, Electron ou servidor local. O site de espectadores permanece https://discord-2-kuau.onrender.com/.
 
@@ -20,22 +20,23 @@ A captura WGC é baseada em Direct3D, mas isso **não comprova encoding H.264 pe
 
 ## Build em Windows x64
 
-No checkout que contém estes arquivos e `desktop/transmissor/profiles.json`, usando Python 3.12 x64 e Inno Setup 6.7.1:
+No checkout que contém estes arquivos e `desktop/transmissor/profiles.json`, usando Python 3.12 x64, Visual Studio Build Tools C++ x64 com Windows SDK 20348+ e Inno Setup 6.7.1:
 
 ```powershell
 py -3.12 -m venv desktop/transmissor-windows/.venv
 $python = '.\desktop\transmissor-windows\.venv\Scripts\python.exe'
 & $python -m pip install --require-hashes -r desktop/transmissor-windows/requirements-windows.lock
+./desktop/transmissor-windows/native/build.ps1
 & $python -m unittest discover -s desktop/transmissor-windows/tests -v
 & $python desktop/transmissor-windows/launch.py --self-test --report self-test.json
 & $python desktop/transmissor-windows/packaging/build.py
 ```
 
-Saída **esperada, ainda não produzida**: `desktop/transmissor-windows/dist/Discord2Transmissor-0.1.0-windows-x64-setup.exe` e `SHA256SUMS`. O script gera ícone, executável com dependências/avisos de terceiros, verifica o runtime empacotado e arquitetura PE, compila instalador por usuário com menu Iniciar e desinstalador. Não inclui `.env`, backend, harnesses, relatórios de testes ou caminhos do computador de desenvolvimento. Ainda não há assinatura Authenticode.
+Saída do build: `desktop/transmissor-windows/dist/Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe` e `SHA256SUMS`. O script gera ícone, executável com dependências/avisos de terceiros, verifica o runtime empacotado e arquitetura PE, compila instalador por usuário com menu Iniciar e desinstalador. Não inclui `.env`, backend, harnesses, relatórios de testes ou caminhos do computador de desenvolvimento. Ainda não há assinatura Authenticode.
 
 O workflow `.github/workflows/transmissor-windows.yml` executa em **push na branch privada `build/windows-transmissor-0.1.0`** e em PR dessa branch para `main`; não depende de instalação prévia na branch padrão. Não usa secrets de backend, não publica release e não faz deploy. Executa testes, imports nativos, build, instalação descartável, comparação SHA-256 de todos os arquivos instalados com o payload, self-test instalado e desinstalação. O artefato privado fica disponível por sete dias.
 
-Depois de autorizar o push e concluir o workflow: GitHub → repositório privado → **Actions → Windows transmitter candidate → execução verde → Artifacts → discord2-windows-x64-candidate-unvalidated-capture**. Extraia o ZIP, confira `SHA256SUMS` com `Get-FileHash .\Discord2Transmissor-0.1.0-windows-x64-setup.exe -Algorithm SHA256` e execute o instalador. O acesso ao artefato exige acesso ao repositório privado. Não há instalador produzido antes da execução Windows; sucesso no CI não comprova WGC/WASAPI reais.
+Depois de autorizar o push e concluir o workflow: GitHub → repositório privado → **Actions → Windows transmitter candidate → execução verde → Artifacts → discord2-windows-x64-candidate-unvalidated-capture**. Extraia o ZIP, confira `SHA256SUMS` com `Get-FileHash .\Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe -Algorithm SHA256` e execute o instalador. O acesso ao artefato exige acesso ao repositório privado. Não há instalador produzido antes da execução Windows; sucesso no CI não comprova WGC/WASAPI reais.
 
 ## Teste humano mínimo em Windows real
 
@@ -46,18 +47,26 @@ Depois de autorizar o push e concluir o workflow: GitHub → repositório privad
 5. Desconecte/reconecte a rede; a UI deve parar e permitir nova tentativa manual. Remova a saída USB durante captura; não pode cair em microfone nem trocar silenciosamente de dispositivo. Atualize a lista e selecione novamente. Dispositivos com nomes/índices instáveis precisam de validação específica.
 6. Desinstale e confirme remoção de executável e atalho. Registre versão do Windows/GPU/driver e resultados; nenhuma gravação de mídia ou token é necessária.
 
-## Áudio de chamadas e eco
+## Três modos de áudio e compatibilidade
 
-O loopback captura **tudo que toca na saída escolhida**, incluindo chamadas; selecionar uma janela não restringe o áudio àquela janela. Não há exclusão perfeita de eco e o aplicativo não silencia amigos, volume nem reprodução local. Evite reproduzir o espectador na mesma saída capturada. Separar explicitamente a saída das chamadas da saída do jogo é uma alternativa manual.
+- **Áudio do aplicativo:** ao escolher Janela, é o modo oferecido. DLL C++ x64 própria usa `ActivateAudioInterfaceAsync` com `VIRTUAL_AUDIO_DEVICE_PROCESS_LOOPBACK` e `PROCESS_LOOPBACK_MODE_INCLUDE_TARGET_PROCESS_TREE`. Inclui somente os streams de reprodução do PID da janela e descendentes. Sem captura de microfone, arquivos de áudio em disco ou alteração de volume/roteamento local. PCM S16 estéreo 48 kHz, conversão pelo motor WASAPI, sem ganho; timestamps QPC mapeados ao relógio monotônico e fila limitada. Nenhum fallback para áudio do sistema.
+- **Áudio do sistema inteiro:** mantém PyAudioWPatch/WASAPI Loopback da saída manual/padrão; inclui chamadas e todos os aplicativos nessa saída. O seletor da saída só é usado neste modo.
+- **Sem áudio:** publica somente vídeo.
 
-A Microsoft oferece process loopback para incluir/excluir uma árvore de processos a partir de build 20348; isso não cobre o Windows 10 19045 comum e não equivale automaticamente a filtrar uma saída específica. Não está implementado nem validado neste protótipo. É uma evolução possível para Windows compatíveis, com seleção explícita e testes de processos filhos/navegadores.
+Application Loopback exige **build 20348+** segundo a Microsoft. Windows 11 atende ao requisito de versão, sujeito à ativação real. O Windows 10 desktop comum (até 22H2, build 19045) **não atende**; o modo informa erro e não inicia. Vídeo e os outros dois modos mantêm o mínimo build 19041. Não usamos apenas o nome “Windows 10” para presumir suporte.
 
-## Evidências e limites desta rodada
+A janela é ligada a HWND + PID + horário de criação, com handle do processo mantido durante a captura. A DLL revalida identidade, vida do processo e HWND durante a sessão. Não infere processo por título, não sobe para processo pai/launcher e não pede elevação. Se a janela/processo mudar ou o acesso falhar, a sessão encerra e libera recursos/vaga. Ao trocar de Janela para Tela, o modo vai para **Sem áudio**, sem ampliar silenciosamente a captura.
 
-- Testes automatizados executados em Linux: validação de convites/nomes, perfis intactos, rejeição de microfones/remaps, API/HTTP sem redirects/segredos, PCM, letterbox, filas, timestamps ausentes e resampler SoX contínuo, release/cleanup, falha de disconnect e cancelamento pendente. Três testes adicionais usam widgets simulados para conferir estado da UI; não são testes gráficos em Windows.
-- Integração real usando **o novo Session/SDK Python em Linux**, API pública e SFU em sala exclusiva descartável: trilhas de tela/áudio, exclusividade, Parar, reiniciar, queda abrupta e recuperação, limpeza confirmada e sala removida. **Sem desktop Windows, sem WASAPI real, sem injeção de frames sintéticos; não valida mídia no Windows.** O SDK pode emitir placeholders iniciais; isso também não é evidência de captura.
-- 23 wheels Windows fixadas com hashes; fechamento de dependências para marcadores Windows/Python 3.12 verificado; 26 binários PE das dependências de runtime são AMD64. Isso não é um build nem execução Windows.
-- SDK testado encontrou incompatibilidade de `rtc.AudioEncoding` (corrigida usando opções protobuf públicas) e falha durante encerramento do interpretador (corrigida com descarte antecipado do runtime por processo). Os relatórios históricos ficam somente no checkout de desenvolvimento, fora da branch de build.
-- Pendente: executar build/instalador e testes em runner Windows, testar vídeo/áudio reais no Windows 10 e 11, confirmar volume/sincronização/latência/FPS/encoder, validar hardware encoding, hotplug/HDR/múltiplos monitores e assinatura para distribuição. **Build Windows e captura real permanecem pendentes até execução e teste humano.**
+**Limitações:** filtro por árvore de processos não é filtro por janela, aba ou jogo lógico. Áudio de várias janelas no mesmo processo e chamadas dentro da árvore incluída podem passar juntos. Helpers irmãos, processos externos/serviços, áudio delegado e alguns jogos/launchers podem não entrar. Navegadores/hosts compartilhados podem reunir conteúdo de várias janelas. Capturar uma janela de launcher pode incluir aplicações filhas inesperadas: prefira a janela do jogo. DRM, anticheat e processos protegidos/elevados podem impedir captura. Não há garantia universal de exclusão de eco.
 
-Fontes primárias: [WGC](https://github.com/NiiightmareXD/windows-capture), [WASAPI Loopback](https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording), [PyAudioWPatch](https://github.com/s0d3s/PyAudioWPatch), [SDK Python e hardware](https://github.com/livekit/python-sdks), [process loopback Microsoft](https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/).
+A DLL tem COM MTA em thread própria, callback copiado antes de liberar buffer WASAPI, cancelamento por evento e espera de encerramento antes de soltar handles. Falha de ativação encerra a captura selecionada; nunca abre loopback global. A UI continua usando o processo isolado por sessão e LiveKit/controlador de exclusividade existentes. Veja [TESTE-WINDOWS.md](TESTE-WINDOWS.md) para validação com jogo e áudio independente simultâneos.
+
+## Testes e limites
+
+A BETA anterior (0.1.0) teve build/23 testes, instalação, runtime e desinstalação aprovados no runner Windows, sem validação de mídia real. Esta candidata acrescenta testes de suporte por build, identidade HWND/PID/criação, erro sem fallback, seleção dos modos, cancelamento, limpeza e liberação/reinício. O CI compila a DLL com MSVC x64 e runtime C estático, testa ABI e identidade de uma janela de processo filho, sem capturar áudio nem desktop. O self-test instalado carrega a DLL sem iniciar captura.
+
+Os testes locais em Linux não executam APIs de captura Windows. O teste humano descrito em TESTE-WINDOWS.md é obrigatório para verificar jogo audível, chamadas externas excluídas, sincronização, Parar/reiniciar/fechar e comportamento no Windows 10 sem suporte. Nenhum teste simulado prova isolamento real. O modo de aplicativo não muda o encoder/qualidades nem o contrato LiveKit/backend. Codificação H.264 por GPU continua sem comprovação.
+
+O instalador é experimental, sem assinatura Authenticode; não desative SmartScreen. Não há release automática: apenas artefato privado do Actions até autorização de publicação.
+
+Fontes primárias: [Application Loopback e build mínimo](https://learn.microsoft.com/en-us/windows/win32/api/audioclientactivationparams/ne-audioclientactivationparams-process_loopback_mode), [exemplo Microsoft](https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/), [WGC](https://github.com/NiiightmareXD/windows-capture), [WASAPI Loopback](https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording), [SDK Python](https://github.com/livekit/python-sdks).

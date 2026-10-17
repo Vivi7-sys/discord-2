@@ -14,7 +14,7 @@ class Packaging(unittest.TestCase):
     def test_digest_installed_tampering_and_extra_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            name = 'Discord2Transmissor-0.1.0-windows-x64-setup.exe'
+            name = 'Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe'
             (root/name).write_bytes(b'installer fixture')
             (root/'SHA256SUMS').write_text(hashlib.sha256((root/name).read_bytes()).hexdigest()+'  '+name+'\n')
             installed = root/'installed'

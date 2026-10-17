@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.1.0'
+VERSION = '0.1.1-beta1'
 
 
 def build():
@@ -17,6 +17,7 @@ def build():
         raise SystemExit('Compile com Python 3.12 x64 em Windows. Linux/Wine não validam este instalador.')
     if sys.version_info[:2] != (3, 12):
         raise SystemExit('Use Python 3.12 x64 para este conjunto de dependências.')
+    subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(ROOT/'native/build.ps1')], check=True)
     from PIL import Image, ImageDraw, ImageFont
     icon = Image.new('RGBA', (256, 256))
     draw = ImageDraw.Draw(icon)
@@ -32,6 +33,7 @@ def build():
             '--paths', str(ROOT), '--collect-all', 'livekit.rtc', '--collect-all', 'windows_capture',
             '--collect-all', 'pyaudiowpatch', '--copy-metadata', 'livekit',
             '--add-data', f'{ROOT.parent / "transmissor/profiles.json"};d2-resources',
+            '--add-binary', f'{ROOT / "build/native/d2_application_loopback.dll"};d2-resources',
             '--add-data', f'{iconfile};d2-resources', str(ROOT/'launch.py')]
     subprocess.run(args, check=True, cwd=ROOT)
     app = ROOT/'dist/Discord2Transmissor'
@@ -50,6 +52,7 @@ def build():
                     shutil.copyfile(source, target)
     (notices/'inventory.json').write_text(json.dumps(inventory, indent=2)+'\n')
     shutil.copyfile(ROOT/'README.md', app/'README.md')
+    shutil.copyfile(ROOT/'TESTE-WINDOWS.md', app/'TESTE-WINDOWS.md')
     binaries = []
     files = {}
     for file in app.rglob('*'):

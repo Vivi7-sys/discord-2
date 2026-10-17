@@ -27,7 +27,7 @@ with patch.dict(sys.modules,{'tkinter':tk}):spec.loader.exec_module(ui)
 
 def window():
     app=ui.App.__new__(ui.App)
-    app.process=None;app.closing=False;app.kind=Combo();app.target=Combo();app.audio=Combo()
+    app.process=None;app.closing=False;app.kind=Combo();app.target=Combo();app.audio=Combo();app.audio_mode=Combo(1)
     app.target_items=[];app.audio_items=[];app.status=Value()
     return app
 
@@ -53,3 +53,9 @@ class UiState(unittest.TestCase):
         app.close();self.assertTrue(app.cancel.is_set());self.assertTrue(app.closing)
         app.root.destroy.assert_not_called()
         app.poll();app.root.destroy.assert_called_once();self.assertIsNone(app.process)
+
+    def test_window_prefers_application_and_monitor_never_switches_to_global(self):
+        app=window();app.kind.current(1)
+        with patch.object(app,'refresh'),patch.object(app,'audio_mode_changed'):
+            app.kind_changed();self.assertEqual(app.audio_mode.current(),0)
+            app.kind.current(0);app.kind_changed();self.assertEqual(app.audio_mode.current(),2)

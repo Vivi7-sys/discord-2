@@ -1,0 +1,13 @@
+# Teste humano — 0.1.1-beta1
+
+Ainda não há validação de captura real desta versão. Build em CI, imports e testes de identificação de HWND não comprovam captura nem isolamento de chamadas.
+
+1. Em **Windows 11 x64**, instale o candidato, abra uma sala de teste no site e selecione **Janela → jogo → Áudio do aplicativo**. A saída deve ficar desabilitada: este modo não escolhe um endpoint. Se o processo não puder ser identificado ou a ativação falhar, pare; não deve haver captura global.
+2. Com o jogo produzindo som, reproduza fala/música identificável em **outro aplicativo independente**, na mesma saída. Pode ser uma chamada Discord com consentimento das pessoas. No celular, confirme que chegam imagem e áudio do jogo, mas não o áudio independente. Confirme que **ambos continuam audíveis localmente**. Mantenha o espectador do celular fora do microfone/chamada.
+3. Pause o jogo e mantenha o outro aplicativo tocando. O espectador não deve ouvir o outro aplicativo. Retome o jogo e confira sincronização. Não aceite silêncio total como prova de isolamento.
+4. Pare, reinicie, feche a janela do jogo e feche o transmissor durante outra transmissão. Confirme parada e liberação para outro transmissor. Reinicie o jogo: selecione a janela nova; não deve reaproveitar silenciosamente o processo antigo.
+5. Escolha explicitamente **Áudio do sistema inteiro**, selecione a saída USB e confirme que ambos os programas passam a ser ouvidos pelo espectador. **Sem áudio** deve publicar somente vídeo. Volte a Janela: aplicativo deve ser oferecido novamente. Nenhum teste deve abrir microfone, mutar aplicações ou alterar roteamento local.
+6. No **Windows 10 22H2/build 19045**, selecionar áudio do aplicativo deve informar incompatibilidade e impedir início nesse modo, sem fallback. Sistema inteiro/sem áudio continuam disponíveis por escolha manual. Não há promessa de suporte de áudio por aplicativo nesse Windows 10.
+7. Registre versão/build do Windows, jogo e launcher, GPU/driver, modo, áudio recebido/excluído, qualidade/sincronização, Parar/reiniciar/fechar e eventuais mensagens. Não envie convite/token ou gravações de chamadas sem autorização.
+
+Limites: inclui **todo o processo da janela e seus descendentes**, não somente a janela visual. Duas janelas/abas no mesmo processo, navegador compartilhado ou chamadas dentro da árvore podem ser capturadas juntas. Helpers externos/irmãos, serviços e jogos cujo áudio sai de outro processo podem ficar silenciosos. Não ampliamos automaticamente para o launcher, navegador, processo pai ou sistema. Abrir o launcher como alvo não é recomendado: poderia incluir outros programas iniciados por ele. Conteúdo protegido, anticheat e processos elevados podem impedir captura.

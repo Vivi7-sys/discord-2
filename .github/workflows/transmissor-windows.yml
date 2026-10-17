@@ -40,6 +40,9 @@ jobs:
           if ($env:REPOSITORY_PRIVATE -ne 'true') { throw 'Private source repository required' }
       - name: Install pinned Windows dependencies
         run: python -m pip install --require-hashes -r desktop/transmissor-windows/requirements-windows.lock
+      - name: Build native render-only Application Loopback DLL (MSVC x64)
+        shell: pwsh
+        run: ./desktop/transmissor-windows/native/build.ps1
       - name: Unit and SDK compatibility tests (no real desktop capture)
         run: python -m unittest discover -s desktop/transmissor-windows/tests -v
       - name: Import native Windows adapters, GUI and SDK (no capture)
@@ -52,7 +55,7 @@ jobs:
       - name: Install, check and uninstall in disposable runner
         shell: pwsh
         run: |
-          $installer = Resolve-Path 'desktop/transmissor-windows/dist/Discord2Transmissor-0.1.0-windows-x64-setup.exe'
+          $installer = Resolve-Path 'desktop/transmissor-windows/dist/Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe'
           python desktop/transmissor-windows/packaging/verify.py --dist desktop/transmissor-windows/dist
           if ($LASTEXITCODE -ne 0) { throw 'Installer checksum failed' }
           $target = Join-Path $env:RUNNER_TEMP 'Discord2InstallerCheck'

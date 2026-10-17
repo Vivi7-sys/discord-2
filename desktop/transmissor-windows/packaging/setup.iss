@@ -1,4 +1,4 @@
-#define AppVersion "0.1.0"
+#define AppVersion "0.1.1-beta1"
 [Setup]
 AppId={{4BB4B743-7AF1-4D76-9CBF-F7A2C19D48A1}
 AppName=Discord 2 Transmissor

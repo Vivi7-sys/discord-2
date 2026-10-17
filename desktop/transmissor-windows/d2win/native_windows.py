@@ -22,6 +22,7 @@ class Target:
     identifier: int
     name: str
     owner_pid: int = 0
+    owner_created: int = 0
 
 
 @dataclass(frozen=True)
@@ -81,7 +82,17 @@ def targets(kind):
                 user.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
                 import os
                 if pid.value != os.getpid():
-                    values.append(Target(kind, int(hwnd), title.value, pid.value))
+                    # An inaccessible identity may still be used for video/system audio;
+                    # application audio will reject it, never substitute a broader PID.
+                    born = 0
+                    try:
+                        from .application_audio import window_identity
+                        owner, born = window_identity(int(hwnd))
+                        if owner != pid.value:
+                            return True
+                    except Exception:
+                        pass
+                    values.append(Target(kind, int(hwnd), title.value, pid.value, born))
             return True
         user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
         user.EnumWindows(found, 0)
@@ -114,6 +125,8 @@ def targets(kind):
 class Capture:
     def __init__(self, target, output, profile, stopped):
         self.target, self.output, self.profile = target, output, profile
+        from .audio_choice import normalize
+        self.audio_choice = normalize(output)
         self.stopped = stopped
         self.video = Latest(1)
         self.audio = Latest(5)  # At most ~100 ms, independent of video.
@@ -132,6 +145,9 @@ class Capture:
     def start(self):
         require_windows()
         # Fresh selection check: do not substitute another monitor/window after hotplug.
+        if self.audio_choice.mode == 'application':
+            from .application_audio import validate_target
+            validate_target(self.target)
         current_targets = targets(self.target.kind)
         valid = any((item.identifier, item.owner_pid) == (self.target.identifier, self.target.owner_pid)
                     if self.target.kind == 'window' else item == self.target for item in current_targets)
@@ -169,16 +185,22 @@ class Capture:
             self.fail('A tela/janela capturada foi encerrada. Selecione novamente.')
         try:
             self.control = self.capture.start_free_threaded()
-            if self.output is not None:
+            if self.audio_choice.mode == 'application':
+                from .application_audio import ApplicationStream
+                self.stream = ApplicationStream(self.target, self.accept_audio, self.fail)
+                self.stream.start_stream()
+            elif self.audio_choice.mode == 'system':
                 self.start_audio()
-        except Exception:
+        except Exception as error:
             self.close()
+            if isinstance(error, SafeError):
+                raise
             raise SafeError('Não foi possível abrir a captura selecionada. Confira janela e saída de áudio.') from None
 
     def start_audio(self):
         import pyaudiowpatch as audio
         self.pa = audio.PyAudio()
-        selected = next((d for d in loopback_outputs(self.pa) if d.key == self.output.key), None)
+        selected = next((d for d in loopback_outputs(self.pa) if d.key == self.audio_choice.output.key), None)
         if selected is None:
             raise SafeError('Saída de áudio mudou. Selecione novamente; nenhum microfone será usado.')
         self.converter = PcmConverter(selected.channels, selected.rate)
@@ -192,14 +214,7 @@ class Capture:
                 # ADC time uses the PortAudio stream clock; map latency relative to current_time.
                 timestamp = audio_timestamp(info, count, selected.rate)
                 converted = self.converter.convert(data)
-                import numpy as np
-                samples = np.frombuffer(converted, dtype='<i2').astype(np.int32)
-                if samples.size:
-                    self.metrics['audioPeak'] = max(self.metrics['audioPeak'], int(np.abs(samples).max()))
-                    self.metrics['audioSamples'] += int(samples.size)
-                    self.metrics['audioClipped'] += int((np.abs(samples) >= 32767).sum())
-                self.audio.put((converted, timestamp))
-                self.metrics['capturedAudio'] += 1
+                self.accept_audio(converted, timestamp)
                 return None, audio.paContinue
             except Exception:
                 self.fail('Falha na captura WASAPI. Confira a saída e reinicie.')
@@ -209,6 +224,18 @@ class Capture:
                                    input=True, input_device_index=selected.index,
                                    stream_callback=callback, start=False)
         self.stream.start_stream()
+
+    def accept_audio(self, converted, timestamp):
+        if self.cancel.is_set():
+            return
+        import numpy as np
+        samples = np.frombuffer(converted, dtype='<i2').astype(np.int32)
+        if samples.size:
+            self.metrics['audioPeak'] = max(self.metrics['audioPeak'], int(np.abs(samples).max()))
+            self.metrics['audioSamples'] += int(samples.size)
+            self.metrics['audioClipped'] += int((np.abs(samples) >= 32767).sum())
+        self.audio.put((converted, timestamp))
+        self.metrics['capturedAudio'] += 1
 
     def close(self):
         with self.lock:

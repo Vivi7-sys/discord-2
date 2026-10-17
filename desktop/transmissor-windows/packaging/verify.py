@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 
 
 def verify(dist, installed=None):
-    name = 'Discord2Transmissor-0.1.0-windows-x64-setup.exe'
+    name = 'Discord2Transmissor-0.1.1-beta1-windows-x64-setup.exe'
     digest, filename = (dist / 'SHA256SUMS').read_text().strip().split()
     if filename != name or hashlib.sha256((dist / name).read_bytes()).hexdigest() != digest:
         raise ValueError('Installer SHA-256 mismatch')

@@ -14,6 +14,8 @@ def self_check():
     import pyaudiowpatch
     from livekit import rtc
     from .config import PROFILES
+    from .application_audio import load_native, supported
+    load_native()
     source = rtc.VideoSource(1280, 720, is_screencast=True)
     asyncio.run(source.aclose())
     from .sdk import dispose_runtime
@@ -21,6 +23,7 @@ def self_check():
     window = tk.Tk(); window.withdraw(); window.update(); window.destroy()
     return {'platform': 'windows-x64', 'nativeSdkLoaded': True, 'wgcModuleLoaded': True,
             'wasapiModuleLoaded': True, 'tkLoaded': True, 'profiles': list(PROFILES),
+            'applicationLoopbackDllLoaded': True, 'applicationLoopbackSupported': supported(),
             'captureStarted': False, 'networkUsed': False, 'realCaptureValidated': False}
 
 
