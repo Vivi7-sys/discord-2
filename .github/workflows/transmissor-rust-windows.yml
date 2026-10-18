@@ -42,6 +42,7 @@ jobs:
         with:
           workspaces: desktop/transmissor-tauri/src-tauri -> D:/d2-target
           cache-on-failure: true
+          key: windows-x64-msvc-static-crt-v1
       - name: Record Windows x64 build environment
         shell: pwsh
         run: |
