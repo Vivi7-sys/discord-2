@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       real_session:
-        description: 'Run real WGC + RTP against dedicated D2_TEST_INVITE environment (active receiver required); build test installer only on success'
+        description: 'Optional real WGC + RTP against dedicated D2_TEST_INVITE environment (active receiver required); experimental packaging is independent'
         type: boolean
         default: false
 permissions:
@@ -19,6 +19,9 @@ jobs:
     if: github.ref == 'refs/heads/migration/windows-rust-tauri2'
     runs-on: windows-2022
     timeout-minutes: 60
+    env:
+      # Abseil/WebRTC headers exceed MAX_PATH under the checkout's nested target.
+      CARGO_TARGET_DIR: D:\d2-target
     defaults:
       run:
         working-directory: desktop/transmissor-tauri
@@ -34,6 +37,27 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/transmissor-tauri/src-tauri -> D:/d2-target
+          cache-on-failure: true
+      - name: Record Windows x64 build environment
+        shell: pwsh
+        run: |
+          if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') { throw 'Windows x64 runner required' }
+          New-Item -ItemType Directory -Force evidence | Out-Null
+          $os = Get-CimInstance Win32_OperatingSystem
+          @{
+            os = $os.Caption
+            version = $os.Version
+            build = $os.BuildNumber
+            architecture = $env:PROCESSOR_ARCHITECTURE
+            rust = (rustc --version)
+            node = (node --version)
+            gpu = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Select-Object Name,DriverVersion)
+            cpu = @(Get-CimInstance Win32_Processor | Select-Object Name,NumberOfLogicalProcessors)
+            physicalWindows11Validation = $false
+          } | ConvertTo-Json -Depth 4 | Out-File -Encoding utf8 evidence/windows-runner-environment.json
       - name: Frontend dependencies
         run: npm ci --no-audit --no-fund
       - name: Frontend build and site identity contract
@@ -68,13 +92,19 @@ jobs:
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test real_session -- --ignored
       - name: Build experimental installer (physical Windows capture unvalidated)
         run: npm run tauri -- build --bundles nsis
+      - name: Label experimental installer
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem (Join-Path $env:CARGO_TARGET_DIR 'release/bundle/nsis/*.exe'))
+          if ($installers.Count -ne 1) { throw 'Expected one NSIS installer' }
+          Rename-Item $installers[0].FullName 'Discord2Transmissor-0.2.0-alpha.1-experimental-windows-x64-setup.exe'
       - name: Install, launch and uninstall test package
         shell: pwsh
         run: ./scripts/verify-installer.ps1
       - name: Installer checksum
         shell: pwsh
         run: |
-          Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File evidence/installer-sha256.txt
+          Get-ChildItem (Join-Path $env:CARGO_TARGET_DIR 'release/bundle/nsis/*.exe') | Get-FileHash -Algorithm SHA256 | Format-List | Out-File evidence/installer-sha256.txt
       - name: Mark experimental validation scope
         if: always()
         shell: pwsh
@@ -95,6 +125,8 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
+            desktop/transmissor-tauri/EXPERIMENTAL.txt
+            desktop/transmissor-tauri/TESTE-WINDOWS-11.md
             desktop/transmissor-tauri/evidence/
             desktop/transmissor-tauri/playwright-report/
-            desktop/transmissor-tauri/src-tauri/target/release/bundle/nsis/*.exe
+            ${{ env.CARGO_TARGET_DIR }}/release/bundle/nsis/*.exe

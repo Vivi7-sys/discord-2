@@ -1,6 +1,6 @@
 # Discord 2 Transmissor · Rust + Tauri 2
 
-Candidato **0.2.0-alpha.1**, em `migration/windows-rust-tauri2`, derivado do estado Windows local `4690f05` (`build/windows-transmissor-0.1.2-beta1`). A consulta ao remoto falhou por ausência de autenticação; não foi possível confirmar se existe outro commit Windows no GitHub.
+Candidato **0.2.0-alpha.1**, em `migration/windows-rust-tauri2`, derivado do estado Windows local `4690f05` (`build/windows-transmissor-0.1.2-beta1`). A etapa inicial foi registrada em `076f1b6`. A etapa atual usa GitHub CLI autenticado e envia exclusivamente a branch de migração para compilar em Windows x64.
 
 **Migração ainda incompleta e sem validação de transmissão real em Windows.** Existe implementação Rust de captura/publicação e interface empacotada localmente, mas isso não equivale a binário Windows testado. O aplicativo Python anterior permanece em `../transmissor-windows`; não é chamado nem incluído pelo novo aplicativo. Linux, código do site, workflow Python, Render e releases não foram alterados.
 
@@ -78,9 +78,13 @@ O token fica na memória Rust e não aparece na interface ou nos relatórios. HT
 
 ## CI, instalador e evidências
 
+Procedimento de validação física: [TESTE-WINDOWS-11.md](TESTE-WINDOWS-11.md). O pacote experimental é acompanhado de [EXPERIMENTAL.txt](EXPERIMENTAL.txt).
+
 Workflow: [transmissor-rust-windows.yml](../../.github/workflows/transmissor-rust-windows.yml). Ele só roda na branch de migração e não contém publicação de release ou deploy.
 
-O job Windows compila frontend, roda testes visuais e Rust, benchmark sintético, clippy, build Tauri sem installer e captura a **janela nativa real**. A execução com `real_session=true` (dispatch, quando disponível) ou com a variável de repositório `D2_RUN_REAL_SESSION=true` em um push desta branch exige `D2_TEST_INVITE` de um ambiente de testes dedicado e um espectador ativo. A variável permite habilitar o ensaio por push sem adicionar o workflow ao `main`. O job executa captura WGC real, prova frames capturados/entregues/RTP, verifica liberação e só então gera o NSIS, instala, abre e desinstala o candidato no runner.
+O job Windows compila frontend, roda testes visuais e Rust, integração HTTP e benchmark sintético, compila a ponte C++/WebRTC e o Tauri com MSVC, tenta capturar a janela nativa, gera o NSIS experimental e verifica instalação/inicialização/desinstalação. O instalador não depende de validação física; seu nome e os relatórios deixam essa limitação explícita.
+
+A execução opcional com `real_session=true` (dispatch, quando disponível) ou com a variável de repositório `D2_RUN_REAL_SESSION=true` em um push desta branch exige `D2_TEST_INVITE` de um ambiente de testes dedicado e um espectador ativo. A variável permite habilitar o ensaio por push sem adicionar o workflow ao `main`. Esse ensaio verifica captura WGC, entrega de frames/RTP e liberação da sala; não comprova áudio ou decodificação no receptor.
 
 Comandos de captura real, sempre no diretório do aplicativo:
 
@@ -91,7 +95,7 @@ cargo test --locked --manifest-path src-tauri/Cargo.toml --test real_session -- 
 npm run tauri -- build --bundles nsis
 ```
 
-O teste RTP não prova decodificação no receptor, áudio nem FPS sustentado. O desktop hospedado de `windows-2022` pode não disponibilizar WGC/GPU/áudio; esse resultado deve ser registrado como falha/indisponibilidade, nunca substituído por frames sintéticos para liberar o instalador.
+O teste RTP não prova decodificação no receptor, áudio nem FPS sustentado. O desktop hospedado de `windows-2022` pode não disponibilizar WGC/GPU/áudio; esse resultado deve ser registrado como falha/indisponibilidade, nunca substituído por frames sintéticos e apresentado como captura real.
 
 Quando gerado, o `.exe` ficará em `src-tauri/target/release/bundle/nsis/` e no artifact `discord2-rust-windows-evidence-<run_number>`, com checksum e relatórios. **Nesta sessão não há execução Actions nem instalador Windows gerado**, porque não foi possível autenticar no GitHub. A página de workflow só passará a existir no remoto após envio da branch. Nenhuma release foi criada.
 

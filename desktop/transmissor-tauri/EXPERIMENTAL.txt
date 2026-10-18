@@ -1,0 +1,10 @@
+DISCORD 2 TRANSMISSOR — EXPERIMENTAL
+
+Este pacote é destinado a testes autorizados.
+A compilação e os testes automatizados não comprovam captura ou transmissão
+em Windows 11 físico. Áudio por processo, exclusão do Discord, aceleração
+por GPU, FPS sustentado e sincronização A/V permanecem sujeitos a validação.
+
+Não é uma release pública nem substitui uma versão aprovada.
+Consulte TESTE-WINDOWS-11.md e os relatórios do mesmo artifact/commit.
+Nunca compartilhe convites de salas, tokens ou credenciais em logs ou chat.

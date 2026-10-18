@@ -1,4 +1,4 @@
-param([string]$Binary = "src-tauri/target/release/Discord2Transmissor.exe", [string]$Output = "evidence/windows-native-tauri.png")
+param([string]$Binary = "", [string]$Output = "evidence/windows-native-tauri.png")
 $ErrorActionPreference = 'Stop'
 # Captures the actual Tauri HWND from the interactive runner desktop.
 # Browser-only previews have separate filenames and are never called native evidence.
@@ -12,6 +12,10 @@ public class D2Window {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
 }
 '@
+if (!$Binary) {
+ $buildRoot = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'src-tauri/target' }
+ $Binary = Join-Path $buildRoot 'release/Discord2Transmissor.exe'
+}
 $exe = Resolve-Path $Binary
 $process = Start-Process $exe -PassThru
 try {

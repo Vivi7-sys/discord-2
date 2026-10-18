@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$installers = @(Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe)
+$buildRoot = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'src-tauri/target' }
+$installers = @(Get-ChildItem (Join-Path $buildRoot 'release/bundle/nsis/*.exe'))
 if ($installers.Count -ne 1) {throw 'Expected exactly one test installer'}
 $target = Join-Path $env:RUNNER_TEMP ("D2RustInstaller-" + [guid]::NewGuid().ToString('N'))
 $installer = Start-Process $installers[0].FullName -ArgumentList @('/S',"/D=$target") -Wait -PassThru
@@ -8,7 +9,7 @@ $uninstaller = Join-Path $target 'uninstall.exe'
 try {
  $binary = Join-Path $target 'Discord2Transmissor.exe'
  if (!(Test-Path $binary)) {throw 'Installed application not found'}
- $builtHash = (Get-FileHash src-tauri/target/release/Discord2Transmissor.exe -Algorithm SHA256).Hash
+ $builtHash = (Get-FileHash (Join-Path $buildRoot 'release/Discord2Transmissor.exe') -Algorithm SHA256).Hash
  if ((Get-FileHash $binary -Algorithm SHA256).Hash -ne $builtHash) {throw 'Installed executable differs from the tested build'}
  $legacy = @(Get-ChildItem $target -Recurse -File | Where-Object {$_.Name -match '^(python.*\.dll|.*\.py[co]?|Qt[56].*\.dll|PySide.*)$'})
  if ($legacy.Count -ne 0) {throw 'Legacy Python or Qt payload found'}

@@ -102,7 +102,7 @@ function App() {
           </h1>
           <p className="lead">Sua tela e seu áudio, juntos na mesma sala.</p>
         </div>
-        <span className="badge">v0.2 · alpha</span>
+        <span className="badge">v0.2 · experimental</span>
       </div>
       <nav className="desktop-tabs" aria-label="Seções">
         <button
@@ -379,7 +379,7 @@ function App() {
               : "Tudo pronto para compartilhar?"}
             <small>
               {native
-                ? "Captura nativa · áudio sem microfone"
+                ? "Experimental · captura e transmissão sem validação física"
                 : "Prévia visual · abra o aplicativo no Windows para transmitir"}
             </small>
           </span>

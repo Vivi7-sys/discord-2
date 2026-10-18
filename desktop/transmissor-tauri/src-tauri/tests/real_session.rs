@@ -56,7 +56,7 @@ async fn real_connection_capture_and_rtp_publication() {
     .unwrap();
     assert!(
         live,
-        "No real captured/submitted/RTP frames; installer gate must remain closed"
+        "No real captured/submitted/RTP frames; real transmission remains unvalidated"
     );
     assert_eq!(snapshot.release_confirmed, Some(true));
     assert_eq!(snapshot.phase, "idle");
