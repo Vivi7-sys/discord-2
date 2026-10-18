@@ -11,6 +11,7 @@ Windows 11 x64, Rust estável (dependências atuais exigem pelo menos 1.90), MSV
 ```powershell
 cd desktop/transmissor-tauri
 npm ci
+$env:CARGO_BUILD_TARGET = 'x86_64-pc-windows-msvc'
 npm test
 npm run build
 cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop
@@ -97,7 +98,7 @@ npm run tauri -- build --bundles nsis
 
 O teste RTP não prova decodificação no receptor, áudio nem FPS sustentado. O desktop hospedado de `windows-2022` pode não disponibilizar WGC/GPU/áudio; esse resultado deve ser registrado como falha/indisponibilidade, nunca substituído por frames sintéticos e apresentado como captura real.
 
-Quando gerado, o `.exe` ficará em `src-tauri/target/release/bundle/nsis/` e no artifact `discord2-rust-windows-evidence-<run_number>`, com checksum e relatórios. **Nesta sessão não há execução Actions nem instalador Windows gerado**, porque não foi possível autenticar no GitHub. A página de workflow só passará a existir no remoto após envio da branch. Nenhuma release foi criada.
+Quando gerado, o `.exe` ficará em `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/` e no artifact `discord2-rust-windows-evidence-<run_number>`, com checksum e relatórios. Execuções Windows em andamento: os primeiros builds identificaram MAX_PATH nos headers Abseil e incompatibilidade /MT versus /MD na ponte WebRTC; corrigidos com target curto e CRT estático consistente. Ainda não há instalador aprovado até o workflow completar. Nenhuma release foi criada.
 
 ## Aceitação em Windows 11 físico
 

@@ -14,7 +14,7 @@ public class D2Window {
 '@
 if (!$Binary) {
  $buildRoot = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'src-tauri/target' }
- $Binary = Join-Path $buildRoot 'release/Discord2Transmissor.exe'
+ $Binary = Join-Path $buildRoot 'x86_64-pc-windows-msvc/release/Discord2Transmissor.exe'
 }
 $exe = Resolve-Path $Binary
 $process = Start-Process $exe -PassThru

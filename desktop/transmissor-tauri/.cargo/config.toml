@@ -1,0 +1,4 @@
+# Match the official LiveKit WebRTC archive's /MT runtime, including cc/cxx bridges.
+# Use an explicit target so host proc macros keep the host dynamic runtime.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
