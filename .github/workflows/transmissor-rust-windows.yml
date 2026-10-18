@@ -102,10 +102,16 @@ jobs:
       - name: Install, launch and uninstall test package
         shell: pwsh
         run: ./scripts/verify-installer.ps1
-      - name: Installer checksum
+      - name: Stage installer and checksum inside artifact root
+        if: always()
         shell: pwsh
         run: |
-          Get-ChildItem (Join-Path $env:CARGO_TARGET_DIR 'x86_64-pc-windows-msvc/release/bundle/nsis/*.exe') | Get-FileHash -Algorithm SHA256 | Format-List | Out-File evidence/installer-sha256.txt
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          $packages = @(Get-ChildItem (Join-Path $env:CARGO_TARGET_DIR 'x86_64-pc-windows-msvc/release/bundle/nsis/*.exe') -ErrorAction SilentlyContinue)
+          if ($packages.Count -gt 0) {
+            $packages | Copy-Item -Destination artifacts
+            Get-ChildItem artifacts/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File evidence/installer-sha256.txt
+          }
       - name: Mark experimental validation scope
         if: always()
         shell: pwsh
@@ -130,4 +136,4 @@ jobs:
             desktop/transmissor-tauri/TESTE-WINDOWS-11.md
             desktop/transmissor-tauri/evidence/
             desktop/transmissor-tauri/playwright-report/
-            ${{ env.CARGO_TARGET_DIR }}/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            desktop/transmissor-tauri/artifacts/*.exe
