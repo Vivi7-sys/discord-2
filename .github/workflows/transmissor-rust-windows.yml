@@ -78,7 +78,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Rust tests failed' }
           cargo clippy --locked --manifest-path src-tauri/Cargo.toml --features desktop --all-targets -- -D warnings
       - name: Build native desktop payload without installer
-        run: npm run tauri -- build --no-bundle
+        run: npm run tauri -- build --target x86_64-pc-windows-msvc --no-bundle
       - name: Capture actual Windows Tauri window
         continue-on-error: true
         shell: pwsh
@@ -92,7 +92,7 @@ jobs:
           D2_TEST_INVITE: ${{ secrets.D2_TEST_INVITE }}
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test real_session -- --ignored
       - name: Build experimental installer (physical Windows capture unvalidated)
-        run: npm run tauri -- build --bundles nsis
+        run: npm run tauri -- build --target x86_64-pc-windows-msvc --bundles nsis
       - name: Label experimental installer
         shell: pwsh
         run: |

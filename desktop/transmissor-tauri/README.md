@@ -15,7 +15,7 @@ $env:CARGO_BUILD_TARGET = 'x86_64-pc-windows-msvc'
 npm test
 npm run build
 cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop
-npm run tauri -- dev
+npm run tauri -- dev --target x86_64-pc-windows-msvc
 ```
 
 No Linux, `npm run dev` abre uma **prévia visual** com transmissão desativada. O núcleo de configuração e HTTP pode ser testado com `cargo test --locked --manifest-path src-tauri/Cargo.toml`; os módulos Windows não são executados nessa plataforma. Não há limitação de qualidade derivada do hardware Linux.
@@ -93,7 +93,7 @@ Comandos de captura real, sempre no diretório do aplicativo:
 cargo test --locked --manifest-path src-tauri/Cargo.toml --test windows_capture -- --ignored
 $env:D2_TEST_INVITE = '<convite de ambiente separado de testes>'
 cargo test --locked --manifest-path src-tauri/Cargo.toml --test real_session -- --ignored
-npm run tauri -- build --bundles nsis
+npm run tauri -- build --target x86_64-pc-windows-msvc --bundles nsis
 ```
 
 O teste RTP não prova decodificação no receptor, áudio nem FPS sustentado. O desktop hospedado de `windows-2022` pode não disponibilizar WGC/GPU/áudio; esse resultado deve ser registrado como falha/indisponibilidade, nunca substituído por frames sintéticos e apresentado como captura real.
