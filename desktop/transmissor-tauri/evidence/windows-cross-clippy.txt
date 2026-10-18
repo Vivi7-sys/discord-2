@@ -1,0 +1,2 @@
+   Compiling discord2-transmissor v0.2.0-alpha.1 (/home/vivi/screen-share/desktop/transmissor-tauri/src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.21s

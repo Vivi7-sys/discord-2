@@ -1,0 +1,40 @@
+[package]
+name = "discord2-transmissor"
+version = "0.2.0-alpha.1"
+edition = "2021"
+rust-version = "1.90"
+[lib]
+name = "d2_transmitter"
+path = "src/lib.rs"
+[[bin]]
+name = "Discord2Transmissor"
+path = "src/main.rs"
+required-features = ["desktop"]
+[features]
+default = []
+desktop = ["dep:tauri", "dep:tauri-build"]
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+[target.'cfg(windows)'.dependencies]
+tauri = { version = "2", optional = true }
+livekit = { version = "=0.7.53", features = ["rustls-tls-native-roots"] }
+# Align the complete RTC stack with the official livekit 0.7.53 Cargo.lock.
+# Newer semver-compatible protocol crates introduce incompatible generated fields.
+libwebrtc = "=0.3.42"
+webrtc-sys = "=0.3.39"
+livekit-protocol = "=0.7.10"
+livekit-common = "=0.1.0"
+livekit-data-stream = "=0.1.0"
+livekit-datatrack = "=0.1.11"
+windows-capture = "=1.5.0"
+wasapi = "=0.22.0"
+sysinfo = "0.33"
+[target.'cfg(windows)'.build-dependencies]
+webrtc-sys-build = "=0.3.18"
+
+[build-dependencies]
+tauri-build = { version = "2", optional = true }

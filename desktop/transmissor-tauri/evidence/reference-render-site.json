@@ -1,0 +1,15 @@
+{
+  "source": "https://discord-2-kuau.onrender.com/",
+  "platform": "Linux x86_64",
+  "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+  "tokens": {
+    "--bg": "#08090b",
+    "--surface": "#121417",
+    "--surface-2": "#1b1e23",
+    "--border": "#2b2e33",
+    "--text": "#f4f4f5",
+    "--muted": "#a1a4ac",
+    "--accent": "#ef343d",
+    "--radius": "12px"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "source": "https://discord-2-kuau.onrender.com/",
+  "asset": "/_next/static/chunks/0hnpshkzumnjp.css",
+  "retrieval": "HTTPS GET of published CSS, no writes",
+  "sha256": "2900c8b5342850a2bb05916139b6e34dafa29a952e350ab8fbcd2192a1618140",
+  "publishedTokens": {
+    "--bg": "#08090b",
+    "--surface": "#121417",
+    "--surface-2": "#1b1e23",
+    "--border": "#2b2e33",
+    "--text": "#f4f4f5",
+    "--muted": "#a1a4ac",
+    "--accent": "#ef343d",
+    "--radius": "12px"
+  },
+  "localTokens": {
+    "--bg": "#08090b",
+    "--surface": "#121417",
+    "--surface-2": "#1b1e23",
+    "--border": "#2b2e33",
+    "--text": "#f4f4f5",
+    "--muted": "#a1a4ac",
+    "--accent": "#ef343d",
+    "--radius": "12px"
+  },
+  "tokensMatch": true
+}

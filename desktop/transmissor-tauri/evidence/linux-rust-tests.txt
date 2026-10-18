@@ -1,0 +1,38 @@
+   Compiling discord2-transmissor v0.2.0-alpha.1 (/home/vivi/screen-share/desktop/transmissor-tauri/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.68s
+     Running unittests src/lib.rs (desktop/transmissor-tauri/src-tauri/target/debug/deps/d2_transmitter-8b9d0e7e2f8bddce)
+
+running 7 tests
+test backend::tests::refuses_insecure_livekit ... ok
+test backend::tests::surfaces_room_exclusivity ... ok
+test config::tests::isolation_requires_process ... ok
+test config::tests::preserves_profiles ... ok
+test config::tests::rejects_invalid_invites ... ok
+test config::tests::rejects_unknown_fields ... ok
+test backend::tests::authentication_and_reservation_contract ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/conversion_benchmark.rs (desktop/transmissor-tauri/src-tauri/target/debug/deps/conversion_benchmark-9d04cd5c256b9ed3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/real_session.rs (desktop/transmissor-tauri/src-tauri/target/debug/deps/real_session-44e998ef35450729)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/windows_capture.rs (desktop/transmissor-tauri/src-tauri/target/debug/deps/windows_capture-57c560680f660541)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests d2_transmitter
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

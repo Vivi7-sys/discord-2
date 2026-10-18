@@ -1,0 +1,633 @@
+/* Desktop adaptation. Site tokens and primitives live in the unchanged site.css snapshot. */
+.desktop-shell {
+  max-width: 1320px;
+  margin: auto;
+  padding: 0 28px 24px;
+}
+.home-topbar {
+  min-height: 88px;
+}
+.desktop-platform {
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-left: auto;
+  margin-right: 20px;
+}
+.desktop-platform span {
+  color: var(--text);
+  margin-left: 8px;
+}
+.workspace-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 0 24px;
+}
+.workspace-heading .home-eyebrow {
+  margin-bottom: 10px;
+  font-size: 0.6rem;
+}
+.workspace-heading h1 {
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  margin: 0 0 10px;
+  font-weight: 850;
+}
+.workspace-heading h1 > span {
+  color: #f03a46;
+}
+.workspace-heading .lead {
+  font-size: 0.9rem;
+}
+.desktop-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 22px;
+}
+.desktop-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  color: var(--muted);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 2px 13px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.desktop-tabs button[aria-current] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.desktop-tabs button[aria-current] svg {
+  color: var(--accent);
+}
+.desktop-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(290px, 0.85fr);
+  gap: 24px;
+}
+.configuration {
+  display: grid;
+  gap: 14px;
+}
+.desktop-card {
+  padding: 18px 20px;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.section-title h2 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+.section-title .badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+}
+.step {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: rgba(239, 52, 61, 0.09);
+  border: 1px solid rgba(239, 52, 61, 0.18);
+  border-radius: 7px;
+  padding: 3px 7px;
+}
+.desktop-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #b4b6bc;
+  font-size: 0.76rem;
+  margin-top: 12px;
+}
+.desktop-card .room-input,
+.desktop-card select {
+  font-size: 0.82rem;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  font-family: inherit;
+}
+.desktop-card select {
+  cursor: pointer;
+}
+.desktop-card input:disabled,
+.desktop-card select:disabled {
+  opacity: 0.55;
+}
+.text-button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.quality-options {
+  display: flex;
+  gap: 9px;
+  margin-top: 7px;
+}
+.quality-options button {
+  flex: 1;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.quality-options button[aria-pressed="true"] {
+  background: rgba(239, 52, 61, 0.08);
+  border-color: #bd303a;
+}
+.quality-options small {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.quality-options button[aria-pressed="true"] small {
+  color: #ec8c93;
+}
+.audio-note {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px !important;
+  font-size: 0.73rem !important;
+  line-height: 1.5;
+}
+.privacy-icon {
+  color: #ed737b;
+}
+.session-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #141416, var(--bg));
+  overflow: hidden;
+}
+.session-preview {
+  margin: 18px;
+  border: 1px solid #3c252a;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px #0004;
+}
+.home-preview-top {
+  font-size: 0.56rem;
+  padding: 0 12px;
+  gap: 7px;
+  height: 36px;
+}
+.home-preview-top svg {
+  color: #ef343d;
+}
+.preview-state {
+  margin-left: auto;
+  font-size: 0.5rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+.home-preview-screen {
+  aspect-ratio: 16/10;
+}
+.home-preview-emblem {
+  font-size: 6rem;
+}
+.home-preview-subtitle {
+  font-size: 0.5rem;
+}
+.preview-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  padding: 12px;
+  font-size: 0.72rem;
+  min-width: 0;
+}
+.preview-caption > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-caption svg {
+  color: var(--muted);
+  flex: none;
+}
+.preview-caption small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.65rem;
+  margin-top: 3px;
+}
+.session-info {
+  padding: 8px 24px;
+  text-align: center;
+  margin: auto 0;
+}
+.tiny-label {
+  font-size: 0.59rem;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+}
+.session-info p {
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+.signal-bars {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+}
+.signal-bars i {
+  width: 4px;
+  border-radius: 3px;
+  background: #ef343d;
+  opacity: 0.25;
+}
+.session-hint {
+  font-size: 0.73rem !important;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.mini-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border);
+  margin: 20px 24px 0;
+  padding: 16px 0;
+  text-align: center;
+}
+.mini-metrics div + div {
+  border-left: 1px solid var(--border);
+}
+.mini-metrics strong {
+  font-size: 1.4rem;
+}
+.mini-metrics small {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+.desktop-controls {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 -10px 30px #08090b99;
+  z-index: 3;
+}
+.desktop-controls > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.78rem;
+}
+.desktop-controls small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.65rem;
+  margin-top: 3px;
+}
+.desktop-controls .status-dot {
+  display: block;
+  flex: none;
+  background: var(--muted);
+}
+.control-actions {
+  display: flex;
+  gap: 8px;
+}
+.control-actions .btn {
+  font-size: 0.76rem;
+  padding: 10px 13px;
+  white-space: nowrap;
+}
+.diagnostics {
+  min-height: 470px;
+}
+.diagnostics h2 {
+  font-size: 1.2rem;
+}
+.diagnostics dl {
+  margin-top: 20px;
+}
+.diagnostics dl > div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  font-size: 0.85rem;
+}
+.diagnostics dt {
+  color: var(--muted);
+}
+.diagnostics dd {
+  margin: 0;
+}
+button,
+input,
+select {
+  transition:
+    background-color 0.16s,
+    border-color 0.16s;
+}
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .desktop-shell {
+    padding: 0 20px 20px;
+  }
+  .desktop-grid {
+    gap: 16px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+  }
+  .desktop-platform {
+    display: none;
+  }
+  .desktop-controls {
+    flex-wrap: wrap;
+  }
+  .control-actions {
+    margin-left: auto;
+  }
+  .workspace-heading {
+    padding: 24px 0;
+  }
+  .session-preview {
+    margin: 12px;
+  }
+}
+@media (max-width: 650px) {
+  .desktop-grid {
+    grid-template-columns: 1fr;
+  }
+  .session-panel {
+    display: none;
+  }
+  .workspace-heading > .badge {
+    display: none;
+  }
+  .control-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .control-actions .btn-primary {
+    flex: 1;
+  }
+  .home-brand-name strong {
+    font-size: 0.9rem;
+  }
+  .status {
+    font-size: 0.7rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+.desktop-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.home-topbar {
+  min-height: 72px;
+  flex: none;
+}
+.home-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.workspace-heading {
+  padding: 22px 0 18px;
+  flex: none;
+}
+.desktop-tabs {
+  flex: none;
+  margin-bottom: 16px;
+}
+.desktop-grid {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.configuration {
+  overflow: auto;
+  padding-right: 4px;
+  align-content: start;
+}
+.desktop-card {
+  padding: 14px 16px;
+}
+.section-title {
+  margin-bottom: 10px;
+}
+.desktop-card label {
+  margin-top: 9px;
+}
+.desktop-card .room-input,
+.desktop-card select {
+  padding: 8px 10px;
+}
+.desktop-controls {
+  position: static;
+  flex: none;
+  margin-top: 16px;
+}
+.session-panel {
+  min-height: 0;
+}
+.session-preview {
+  flex: none;
+}
+.session-info {
+  min-height: 0;
+  overflow: auto;
+}
+.mini-metrics {
+  flex: none;
+}
+.diagnostics {
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+}
+@media (max-height: 750px) {
+  .workspace-heading {
+    padding: 15px 0;
+  }
+  .workspace-heading .home-eyebrow {
+    display: none;
+  }
+  .session-preview .home-preview-screen {
+    aspect-ratio: 16/7;
+  }
+  .session-info .signal-bars {
+    display: none;
+  }
+  .session-info .session-hint {
+    display: none;
+  }
+  .mini-metrics {
+    margin-top: 8px;
+    padding: 10px 0;
+  }
+}
+.configuration .desktop-card:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  column-gap: 12px;
+}
+.configuration .desktop-card:first-child > .section-title {
+  grid-column: 1/-1;
+}
+.desktop-card label {
+  min-width: 0;
+}
+.session-preview {
+  margin: 14px;
+}
+.session-preview .home-preview-screen {
+  aspect-ratio: 16/6;
+}
+.session-preview .home-preview-emblem {
+  font-size: 4.5rem;
+  line-height: 1.2;
+}
+.session-preview .home-preview-subtitle {
+  margin-top: 2px;
+}
+.session-info {
+  flex: 1;
+  min-height: 70px;
+  margin: 0;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.session-info .signal-bars {
+  display: none;
+}
+.session-info .session-hint {
+  display: none;
+}
+.mini-metrics {
+  padding: 10px 0;
+  margin: 8px 20px 0;
+}
+.quality-options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+}
+.quality-options small {
+  margin: 0;
+}
+@media (max-height: 750px) {
+  .session-preview {
+    margin: 12px 12px 0;
+  }
+  .session-preview .home-preview-screen {
+    aspect-ratio: 16/5;
+  }
+  .session-preview .preview-caption {
+    display: none;
+  }
+  .session-info {
+    display: none;
+  }
+  .mini-metrics {
+    margin-top: auto;
+  }
+}
+@media (max-width: 800px) {
+  .configuration .desktop-card:first-child {
+    grid-template-columns: 1fr;
+  }
+  .quality-options button {
+    display: block;
+  }
+  .quality-options small {
+    margin-top: 2px;
+  }
+}
+/* Keep all three setup cards visible at the default desktop height. */
+.home-topbar {
+  min-height: 64px;
+}
+.workspace-heading {
+  padding: 14px 0;
+}
+.workspace-heading h1 {
+  font-size: 1.85rem;
+  margin-bottom: 6px;
+}
+.workspace-heading .home-eyebrow {
+  margin-bottom: 6px;
+}
+.workspace-heading .lead {
+  font-size: 0.85rem;
+}
+.desktop-tabs button {
+  padding-bottom: 10px;
+}
+.desktop-card {
+  padding: 12px 16px;
+}
+.section-title {
+  margin-bottom: 8px;
+}
+.step {
+  padding: 2px 7px;
+}
+.desktop-card label {
+  gap: 5px;
+  margin-top: 7px;
+}
+.audio-note {
+  margin-top: 10px !important;
+}

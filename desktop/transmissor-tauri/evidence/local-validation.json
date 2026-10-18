@@ -1,0 +1,43 @@
+{
+  "scope": "local development session, not a GitHub Actions run",
+  "recordedAt": "2026-10-18T16:54:44.443245+00:00",
+  "branch": "migration/windows-rust-tauri2",
+  "baseCommit": "4690f05",
+  "host": "Linux x86_64",
+  "frontendBuild": "passed",
+  "siteIdentityContract": "passed",
+  "publishedSiteTokensMatched": 8,
+  "rustPortableTests": {
+    "passed": 7,
+    "realLiveKitConnection": false
+  },
+  "playwright": {
+    "passed": 6,
+    "ipcTestsUseFixture": true,
+    "realWindowsWebView": false
+  },
+  "windowsRustStaticCheck": {
+    "target": "x86_64-pc-windows-gnu",
+    "result": "passed",
+    "clippy": "passed with -D warnings",
+    "usesDocsRsToSkipWebrtcCppBridge": true,
+    "executesWindowsCode": false,
+    "checksTauriDesktopBinary": false
+  },
+  "windowsNativeBuild": "not run",
+  "windowsScreenshot": "not available",
+  "realCapture": "not run",
+  "realAudio": "not run",
+  "realPublication": "not run",
+  "syntheticConversionBenchmark": "implemented but not run on Windows",
+  "githubActionsRun": null,
+  "installer": null,
+  "releasePublished": false,
+  "remaining": [
+    "Authenticate GitHub / connect the available GitHub integration",
+    "Build and test Tauri + native C++/WebRTC on Windows Actions",
+    "Dedicated test environment and independent LiveKit receiver",
+    "Physical Windows 11 capture, audio isolation and A/V synchronization",
+    "GPU texture-to-encoder path and vendor-specific AMF/Quick Sync integrations"
+  ]
+}
