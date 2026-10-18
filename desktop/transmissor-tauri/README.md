@@ -2,7 +2,7 @@
 
 Candidato **0.2.0-alpha.1**, em `migration/windows-rust-tauri2`, derivado do estado Windows local `4690f05` (`build/windows-transmissor-0.1.2-beta1`). A etapa inicial foi registrada em `076f1b6`. A etapa atual usa GitHub CLI autenticado e envia exclusivamente a branch de migração para compilar em Windows x64.
 
-**Migração ainda incompleta e sem validação de transmissão real em Windows.** Existe implementação Rust de captura/publicação e interface empacotada localmente, mas isso não equivale a binário Windows testado. O aplicativo Python anterior permanece em `../transmissor-windows`; não é chamado nem incluído pelo novo aplicativo. Linux, código do site, workflow Python, Render e releases não foram alterados.
+**Migração ainda incompleta e sem validação de transmissão real em Windows.** Existe implementação Rust de captura/publicação e interface empacotada localmente, com compilação MSVC, testes automatizados, abertura nativa e instalador experimental aprovados em Windows Server 2022. Isso não comprova captura/transmissão em Windows físico. O aplicativo Python anterior permanece em `../transmissor-windows`; não é chamado nem incluído pelo novo aplicativo. Linux, código do site, workflow Python, Render e releases não foram alterados.
 
 ## Executar e verificar
 
@@ -32,7 +32,7 @@ No Linux, `npm run dev` abre uma **prévia visual** com transmissão desativada.
 - Logotipo da barra usa o D2 e os estilos do site, com alinhamento flex para desktop. Os ícones do executável são derivados do SVG real `../../src/app/icon.svg` usando o CLI Tauri.
 - Cartões, botões, foco, bordas, fundo e estados reutilizam as classes reais. `src/desktop.css` adapta a hierarquia para configuração de sessão, painel de estado, rolagem e controles persistentes.
 - Animações limitam-se às transições do site; `prefers-reduced-motion` desativa movimento.
-- Nenhuma imagem da documentação representa uma captura Windows. O endereço obrigatório `https://discord-2-kuau.onrender.com/` respondeu após nova tentativa. O HTML, CSS e a renderização publicada foram conferidos; a captura do site foi feita em Chromium/Linux, sem alterar o Render.
+- [Captura real do aplicativo nativo no Windows](evidence/windows-native-tauri.png) e [aplicativo instalado pelo NSIS](evidence/windows-installed-tauri.png). A tela virtual do runner é pequena e a parte inferior ficou cortada; não comprova o layout completo nem DPI de Windows 11. O endereço obrigatório `https://discord-2-kuau.onrender.com/` respondeu após nova tentativa. O HTML, CSS e a renderização publicada foram conferidos; a captura do site foi feita em Chromium/Linux, sem alterar o Render.
 
 | Elemento                       | Site                  | Aplicativo                 |
 | ------------------------------ | --------------------- | -------------------------- |
@@ -50,8 +50,8 @@ No Linux, `npm run dev` abre uma **prévia visual** com transmissão desativada.
 | ------------------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------- |
 | Interface React/TypeScript e empacotamento local | `src/`, configuração Tauri 2 e CSP                                 | build local e testes Playwright                          |
 | Configuração, autenticação e exclusividade       | `config.rs`, `backend.rs`                                          | testes Rust e servidor HTTP local de integração          |
-| Captura WGC de monitor/janela                    | `native.rs`, enumeração de handles atuais                          | requer execução Windows                                  |
-| Conversão de frames                              | BGRA com pitch → libyuv SIMD → I420; escala preserva proporção     | benchmark Windows implementado, não medido localmente    |
+| Captura WGC de monitor/janela                    | `native.rs`, enumeração de handles atuais                          | compilado em Windows; captura real pendente               |
+| Conversão de frames                              | BGRA com pitch → libyuv SIMD → I420; escala preserva proporção     | benchmark sintético Windows medido; ver relatório         |
 | Publicação LiveKit Rust                          | `session.rs`, H.264, `NativeVideoSource`, tracks de tela           | teste real preparado; ainda não executado                |
 | Áudio WASAPI                                     | render loopback; incluir árvore por PID; excluir árvore do Discord | implementado, sem evidência de áudio real                |
 | Iniciar/parar/reiniciar e fechamento             | comandos IPC e encerramento com liberação de sala                  | revisão local; testes de sessão reais pendentes          |
@@ -75,7 +75,7 @@ O token fica na memória Rust e não aparece na interface ou nos relatórios. HT
 - Seis testes Playwright: interface, layout, áudio selecionado, assets locais, movimento reduzido e sequência de comandos/conflito com fixture IPC; aprovados. A fixture não produz frames nem prova execução Rust.
 - `cargo check --lib --tests --target x86_64-pc-windows-gnu`: aprovado com cross compiler Zig e `DOCS_RS=1`, que omite a compilação da ponte C++ do WebRTC. Verifica tipos de WGC/WASAPI/LiveKit e dos testes Windows, mas não cria executável, não executa os testes e não verifica o binário Tauri/MSVC.
 - Clippy do núcleo portátil e dos módulos/testes Windows em checagem cruzada: aprovados com `-D warnings`. A pilha RTC está fixada nas versões do lockfile oficial de LiveKit 0.7.53 para evitar incompatibilidades transitivas de tipos/protobuf.
-- Sem resultados locais de benchmark de conversão Windows, captura, codificação ou publicação reais. Os testes e relatórios previstos não são apresentados como medições já realizadas.
+- Benchmark de conversão sintética medido no runner Windows; captura, codificação e publicação reais continuam sem medição. Ver [BUILD-WINDOWS.md](BUILD-WINDOWS.md).
 
 ## CI, instalador e evidências
 
@@ -98,7 +98,9 @@ npm run tauri -- build --target x86_64-pc-windows-msvc --bundles nsis
 
 O teste RTP não prova decodificação no receptor, áudio nem FPS sustentado. O desktop hospedado de `windows-2022` pode não disponibilizar WGC/GPU/áudio; esse resultado deve ser registrado como falha/indisponibilidade, nunca substituído por frames sintéticos e apresentado como captura real.
 
-Quando gerado, o `.exe` ficará em `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/` e no artifact `discord2-rust-windows-evidence-<run_number>`, com checksum e relatórios. Execuções Windows em andamento: os primeiros builds identificaram MAX_PATH nos headers Abseil e incompatibilidade /MT versus /MD na ponte WebRTC; corrigidos com target curto e CRT estático consistente. Ainda não há instalador aprovado até o workflow completar. Nenhuma release foi criada.
+Build Windows aprovado: [Actions 39154249266](https://github.com/Vivi7-sys/discord-2/actions/runs/39154249266), commit `7ff0b7f0b0a3a19c3b52770254080a486b118f37`. [Baixar artifact experimental](https://github.com/Vivi7-sys/discord-2/actions/runs/39154249266/artifacts/12147425939), incluindo `.exe`, SHA-256, capturas reais e relatórios; retenção de 14 dias. O instalador está na pasta `artifacts/` do ZIP. Nenhuma release foi criada.
+
+Resultados, comparação visual e limitações: [BUILD-WINDOWS.md](BUILD-WINDOWS.md). As correções de MAX_PATH, CRT estático e verificação do marcador NSIS preservam as funcionalidades nativas. O job usa `D:\d2-target` e target MSVC explícito, separado do host das proc macros. Os testes e Clippy usam `--release`; o empacotamento reaproveita as bibliotecas nativas.
 
 ## Aceitação em Windows 11 físico
 

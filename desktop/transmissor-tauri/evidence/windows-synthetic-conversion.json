@@ -1,0 +1,36 @@
+{
+  "encoded": false,
+  "pipeline": "CPU BGRA (padded rows) -> libyuv SIMD -> I420",
+  "published": false,
+  "realCapture": false,
+  "results": [
+    {
+      "conversionThroughputFps": 5059.748514687106,
+      "frames": 128,
+      "meanMs": 0.19763828125000002,
+      "p50Ms": 0.189,
+      "p95Ms": 0.2418,
+      "profile": "720p30",
+      "requestedFps": 30
+    },
+    {
+      "conversionThroughputFps": 2317.6145951779135,
+      "frames": 128,
+      "meanMs": 0.43147812499999993,
+      "p50Ms": 0.4229,
+      "p95Ms": 0.4521,
+      "profile": "1080p30",
+      "requestedFps": 30
+    },
+    {
+      "conversionThroughputFps": 2340.143516614104,
+      "frames": 128,
+      "meanMs": 0.42732421875000015,
+      "p50Ms": 0.4204,
+      "p95Ms": 0.44680000000000003,
+      "profile": "1080p60",
+      "requestedFps": 60
+    }
+  ],
+  "synthetic": true
+}

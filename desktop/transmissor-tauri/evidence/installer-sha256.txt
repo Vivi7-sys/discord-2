@@ -1,0 +1,5 @@
+
+Algorithm : SHA256
+Hash      : 6698F0C007A22217B53BA5C7C02FDCE007DCAF466A50950B67CF194D83904752
+Path      : D:\a\discord-2\discord-2\desktop\transmissor-tauri\artifacts\Discord2Transmissor-0.2.0-alpha.1-experimental-windows-x64-setup.exe
+

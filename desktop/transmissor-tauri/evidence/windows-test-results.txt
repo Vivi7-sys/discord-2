@@ -1,0 +1,9 @@
+Run: https://github.com/Vivi7-sys/discord-2/actions/runs/39154249266
+Commit: 7ff0b7f0b0a3a19c3b52770254080a486b118f37
+windows	Browser interaction tests (Windows browser, not native WebView)	2026-10-18T18:29:14.6336554Z   6 passed (7.6s)
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:41.6757699Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:41.6876373Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:41.8374890Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:41.8619897Z test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:41.8758019Z test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+windows	Rust format, tests, backend HTTP integration and static analysis	2026-10-18T18:48:42.0989240Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

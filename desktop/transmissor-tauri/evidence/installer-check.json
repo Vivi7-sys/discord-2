@@ -1,0 +1,11 @@
+{
+  "launched": true,
+  "tauriBundleMarkerPatch": "UNK -> NSS",
+  "builtSha256": "882BCC48C99F8CC9F71BA8F6B4D5E9D0FC7B368F4DF26EC65F67782D7484F576",
+  "uninstalled": true,
+  "realCaptureTestedByInstallerCheck": false,
+  "legacyPayloadFound": false,
+  "expectedNsisPayloadSha256": "6425C0630CA4F2BBF25C4DB950A425590A5B6BE6DD4F978BAD44CDAD61902D0D",
+  "installedSha256": "6425C0630CA4F2BBF25C4DB950A425590A5B6BE6DD4F978BAD44CDAD61902D0D",
+  "installed": true
+}
