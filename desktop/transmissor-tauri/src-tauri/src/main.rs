@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "linux"))]
 mod desktop {
     use d2_transmitter::{
         config::Config,
@@ -34,6 +34,8 @@ mod desktop {
     #[tauri::command]
     async fn start(config: Config, state: State<'_, AppState>) -> Result<(), String> {
         config.validate()?;
+        #[cfg(target_os = "linux")]
+        native::validate(&config)?;
         let mut guard = state.running.lock().await;
         if guard.as_ref().is_some_and(|r| !r.task.is_finished()) {
             return Err("Uma sessão já está em andamento.".into());
@@ -117,8 +119,16 @@ mod desktop {
     }
 }
 fn main() {
-    #[cfg(windows)]
+    #[cfg(target_os = "linux")]
+    if std::env::args().any(|a| a == "--check") {
+        let runtime = tokio::runtime::Runtime::new().expect("Runtime Linux");
+        let report = runtime.block_on(d2_transmitter::native::preflight());
+        println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        std::process::exit(if report["ready"] == true { 0 } else { 1 });
+    }
+
+    #[cfg(any(windows, target_os = "linux"))]
     desktop::run();
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     eprintln!("O transmissor nativo requer Windows 11.");
 }

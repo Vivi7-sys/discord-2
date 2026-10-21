@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Discord 2 Transmissor Tauri",
+  "identifier": "com.discord2.transmissor.tauri.linux",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Discord 2 · Transmissor Linux",
+        "width": 1120,
+        "height": 820,
+        "minWidth": 740,
+        "minHeight": 600,
+        "backgroundColor": "#08090b"
+      }
+    ]
+  },
+  "bundle": {
+    "targets": [
+      "deb"
+    ],
+    "category": "Network",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1",
+          "libgstreamer1.0-0",
+          "libgstreamer-plugins-base1.0-0",
+          "gstreamer1.0-pipewire",
+          "gstreamer1.0-plugins-base",
+          "gstreamer1.0-plugins-good",
+          "pulseaudio-utils",
+          "xdg-desktop-portal",
+          "libstdc++6",
+          "libc6 (>= 2.39)"
+        ],
+        "recommends": [
+          "xdg-desktop-portal-cosmic",
+          "libva2",
+          "libva-drm2",
+          "mesa-va-drivers"
+        ],
+        "section": "net"
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+name: Linux Rust Tauri (no release)
+on:
+  push:
+    branches: [migration/linux-rust-tauri2]
+    paths: ['desktop/transmissor-tauri/**', '.github/workflows/transmissor-rust-linux.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: desktop/transmissor-tauri
+    env:
+      CARGO_BUILD_JOBS: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/transmissor-tauri/src-tauri
+      - name: Build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-pipewire libssl-dev libva-dev cmake ninja-build protobuf-compiler patchelf
+      - run: npm ci --no-audit --no-fund
+      - run: npm test && npm run build
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop
+      - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --features desktop --all-targets -- -D warnings
+      - run: npm run tauri -- build --bundles deb
+      - name: Verify package payload and actual installation on Ubuntu 24.04
+        run: |
+          python3 scripts/verify-linux-deb.py src-tauri/target/release/bundle/deb/*.deb --headless
+          sudo apt-get install -y --no-install-recommends ./src-tauri/target/release/bundle/deb/*.deb
+          dpkg-query -W discord-2-transmissor-tauri
+      - name: Save installer and evidence (interactive capture unvalidated on CI)
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-tauri-amd64
+          path: |
+            desktop/transmissor-tauri/src-tauri/target/release/bundle/deb/*.deb
+            desktop/transmissor-tauri/evidence/linux-*.json

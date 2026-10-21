@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import RoomIcon from "./RoomIcon";
-import { bridge, initial, native, type Config, type Target } from "./bridge";
+import { bridge, initial, native, linux, type Config, type Target } from "./bridge";
 import "./site.css";
 import "./desktop.css";
 
@@ -233,9 +233,9 @@ function App() {
                   onChange={(e) => update("audio", e.target.value)}
                 >
                   <option value="none">Sem áudio</option>
-                  <option value="application">Somente um aplicativo</option>
+                  <option value="application" disabled={linux}>Somente um aplicativo{linux ? " · indisponível no Linux" : ""}</option>
                   <option value="system">Todo o áudio do sistema</option>
-                  <option value="exclude">Sistema, excluindo o Discord</option>
+                  <option value="exclude" disabled={linux}>Sistema, excluindo o Discord{linux ? " · indisponível no Linux" : ""}</option>
                 </select>
               </label>
               {config.audio === "application" && (
@@ -267,7 +267,9 @@ function App() {
                 <span className="privacy-icon">◇</span>
                 {config.audio === "none"
                   ? "Nenhum áudio será capturado."
-                  : config.audio === "exclude"
+                  : linux
+                    ? "Monitor da saída do sistema, sem microfone. Exclusão do Discord indisponível no Linux."
+                    : config.audio === "exclude"
                     ? "Exclusão por processo. Se o isolamento falhar, a transmissão será interrompida."
                     : "O som continua tocando normalmente no seu computador."}
               </p>

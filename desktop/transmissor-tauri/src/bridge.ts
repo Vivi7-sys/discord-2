@@ -40,6 +40,7 @@ export const initial: Snapshot = {
   releaseConfirmed: null,
 };
 export const native = isTauri();
+export const linux = native && /linux/i.test(navigator.platform);
 export const bridge = {
   targets: () =>
     native ? invoke<Target[]>("list_targets") : Promise.resolve([]),
