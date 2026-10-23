@@ -121,12 +121,14 @@ async fn run_inner(
         }, cancel).await?;
         // Seed the attached encoder with the authorized image even on a static desktop.
         let published_source = source.clone();
-        tokio::task::spawn_blocking(move || {
+        let mut cached_frame = Some(tokio::task::spawn_blocking(move || {
             let mut frame = first_frame;
             // Use the SDK wall clock for this replay, consistent with subsequent captures.
             frame.timestamp_us = 0;
             published_source.capture_frame(&frame);
-        }).await.map_err(|_| "Falha na publicação do primeiro frame autorizado.")?;
+            frame
+        }).await.map_err(|_| "Falha na publicação do primeiro frame autorizado.")?);
+        let mut last_submission = Instant::now();
         state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
 
         let audio_source = if config.audio != "none" {
@@ -166,6 +168,11 @@ async fn run_inner(
             }
         }));
         let mut previous = (Instant::now(), 0u64, 0u32, 0u32, Instant::now());
+        // PipeWire may deliver only damage updates. Repeat the latest authorized pixels
+        // when idle so a late subscriber or keyframe request can start a static desktop.
+        // Capture counters are never incremented for these submissions.
+        let mut keepalive = tokio::time::interval(Duration::from_millis(500));
+        keepalive.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
             if *cancel.borrow() { break; }
             if stop.load(Ordering::Acquire) || video_control.as_ref().is_some_and(|c| c.is_finished()) {
@@ -187,9 +194,26 @@ async fn run_inner(
                         state.lock().unwrap_or_else(|p| p.into_inner()).dropped += 1;
                     } else {
                         let source = source.clone();
-                        tokio::task::spawn_blocking(move || source.capture_frame(&native::rtc_frame(packet)))
-                            .await.map_err(|_| "Falha na entrega de vídeo ao SDK.")?;
+                        cached_frame = Some(tokio::task::spawn_blocking(move || {
+                            let frame = native::rtc_frame(packet);
+                            source.capture_frame(&frame);
+                            frame
+                        }).await.map_err(|_| "Falha na entrega de vídeo ao SDK.")?);
+                        last_submission = Instant::now();
                         state.lock().unwrap_or_else(|p| p.into_inner()).submitted += 1;
+                    }
+                },
+                _ = keepalive.tick() => {
+                    if last_submission.elapsed() >= Duration::from_millis(500) {
+                        let source = source.clone();
+                        let mut frame = cached_frame.take().ok_or("Frame autorizado indisponível.")?;
+                        frame.timestamp_us = 0;
+                        cached_frame = Some(tokio::task::spawn_blocking(move || {
+                            source.capture_frame(&frame);
+                            frame
+                        }).await.map_err(|_| "Falha ao manter a imagem autorizada no SDK.")?);
+                        last_submission = Instant::now();
+                        state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
                     }
                 },
                 samples = arx.recv(), if audio_source.is_some() => {

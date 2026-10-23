@@ -89,7 +89,8 @@ async fn real_connection_capture_audio_decode_and_release() {
         if snapshot.phase == "error" {
             break;
         }
-        if snapshot.submitted > 0
+        if snapshot.captured >= 5
+            && snapshot.submitted > 0
             && snapshot.published_fps.is_some_and(|v| v > 0.)
             && decoded_video.load(Ordering::Relaxed) > 5
             && decoded_audio.load(Ordering::Relaxed) > 5

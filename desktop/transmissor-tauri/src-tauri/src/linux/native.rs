@@ -163,6 +163,7 @@ fn pipeline(description: &str) -> Result<(gst::Pipeline, gstreamer_app::AppSink)
         .map_err(|e| format!("Falha no pipeline de captura: {e}"))?
         .downcast::<gst::Pipeline>()
         .map_err(|_| "Pipeline inválido.")?;
+    pipeline.use_clock(Some(&gst::SystemClock::obtain()));
     let sink = pipeline
         .by_name("frames")
         .ok_or("Appsink ausente.")?
@@ -243,7 +244,7 @@ pub async fn video(
                 .await
                 .map_err(|_| "Falha ao abrir PipeWire autorizado.")?;
             let p = flags.profile;
-            let (pipeline, sink) = pipeline(&format!("pipewiresrc fd={} path={} do-timestamp=true ! video/x-raw,pixel-aspect-ratio=1/1 ! queue max-size-buffers=1 leaky=downstream ! videorate drop-only=true ! video/x-raw,framerate={}/1 ! videoconvert ! videoscale add-borders=true ! video/x-raw,format=I420,width={},height={},pixel-aspect-ratio=1/1 ! appsink name=frames sync=false max-buffers=1 drop=true enable-last-sample=false", remote.as_raw_fd(), node, p.fps, p.width, p.height))?;
+            let (pipeline, sink) = pipeline(&format!("pipewiresrc fd={} path={} do-timestamp=true provide-clock=false ! video/x-raw,pixel-aspect-ratio=1/1 ! queue max-size-buffers=1 leaky=downstream ! videorate drop-only=true ! video/x-raw,framerate={}/1 ! videoconvert ! videoscale add-borders=true ! video/x-raw,format=I420,width={},height={},pixel-aspect-ratio=1/1 ! appsink name=frames sync=false max-buffers=1 drop=true enable-last-sample=false", remote.as_raw_fd(), node, p.fps, p.width, p.height))?;
             Ok((pipeline, sink, remote))
         };
         if *cancel.borrow() {
@@ -460,7 +461,7 @@ pub fn audio(
             validate(&config)?;
             initialize()?;
             let monitor = system_monitor()?;
-            let (pipeline, sink) = pipeline("pulsesrc name=output do-timestamp=true ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,rate=48000,channels=2,layout=interleaved ! appsink name=frames sync=false max-buffers=5 drop=true enable-last-sample=false")?;
+            let (pipeline, sink) = pipeline("pulsesrc name=output do-timestamp=true provide-clock=false ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,rate=48000,channels=2,layout=interleaved ! appsink name=frames sync=false max-buffers=5 drop=true enable-last-sample=false")?;
             let source = pipeline.by_name("output").unwrap();
             source.set_property("device", &monitor);
             let policy = gst::Structure::builder("props")
