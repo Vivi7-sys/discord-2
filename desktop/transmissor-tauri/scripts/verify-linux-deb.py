@@ -41,12 +41,19 @@ with tempfile.TemporaryDirectory(prefix='d2-tauri-deb-') as tmp:
     files = [str(p.relative_to(root)) for p in root.rglob('*') if p.is_file()]
     assert not any(p.endswith(('.py','.exe','.dll')) for p in files)
     collisions = []
+    upgrade_files = []
     for path in files:
         owned = subprocess.run(['dpkg-query','-S','/'+path], capture_output=True, text=True)
         if owned.returncode == 0:
-            collisions.append({'path':path,'owner':owned.stdout.strip()})
+            owners = [line.split(': ', 1)[0] for line in owned.stdout.splitlines()]
+            # Replacing files belonging to this same package is an ordinary
+            # upgrade. Any other owner (including GTK) remains a hard failure.
+            if owners and all(owner.split(':', 1)[0] == fields['Package'] for owner in owners):
+                upgrade_files.append(path)
+            else:
+                collisions.append({'path':path,'owner':owned.stdout.strip()})
     assert not collisions, collisions
-report = dict(package=fields['Package'], version=fields['Version'], architecture=fields['Architecture'], sha256=hashlib.sha256(args.deb.read_bytes()).hexdigest(), payloadVerified=True, dependenciesResolvedByLdd=True, packagedPreflight=check, overwritesInstalledFiles=False, actualRootInstallationTested=False, portalCaptureTested=False, livekitTested=False)
+report = dict(package=fields['Package'], version=fields['Version'], architecture=fields['Architecture'], sha256=hashlib.sha256(args.deb.read_bytes()).hexdigest(), payloadVerified=True, dependenciesResolvedByLdd=True, packagedPreflight=check, overwritesInstalledFiles=bool(upgrade_files), updatesFilesFromSamePackage=upgrade_files, overwritesFilesFromOtherPackages=False, actualRootInstallationTested=False, portalCaptureTested=False, livekitTested=False)
 args.report.parent.mkdir(parents=True, exist_ok=True)
 args.report.write_text(json.dumps(report, indent=2)+'\n')
 print(json.dumps(report, indent=2))

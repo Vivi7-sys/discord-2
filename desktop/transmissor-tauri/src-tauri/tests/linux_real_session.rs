@@ -141,6 +141,17 @@ async fn real_connection_capture_audio_decode_and_release() {
                     .await
                     .unwrap();
             let result = contender.share("acquire").await;
+            // Only fixed, sanitized Backend errors are logged, never response
+            // JSON, participant identities, credentials or invitation URLs.
+            eprintln!(
+                "Cycle {} competing acquire: {}",
+                cycle + 1,
+                result
+                    .as_ref()
+                    .err()
+                    .map(String::as_str)
+                    .unwrap_or("unexpected grant")
+            );
             let conflict = result.as_ref().is_err_and(|e| e.contains("Outra pessoa"));
             if result.is_ok() {
                 let _ = contender.release().await;
