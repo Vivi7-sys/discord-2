@@ -97,8 +97,11 @@ async fn run_inner(
             VideoResolution { width: profile.width, height: profile.height }, true,
         );
         let initial_source = source.clone();
-        tokio::task::spawn_blocking(move || initial_source.capture_frame(&native::rtc_frame(first_frame)))
-            .await.map_err(|_| "Falha na entrega do primeiro frame ao SDK.")?;
+        let first_frame = tokio::task::spawn_blocking(move || {
+            let frame = native::rtc_frame(first_frame);
+            initial_source.capture_frame(&frame);
+            frame
+        }).await.map_err(|_| "Falha na entrega do primeiro frame ao SDK.")?;
         state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
         let track = LocalVideoTrack::create_video_track("screen", RtcVideoSource::Native(source.clone()));
         let video_options = TrackPublishOptions {
@@ -116,6 +119,14 @@ async fn run_inner(
             room.local_participant().publish_track(LocalTrack::Video(track.clone()), video_options)
                 .await.map_err(|_| "Falha ao publicar vídeo na sala.".into())
         }, cancel).await?;
+        // Seed the attached encoder with the authorized image even on a static desktop.
+        let published_source = source.clone();
+        tokio::task::spawn_blocking(move || {
+            let mut frame = first_frame;
+            frame.timestamp_us = epoch.elapsed().as_micros() as i64;
+            published_source.capture_frame(&frame);
+        }).await.map_err(|_| "Falha na publicação do primeiro frame autorizado.")?;
+        state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
 
         let audio_source = if config.audio != "none" {
             let source = NativeAudioSource::new(AudioSourceOptions::default(), 48000, 2, 100);
