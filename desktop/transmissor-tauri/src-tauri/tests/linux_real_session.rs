@@ -44,7 +44,7 @@ async fn real_connection_capture_audio_decode_and_release() {
                     RemoteTrack::Video(track) => {
                         let count = video_count.clone();
                         decoders.spawn(async move {
-                            let mut stream = NativeVideoStream::new(track.rtc_track(), Some(1));
+                            let mut stream = NativeVideoStream::new(track.rtc_track());
                             while stream.next().await.is_some() {
                                 count.fetch_add(1, Ordering::Relaxed);
                             }
@@ -54,8 +54,7 @@ async fn real_connection_capture_audio_decode_and_release() {
                         let count = audio_count.clone();
                         let peak = peak_count.clone();
                         decoders.spawn(async move {
-                            let mut stream =
-                                NativeAudioStream::new(track.rtc_track(), 48000, 2, Some(5));
+                            let mut stream = NativeAudioStream::new(track.rtc_track(), 48000, 2);
                             while let Some(frame) = stream.next().await {
                                 count.fetch_add(1, Ordering::Relaxed);
                                 peak.fetch_max(

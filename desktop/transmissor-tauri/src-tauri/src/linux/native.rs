@@ -200,6 +200,12 @@ pub async fn video(
             if response.streams().len() != 1 {
                 return Err("O portal deve autorizar exatamente uma fonte.".to_string());
             }
+            if response.streams()[0]
+                .source_type()
+                .is_some_and(|actual| actual != kind)
+            {
+                return Err("O portal retornou um tipo diferente da fonte solicitada.".into());
+            }
             let node = response.streams()[0].pipe_wire_node_id();
             let remote = proxy
                 .open_pipe_wire_remote(session)
