@@ -162,8 +162,27 @@ async fn run_inner(
             let mut timer = tokio::time::interval(Duration::from_secs(2));
             loop {
                 timer.tick().await;
-                let stats = tokio::time::timeout(Duration::from_secs(1), stats_track.get_stats()).await;
-                let stats = stats.ok().and_then(Result::ok);
+                // Debug-only isolation for the real-media regression probe. Release
+                // builds always collect stats through the patched SDK callback.
+                let disabled = cfg!(debug_assertions)
+                    && std::env::var_os("D2_TEST_DISABLE_RTC_STATS").is_some();
+                let stats = if disabled {
+                    None
+                } else {
+                    match tokio::time::timeout(Duration::from_secs(1), stats_track.get_stats()).await {
+                        Ok(Ok(stats)) => Some(stats),
+                        Ok(Err(error)) => {
+                            use std::io::Write;
+                            let _ = writeln!(std::io::stderr(), "Diagnóstico RTC opcional indisponível; mídia continua: {error}");
+                            None
+                        }
+                        Err(_) => {
+                            use std::io::Write;
+                            let _ = writeln!(std::io::stderr(), "Timeout de diagnóstico RTC opcional; mídia continua.");
+                            None
+                        }
+                    }
+                };
                 if stats_tx.send((Instant::now(), stats)).await.is_err() { break; }
             }
         }));

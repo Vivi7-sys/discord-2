@@ -55,3 +55,7 @@ gstreamer = "0.23"
 gstreamer-app = "0.23"
 gstreamer-video = "0.23"
 futures-util = "0.3"
+
+# Reproducible Linux-only stats callback fix. Non-Linux implementations are unchanged.
+[patch.crates-io]
+libwebrtc = { path = "vendor/libwebrtc-0.3.42" }

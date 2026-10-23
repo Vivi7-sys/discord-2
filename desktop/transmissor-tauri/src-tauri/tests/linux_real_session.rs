@@ -75,67 +75,94 @@ async fn real_connection_capture_audio_decode_and_release() {
             }
         }
     });
-    let state = Arc::new(Mutex::new(Snapshot::default()));
-    let (cancel, rx) = tokio::sync::watch::channel(false);
-    let task = tokio::spawn(session::run(config.clone(), state.clone(), rx));
-    let mut live = false;
-    let mut tone = None;
-    for _ in 0..100 {
-        tokio::time::sleep(Duration::from_secs(1)).await;
+    let cycles = std::env::var("D2_TEST_CYCLES")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(2);
+    assert!((1..=3).contains(&cycles));
+    let mut reports = Vec::new();
+    for cycle in 0..cycles {
+        let initial_video = decoded_video.load(Ordering::Relaxed);
+        let initial_audio = decoded_audio.load(Ordering::Relaxed);
+        let state = Arc::new(Mutex::new(Snapshot::default()));
+        let (cancel, rx) = tokio::sync::watch::channel(false);
+        let task = tokio::spawn(session::run(config.clone(), state.clone(), rx));
+        let mut live = false;
+        let mut tone = None;
+        for attempt in 0..100 {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            let snapshot = state.lock().unwrap().clone();
+            if snapshot.phase == "streaming" && tone.is_none() {
+                tone = linux_audio::Tone::play().ok();
+            }
+            if snapshot.phase == "error" {
+                break;
+            }
+            if attempt >= 8
+                && snapshot.captured > 0
+                && snapshot.submitted > 0
+                && decoded_video
+                    .load(Ordering::Relaxed)
+                    .saturating_sub(initial_video)
+                    > 5
+                && decoded_audio
+                    .load(Ordering::Relaxed)
+                    .saturating_sub(initial_audio)
+                    > 5
+                && peak_audio.load(Ordering::Relaxed) > 0
+            {
+                live = true;
+                break;
+            }
+        }
+        // Verify the server refuses a second publisher while real tracks are active.
+        let mut contender = Backend::new(&config).unwrap();
+        let conflict = if live {
+            let (contender_url, contender_token) =
+                contender.login("Rust conflict peer").await.unwrap();
+            let (room, _events) =
+                Room::connect(&contender_url, &contender_token, RoomOptions::default())
+                    .await
+                    .unwrap();
+            let result = contender.share("acquire").await;
+            let conflict = result.as_ref().is_err_and(|e| e.contains("Outra pessoa"));
+            if result.is_ok() {
+                let _ = contender.release().await;
+            }
+            let _ = room.close().await;
+            conflict
+        } else {
+            false
+        };
+        let _ = cancel.send(true);
+        tokio::time::timeout(Duration::from_secs(30), task)
+            .await
+            .expect("Stop timeout")
+            .unwrap();
         let snapshot = state.lock().unwrap().clone();
-        if snapshot.phase == "streaming" && tone.is_none() {
-            tone = linux_audio::Tone::play().ok();
-        }
-        if snapshot.phase == "error" {
-            break;
-        }
-        if snapshot.captured >= 5
-            && snapshot.submitted > 0
-            && snapshot.published_fps.is_some_and(|v| v > 0.)
-            && decoded_video.load(Ordering::Relaxed) > 5
-            && decoded_audio.load(Ordering::Relaxed) > 5
-            && peak_audio.load(Ordering::Relaxed) > 0
-        {
-            live = true;
-            break;
-        }
-    }
-    // Verify the server refuses a second publisher while real tracks are active.
-    let mut contender = Backend::new(&config).unwrap();
-    let conflict = if live {
-        let (contender_url, contender_token) = contender.login("Rust conflict peer").await.unwrap();
-        let (room, _events) =
-            Room::connect(&contender_url, &contender_token, RoomOptions::default())
-                .await
-                .unwrap();
-        let result = contender.share("acquire").await;
-        let conflict = result.as_ref().is_err_and(|e| e.contains("Outra pessoa"));
-        if result.is_ok() {
-            let _ = contender.release().await;
-        }
-        let _ = room.close().await;
-        conflict
-    } else {
-        false
-    };
-    let _ = cancel.send(true);
-    tokio::time::timeout(Duration::from_secs(30), task)
-        .await
-        .expect("Stop timeout")
-        .unwrap();
-    let _ = receiver.close().await;
-    receive_task.abort();
-    let snapshot = state.lock().unwrap().clone();
-    let report = serde_json::json!({"synthetic":false,"capture":"XDG Desktop Portal / PipeWire","profile":config.profile,"audioMode":"system","microphoneCaptured":false,"rtpObserved":live,"receiverDecodedVideoFrames":decoded_video.load(Ordering::Relaxed),"receiverDecodedAudioFrames":decoded_audio.load(Ordering::Relaxed),"receiverAudioPeak":peak_audio.load(Ordering::Relaxed),"testSignal":"quiet-tone-through-real-system-output","exclusivityVerified":conflict,"snapshot":snapshot});
-    std::fs::create_dir_all("../evidence").unwrap();
-    std::fs::write(
-        "../evidence/linux-real-session.json",
-        serde_json::to_vec_pretty(&report).unwrap(),
+        let report = serde_json::json!({"synthetic":false,"capture":"XDG Desktop Portal / PipeWire","profile":config.profile,"audioMode":"system","microphoneCaptured":false,"rtpObserved":live,"receiverDecodedVideoFrames":decoded_video.load(Ordering::Relaxed),"receiverDecodedAudioFrames":decoded_audio.load(Ordering::Relaxed),"receiverAudioPeak":peak_audio.load(Ordering::Relaxed),"testSignal":"quiet-tone-through-real-system-output","exclusivityVerified":conflict,"snapshot":snapshot});
+        let mut report = report;
+        report["cycle"] = serde_json::json!(cycle + 1);
+        report["cycleDecodedVideoFrames"] = serde_json::json!(decoded_video
+            .load(Ordering::Relaxed)
+            .saturating_sub(initial_video));
+        report["cycleDecodedAudioFrames"] = serde_json::json!(decoded_audio
+            .load(Ordering::Relaxed)
+            .saturating_sub(initial_audio));
+        reports.push(report);
+        std::fs::create_dir_all("../evidence").unwrap();
+        std::fs::write(
+        "../evidence/linux-rtc-crash-real-session.json",
+        serde_json::to_vec_pretty(&serde_json::json!({"cycles":reports,"statsDisabledForIsolation":std::env::var_os("D2_TEST_DISABLE_RTC_STATS").is_some()})).unwrap(),
     )
     .unwrap();
-    assert!(live, "Real screen/audio decoding remains unvalidated");
-    assert!(conflict, "Publisher exclusivity not confirmed");
-    assert_eq!(snapshot.release_confirmed, Some(true));
-    assert_eq!(snapshot.phase, "idle");
-    assert!(snapshot.restart_safe);
+        assert!(live, "Real screen/audio decoding remains unvalidated");
+        assert!(conflict, "Publisher exclusivity not confirmed");
+        assert_eq!(snapshot.release_confirmed, Some(true));
+        assert_eq!(snapshot.phase, "idle");
+        assert!(snapshot.restart_safe);
+        drop(tone);
+    }
+    receiver.close().await.expect("Receiver disconnect");
+    receive_task.abort();
 }

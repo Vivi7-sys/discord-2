@@ -6,7 +6,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Discord 2 · Transmissor Linux",
+        "title": "Discord 2 \u00b7 Transmissor Linux",
         "width": 1120,
         "height": 820,
         "minWidth": 740,
@@ -45,5 +45,6 @@
         "section": "net"
       }
     }
-  }
+  },
+  "version": "0.2.0-alpha.2"
 }
