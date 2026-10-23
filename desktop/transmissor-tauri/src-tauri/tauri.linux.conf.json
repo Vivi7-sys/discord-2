@@ -19,7 +19,7 @@
     "targets": [
       "deb"
     ],
-    "category": "Network",
+    "category": "SocialNetworking",
     "linux": {
       "deb": {
         "depends": [

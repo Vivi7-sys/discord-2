@@ -503,6 +503,42 @@ pub fn audio(
     })
 }
 
+/// Read-only diagnostics used by the packaged executable's --check command.
+pub async fn preflight() -> serde_json::Value {
+    let initialized = initialize().is_ok();
+    let plugins: serde_json::Map<String, Value> = [
+        "pipewiresrc",
+        "pulsesrc",
+        "videoconvert",
+        "videoscale",
+        "videorate",
+        "appsink",
+        "audioconvert",
+        "audioresample",
+    ]
+    .into_iter()
+    .map(|name| {
+        (
+            name.into(),
+            Value::Bool(initialized && gst::ElementFactory::find(name).is_some()),
+        )
+    })
+    .collect();
+    let portal = match tokio::time::timeout(Duration::from_secs(5), async {
+        Screencast::new().await?.available_source_types().await
+    })
+    .await
+    {
+        Ok(Ok(types)) => {
+            serde_json::json!({"monitor":types.contains(SourceType::Monitor), "window":types.contains(SourceType::Window)})
+        }
+        _ => Value::Null,
+    };
+    let monitor = system_monitor();
+    let ready = plugins.values().all(|v| v == &Value::Bool(true)) && !portal.is_null();
+    serde_json::json!({"ready":ready, "platform":"linux", "capture":"XDG Desktop Portal / PipeWire", "plugins":plugins, "portal":portal, "systemAudioMonitor":monitor.as_ref().ok(), "systemAudioError":monitor.err(), "microphone":false, "discordExclusionAvailable":false})
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -550,54 +586,14 @@ mod tests {
         .is_err());
         assert!(output_monitor(&sources, &sinks, "missing").is_err());
     }
-}
 
-/// Read-only diagnostics used by the packaged executable's --check command.
-pub async fn preflight() -> serde_json::Value {
-    let initialized = initialize().is_ok();
-    let plugins: serde_json::Map<String, Value> = [
-        "pipewiresrc",
-        "pulsesrc",
-        "videoconvert",
-        "videoscale",
-        "videorate",
-        "appsink",
-        "audioconvert",
-        "audioresample",
-    ]
-    .into_iter()
-    .map(|name| {
-        (
-            name.into(),
-            Value::Bool(initialized && gst::ElementFactory::find(name).is_some()),
-        )
-    })
-    .collect();
-    let portal = match tokio::time::timeout(Duration::from_secs(5), async {
-        Screencast::new().await?.available_source_types().await
-    })
-    .await
-    {
-        Ok(Ok(types)) => {
-            serde_json::json!({"monitor":types.contains(SourceType::Monitor), "window":types.contains(SourceType::Window)})
-        }
-        _ => Value::Null,
-    };
-    let monitor = system_monitor();
-    let ready = plugins.values().all(|v| v == &Value::Bool(true)) && !portal.is_null();
-    serde_json::json!({"ready":ready, "platform":"linux", "capture":"XDG Desktop Portal / PipeWire", "plugins":plugins, "portal":portal, "systemAudioMonitor":monitor.as_ref().ok(), "systemAudioError":monitor.err(), "microphone":false, "discordExclusionAvailable":false})
-}
-
-#[cfg(test)]
-mod pipeline_tests {
-    use super::*;
     use crate::model::Snapshot;
     use livekit::webrtc::video_frame::VideoBuffer;
     use std::sync::Mutex;
     #[test]
     fn gstreamer_i420_conversion_and_bounded_stop() {
         initialize().unwrap();
-        let (pipeline, sink) = pipeline("videotestsrc is-live=true pattern=red ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1 ! appsink name=frames sync=false max-buffers=1 drop=true").unwrap();
+        let (pipeline, sink) = pipeline("videotestsrc is-live=true pattern=red ! video/x-raw,format=I420,width=1280,height=720,framerate=30/1,colorimetry=bt601 ! appsink name=frames sync=false max-buffers=1 drop=true").unwrap();
         let stop = Arc::new(AtomicBool::new(false));
         let (tx, mut rx) = mpsc::channel(1);
         let flags = Flags {

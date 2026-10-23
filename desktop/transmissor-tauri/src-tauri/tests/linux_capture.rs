@@ -1,4 +1,6 @@
 #![cfg(target_os = "linux")]
+#[path = "support/linux_audio.rs"]
+mod linux_audio;
 use d2_transmitter::{config::Config, model::Snapshot, native};
 use std::{
     sync::{
@@ -80,6 +82,11 @@ fn real_output_monitor_samples() {
     let (ready, readiness) = std::sync::mpsc::sync_channel(1);
     let worker = native::audio(config("system"), stop.clone(), tx, ready);
     let initialized = readiness.recv_timeout(Duration::from_secs(10));
+    let tone = if initialized.as_ref().is_ok_and(|r| r.is_ok()) {
+        linux_audio::Tone::play().ok()
+    } else {
+        None
+    };
     let mut blocks = 0;
     let mut peak = 0i32;
     let started = Instant::now();
@@ -104,9 +111,13 @@ fn real_output_monitor_samples() {
     let stopped = worker.join().unwrap();
     report(
         "linux-real-audio",
-        serde_json::json!({"synthetic":false,"monitorSamplesReceived":blocks>0,"blocks":blocks,"peak":peak,"microphoneCaptured":false,"audibleSignalValidated":peak>0,"stopped":stopped.is_ok(),"livekitTested":false}),
+        serde_json::json!({"synthetic":false,"monitorSamplesReceived":blocks>0,"blocks":blocks,"peak":peak,"microphoneCaptured":false,"audibleSignalValidated":peak>0,"testSignal":"quiet-tone-through-real-system-output","testSignalStarted":tone.is_some(),"stopped":stopped.is_ok(),"livekitTested":false}),
     );
     initialized.unwrap().unwrap();
     stopped.unwrap();
     assert!(blocks > 0, "No real output-monitor samples");
+    assert!(
+        tone.is_some() && peak > 0,
+        "Real playback signal was not captured"
+    );
 }

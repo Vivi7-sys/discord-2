@@ -34,6 +34,7 @@ jobs:
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop
       - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --features desktop --all-targets -- -D warnings
+      - run: python3 scripts/stage-linux-probes.py
       - run: npm run tauri -- build --bundles deb
       - name: Verify package payload and actual installation on Ubuntu 24.04
         run: |
@@ -47,3 +48,4 @@ jobs:
           path: |
             desktop/transmissor-tauri/src-tauri/target/release/bundle/deb/*.deb
             desktop/transmissor-tauri/evidence/linux-*.json
+            desktop/transmissor-tauri/artifacts/linux-probes/**

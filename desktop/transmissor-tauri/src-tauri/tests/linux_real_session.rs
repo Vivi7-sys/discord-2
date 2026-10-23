@@ -1,5 +1,7 @@
 #![cfg(target_os = "linux")]
 //! Requires an owner-provided dedicated room. Both receiver decoders consume real media.
+#[path = "support/linux_audio.rs"]
+mod linux_audio;
 use d2_transmitter::{backend::Backend, config::Config, model::Snapshot, session};
 use futures_util::StreamExt;
 use livekit::{
@@ -77,9 +79,13 @@ async fn real_connection_capture_audio_decode_and_release() {
     let (cancel, rx) = tokio::sync::watch::channel(false);
     let task = tokio::spawn(session::run(config.clone(), state.clone(), rx));
     let mut live = false;
+    let mut tone = None;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_secs(1)).await;
         let snapshot = state.lock().unwrap().clone();
+        if snapshot.phase == "streaming" && tone.is_none() {
+            tone = linux_audio::Tone::play().ok();
+        }
         if snapshot.phase == "error" {
             break;
         }
@@ -87,6 +93,7 @@ async fn real_connection_capture_audio_decode_and_release() {
             && snapshot.published_fps.is_some_and(|v| v > 0.)
             && decoded_video.load(Ordering::Relaxed) > 5
             && decoded_audio.load(Ordering::Relaxed) > 5
+            && peak_audio.load(Ordering::Relaxed) > 0
         {
             live = true;
             break;
@@ -118,7 +125,7 @@ async fn real_connection_capture_audio_decode_and_release() {
     let _ = receiver.close().await;
     receive_task.abort();
     let snapshot = state.lock().unwrap().clone();
-    let report = serde_json::json!({"synthetic":false,"capture":"XDG Desktop Portal / PipeWire","profile":config.profile,"audioMode":"system","microphoneCaptured":false,"rtpObserved":live,"receiverDecodedVideoFrames":decoded_video.load(Ordering::Relaxed),"receiverDecodedAudioFrames":decoded_audio.load(Ordering::Relaxed),"receiverAudioPeak":peak_audio.load(Ordering::Relaxed),"exclusivityVerified":conflict,"snapshot":snapshot});
+    let report = serde_json::json!({"synthetic":false,"capture":"XDG Desktop Portal / PipeWire","profile":config.profile,"audioMode":"system","microphoneCaptured":false,"rtpObserved":live,"receiverDecodedVideoFrames":decoded_video.load(Ordering::Relaxed),"receiverDecodedAudioFrames":decoded_audio.load(Ordering::Relaxed),"receiverAudioPeak":peak_audio.load(Ordering::Relaxed),"testSignal":"quiet-tone-through-real-system-output","exclusivityVerified":conflict,"snapshot":snapshot});
     std::fs::create_dir_all("../evidence").unwrap();
     std::fs::write(
         "../evidence/linux-real-session.json",

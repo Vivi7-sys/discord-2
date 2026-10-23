@@ -31,12 +31,16 @@ try {
   if (actual.metadata !== metadata) throw new Error('Dedicated room ownership could not be verified.');
   created = true;
   const invite = (process.env.D2_TEST_API_BASE || 'https://discord-2-kuau.onrender.com') + '/sala/' + room;
-  const child = spawn('cargo', ['test','--locked','--manifest-path','src-tauri/Cargo.toml','--features','desktop','--test','linux_real_session','--','--ignored','--nocapture'], {
-    cwd: directory, env: { ...process.env, D2_TEST_INVITE: invite, RUST_LOG:'error' }, stdio:'inherit',
+  const probe = process.env.D2_LINUX_SESSION_PROBE;
+  const command = probe || 'cargo';
+  const args = probe ? ['--ignored','--nocapture'] : ['test','--locked','--manifest-path','src-tauri/Cargo.toml','--features','desktop','--test','linux_real_session','--','--ignored','--nocapture'];
+  const child = spawn(command, args, {
+    cwd: probe ? directory + 'src-tauri' : directory, env: { ...process.env, D2_TEST_INVITE: invite, RUST_LOG:'error' }, stdio:'inherit',
   });
   const timer = setTimeout(() => { child.kill('SIGTERM'); }, 180000);
-  const code = await new Promise((resolve,reject) => { child.on('error',reject); child.on('exit',resolve); });
-  clearTimeout(timer);
+  let code;
+  try { code = await new Promise((resolve,reject) => { child.on('error',reject); child.on('exit',resolve); }); }
+  finally { clearTimeout(timer); }
   report.testPassed = code === 0;
   report.exitCode = code;
 } catch (error) {
