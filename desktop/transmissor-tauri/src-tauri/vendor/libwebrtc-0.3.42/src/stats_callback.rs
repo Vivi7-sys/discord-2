@@ -73,6 +73,32 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn decimal_comma_is_rejected_without_aborting() {
+        let (tx, rx) = oneshot::channel::<StatsReply>();
+        complete_stats(
+            Box::new(tx),
+            r#"[{"type":"peer-connection","timestamp":12,5,"id":"PC"}]"#,
+        );
+        assert!(rx
+            .await
+            .unwrap()
+            .unwrap_err()
+            .message
+            .contains("key must be a string"));
+    }
+
+    #[tokio::test]
+    async fn valid_typed_report_is_preserved() {
+        let (tx, rx) = oneshot::channel::<StatsReply>();
+        complete_stats(
+            Box::new(tx),
+            r#"[{"type":"peer-connection","timestamp":12.5,"id":"PC","dataChannelsOpened":1,"dataChannelsClosed":0}]"#,
+        );
+        let report = rx.await.unwrap().unwrap();
+        assert!(matches!(report.as_slice(), [RtcStats::PeerConnection(_)]));
+    }
+
     #[test]
     fn cancelled_caller_and_unexpected_context_do_not_panic() {
         let (tx, rx) = oneshot::channel::<StatsReply>();

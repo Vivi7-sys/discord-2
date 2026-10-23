@@ -19,6 +19,22 @@ use std::{
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "requires D2_TEST_INVITE and interactive portal approval; connects an independent real receiver"]
 async fn real_connection_capture_audio_decode_and_release() {
+    // GTK initializes the process locale; reproduce its numeric locale in the
+    // headless media probe as well, before native WebRTC threads are created.
+    if let Ok(locale) = std::env::var("D2_TEST_NUMERIC_LOCALE") {
+        unsafe extern "C" {
+            fn setlocale(
+                category: std::ffi::c_int,
+                locale: *const std::ffi::c_char,
+            ) -> *mut std::ffi::c_char;
+        }
+        let locale = std::ffi::CString::new(locale).unwrap();
+        // LC_NUMERIC = 1 on Linux/glibc.
+        assert!(
+            !unsafe { setlocale(1, locale.as_ptr()) }.is_null(),
+            "Requested numeric locale is not installed"
+        );
+    }
     let config = Config {
         invite: std::env::var("D2_TEST_INVITE").expect("Dedicated test invitation required"),
         name: "Rust Linux sender".into(),
