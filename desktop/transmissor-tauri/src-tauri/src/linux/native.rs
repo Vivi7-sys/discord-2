@@ -22,7 +22,7 @@ use std::{
         Arc,
     },
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::{mpsc, watch};
 
@@ -284,6 +284,10 @@ fn video_worker(
             continue;
         };
         let at = Instant::now();
+        let timestamp_us = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| "Relógio de captura inválido.")?
+            .as_micros() as i64;
         flags
             .state
             .lock()
@@ -355,7 +359,7 @@ fn video_worker(
             .processing_ms = at.elapsed().as_secs_f64() * 1000.;
         permit.send(VideoPacket {
             buffer,
-            timestamp_us: flags.epoch.elapsed().as_micros() as i64,
+            timestamp_us,
             at,
         });
     }

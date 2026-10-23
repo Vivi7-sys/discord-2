@@ -123,7 +123,8 @@ async fn run_inner(
         let published_source = source.clone();
         tokio::task::spawn_blocking(move || {
             let mut frame = first_frame;
-            frame.timestamp_us = epoch.elapsed().as_micros() as i64;
+            // Use the SDK wall clock for this replay, consistent with subsequent captures.
+            frame.timestamp_us = 0;
             published_source.capture_frame(&frame);
         }).await.map_err(|_| "Falha na publicação do primeiro frame autorizado.")?;
         state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
