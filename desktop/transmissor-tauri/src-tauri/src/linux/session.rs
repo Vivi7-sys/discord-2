@@ -186,6 +186,7 @@ async fn run_inner(
                 if stats_tx.send((Instant::now(), stats)).await.is_err() { break; }
             }
         }));
+        let mut diagnostics_available = true;
         let mut previous = (Instant::now(), 0u64, 0u32, 0u32, Instant::now());
         // PipeWire may deliver only damage updates. Repeat the latest authorized pixels
         // when idle so a late subscriber or keyframe request can start a static desktop.
@@ -242,8 +243,16 @@ async fn run_inner(
                         .await.map_err(|_| "Atraso na publicação de áudio.")?
                         .map_err(|_| "Falha na publicação de áudio.")?;
                 },
-                sample = stats_rx.recv() => {
-                    let (now, stats) = sample.ok_or("O serviço de diagnósticos foi interrompido.")?;
+                sample = stats_rx.recv(), if diagnostics_available => {
+                    let Some((now, stats)) = sample else {
+                        diagnostics_available = false;
+                        use std::io::Write;
+                        let _ = writeln!(std::io::stderr(), "Diagnóstico RTC opcional encerrado; mídia continua.");
+                        let mut s = state.lock().unwrap_or_else(|p| p.into_inner());
+                        s.encoded_fps = None;
+                        s.published_fps = None;
+                        continue;
+                    };
                     let seconds = now.duration_since(previous.0).as_secs_f64().max(0.001);
                     let mut s = state.lock().unwrap_or_else(|p| p.into_inner());
                     if s.captured == 0 && epoch.elapsed() > Duration::from_secs(10) {

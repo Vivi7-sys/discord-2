@@ -78,7 +78,8 @@ mod tests {
         let (tx, rx) = oneshot::channel::<StatsReply>();
         complete_stats(
             Box::new(tx),
-            r#"[{"type":"peer-connection","timestamp":12,5,"id":"PC"}]"#,
+            // Exact shape emitted by the pinned native serializer under pt_BR.
+            r#"[{"type":"candidate-pair","id":"test","timestamp":12345,"currentRoundTripTime":0,125}]"#,
         );
         assert!(rx
             .await
@@ -97,6 +98,13 @@ mod tests {
         );
         let report = rx.await.unwrap().unwrap();
         assert!(matches!(report.as_slice(), [RtcStats::PeerConnection(_)]));
+    }
+
+    #[tokio::test]
+    async fn mismatched_context_closes_original_channel() {
+        let (tx, rx) = oneshot::channel::<u32>();
+        complete_stats(Box::new(tx), "[]");
+        assert!(rx.await.is_err());
     }
 
     #[test]
