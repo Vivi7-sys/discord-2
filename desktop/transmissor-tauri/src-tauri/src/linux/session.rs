@@ -61,11 +61,9 @@ async fn run_inner(
     let (url, token) = step(backend.login(&config.name), cancel).await?;
     let (room, mut events) = step(
         async {
-            let options = RoomOptions {
-                auto_subscribe: false,
-                dynacast: false,
-                ..Default::default()
-            };
+            let mut options = RoomOptions::default();
+            options.auto_subscribe = false;
+            options.dynacast = false;
             Room::connect(&url, &token, options)
                 .await
                 .map_err(|_| "Não foi possível conectar ao LiveKit.".into())
