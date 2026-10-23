@@ -26,6 +26,37 @@ use std::{
 };
 use tokio::sync::{mpsc, watch};
 
+/// Probe access, rather than forcing software rendering on machines with a usable GPU.
+pub fn render_device_available() -> bool {
+    let can_open = |path: &std::path::Path| {
+        std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(path)
+            .is_ok()
+    };
+    let dri = std::fs::read_dir("/dev/dri")
+        .map(|entries| {
+            entries
+                .filter_map(Result::ok)
+                .filter(|entry| entry.file_name().to_string_lossy().starts_with("renderD"))
+                .any(|entry| can_open(&entry.path()))
+        })
+        .unwrap_or(false);
+    dri || (0..8).any(|index| can_open(std::path::Path::new(&format!("/dev/nvidia{index}"))))
+}
+/// Called before GTK/WebKit or the async runtime starts. User overrides are respected.
+pub fn configure_webview_renderer() {
+    if !render_device_available() {
+        if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+        if std::env::var_os("LIBGL_ALWAYS_SOFTWARE").is_none() {
+            std::env::set_var("LIBGL_ALWAYS_SOFTWARE", "1");
+        }
+    }
+}
+
 #[derive(Serialize)]
 pub struct Target {
     pub id: String,

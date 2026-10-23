@@ -127,6 +127,8 @@ fn main() {
         std::process::exit(if report["ready"] == true { 0 } else { 1 });
     }
 
+    #[cfg(target_os = "linux")]
+    d2_transmitter::native::configure_webview_renderer();
     #[cfg(any(windows, target_os = "linux"))]
     desktop::run();
     #[cfg(not(any(windows, target_os = "linux")))]

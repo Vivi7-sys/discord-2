@@ -16,6 +16,7 @@ test("Linux shows portal choices and explicitly disables unsupported isolation",
     }};
   });
   await page.goto("/", { waitUntil:"domcontentloaded" });
+  await expect(page.getByText("LINUX", {exact:true})).toBeVisible();
   await expect(page.locator('option[value="portal:monitor"]')).toHaveCount(1);
   await expect(page.locator('option[value="portal:window"]')).toHaveCount(1);
   await expect(page.locator('option[value="application"]')).toHaveJSProperty("disabled", true);

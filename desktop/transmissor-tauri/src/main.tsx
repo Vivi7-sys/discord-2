@@ -77,7 +77,7 @@ function App() {
           </span>
         </div>
         <span className="desktop-platform">
-          TRANSMISSOR <span>WINDOWS</span>
+          TRANSMISSOR <span>{linux ? "LINUX" : "WINDOWS"}</span>
         </span>
         <span
           className={`status ${state.phase === "streaming" ? "status-connected" : ""}`}
