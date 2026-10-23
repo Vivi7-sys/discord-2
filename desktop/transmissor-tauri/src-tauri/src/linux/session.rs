@@ -79,9 +79,27 @@ async fn run_inner(
         // Release even when the acquire reply is lost after the server grants it.
         reserved = true;
         step(async { backend.share("acquire").await.map(|_| ()) }, cancel).await?;
+        let (vtx, mut vrx) = mpsc::channel(1);
+        let (atx, mut arx) = mpsc::channel(5);
+        let epoch = Instant::now();
+        let flags = Flags { tx: vtx, state: state.clone(), stop: stop.clone(), profile, epoch };
+        // Initialize video first. Otherwise audio fills its 50 ms queue while the portal opens.
+        video_control = Some(native::video(&config, flags, cancel).await?);
+
+        // Do not expose the SDK's black keepalive while the portal awaits consent.
+        // A real PipeWire frame is required before constructing/publishing the source.
+        let first_frame = step(async {
+            tokio::time::timeout(Duration::from_secs(10), vrx.recv()).await
+                .map_err(|_| "O portal não entregou o primeiro frame.")?
+                .ok_or_else(|| "A captura foi encerrada antes do primeiro frame.".to_string())
+        }, cancel).await?;
         let source = NativeVideoSource::new(
             VideoResolution { width: profile.width, height: profile.height }, true,
         );
+        let initial_source = source.clone();
+        tokio::task::spawn_blocking(move || initial_source.capture_frame(&native::rtc_frame(first_frame)))
+            .await.map_err(|_| "Falha na entrega do primeiro frame ao SDK.")?;
+        state.lock().unwrap_or_else(|p|p.into_inner()).submitted += 1;
         let track = LocalVideoTrack::create_video_track("screen", RtcVideoSource::Native(source.clone()));
         let video_options = TrackPublishOptions {
             source: TrackSource::Screenshare,
@@ -98,13 +116,6 @@ async fn run_inner(
             room.local_participant().publish_track(LocalTrack::Video(track.clone()), video_options)
                 .await.map_err(|_| "Falha ao publicar vídeo na sala.".into())
         }, cancel).await?;
-
-        let (vtx, mut vrx) = mpsc::channel(1);
-        let (atx, mut arx) = mpsc::channel(5);
-        let epoch = Instant::now();
-        let flags = Flags { tx: vtx, state: state.clone(), stop: stop.clone(), profile, epoch };
-        // Initialize video first. Otherwise audio fills its 50 ms queue while the portal opens.
-        video_control = Some(native::video(&config, flags, cancel).await?);
 
         let audio_source = if config.audio != "none" {
             let source = NativeAudioSource::new(AudioSourceOptions::default(), 48000, 2, 100);
