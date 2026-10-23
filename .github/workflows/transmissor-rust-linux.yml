@@ -35,6 +35,11 @@ jobs:
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop
       - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --features desktop --all-targets -- -D warnings
       - run: python3 scripts/stage-linux-probes.py
+      - name: Save compiled probes for real media tests on Pop OS
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-real-media-probes
+          path: desktop/transmissor-tauri/artifacts/linux-probes/**
       - run: npm run tauri -- build --bundles deb
       - name: Verify package payload and actual installation on Ubuntu 24.04
         run: |
@@ -42,6 +47,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends ./src-tauri/target/release/bundle/deb/*.deb
           dpkg-query -W discord-2-transmissor-tauri
       - name: Save installer and evidence (interactive capture unvalidated on CI)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: linux-tauri-amd64

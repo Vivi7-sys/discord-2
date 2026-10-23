@@ -479,8 +479,11 @@ pub fn audio(
                     .map_err(|_| "Falha ao ler áudio.")?;
                 pending.extend(
                     data.as_slice()
-                        .chunks_exact(2)
-                        .map(|b| i16::from_le_bytes([b[0], b[1]])),
+                        .as_chunks::<2>()
+                        .0
+                        .iter()
+                        .copied()
+                        .map(i16::from_le_bytes),
                 );
                 if let Some(ready) = ready.take() {
                     let _ = ready.send(Ok(()));
