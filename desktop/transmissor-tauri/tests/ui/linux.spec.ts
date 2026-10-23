@@ -18,8 +18,8 @@ test("Linux shows portal choices and explicitly disables unsupported isolation",
   await page.goto("/", { waitUntil:"domcontentloaded" });
   await expect(page.locator('option[value="portal:monitor"]')).toHaveCount(1);
   await expect(page.locator('option[value="portal:window"]')).toHaveCount(1);
-  await expect(page.locator('option[value="application"]')).toBeDisabled();
-  await expect(page.locator('option[value="exclude"]')).toBeDisabled();
+  await expect(page.locator('option[value="application"]')).toHaveJSProperty("disabled", true);
+  await expect(page.locator('option[value="exclude"]')).toHaveJSProperty("disabled", true);
   await expect(page.locator('option[value="exclude"]')).toContainText("indisponível no Linux");
   await page.getByLabel("O que seus amigos vão ouvir").selectOption("system");
   await expect(page.getByText("Monitor da saída do sistema, sem microfone.", { exact:false })).toBeVisible();

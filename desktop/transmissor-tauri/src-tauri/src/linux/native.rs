@@ -171,49 +171,51 @@ pub async fn video(
         .map_err(|_| "Falha ao criar sessão do portal.")?;
     let mut portal = PortalSession(Some(session));
     let session = portal.0.as_ref().unwrap();
-    let operation = async {
-        let kind = if config.target == "portal:window" {
-            SourceType::Window
-        } else {
-            SourceType::Monitor
+    let result = {
+        let operation = async {
+            let kind = if config.target == "portal:window" {
+                SourceType::Window
+            } else {
+                SourceType::Monitor
+            };
+            proxy
+                .select_sources(
+                    session,
+                    CursorMode::Embedded,
+                    kind.into(),
+                    false,
+                    None,
+                    PersistMode::DoNot,
+                )
+                .await
+                .map_err(|_| "Não foi possível selecionar o tipo de captura.")?
+                .response()
+                .map_err(|_| "Seleção recusada pelo portal.")?;
+            let response = proxy
+                .start(session, None)
+                .await
+                .map_err(|_| "Seleção cancelada ou recusada pelo portal.")?
+                .response()
+                .map_err(|_| "Captura cancelada ou recusada.")?;
+            if response.streams().len() != 1 {
+                return Err("O portal deve autorizar exatamente uma fonte.".to_string());
+            }
+            let node = response.streams()[0].pipe_wire_node_id();
+            let remote = proxy
+                .open_pipe_wire_remote(session)
+                .await
+                .map_err(|_| "Falha ao abrir PipeWire autorizado.")?;
+            let p = flags.profile;
+            let (pipeline, sink) = pipeline(&format!("pipewiresrc fd={} path={} do-timestamp=true ! video/x-raw,pixel-aspect-ratio=1/1 ! queue max-size-buffers=1 leaky=downstream ! videorate drop-only=true ! video/x-raw,framerate={}/1 ! videoconvert ! videoscale add-borders=true ! video/x-raw,format=I420,width={},height={},pixel-aspect-ratio=1/1 ! appsink name=frames sync=false max-buffers=1 drop=true enable-last-sample=false", remote.as_raw_fd(), node, p.fps, p.width, p.height))?;
+            Ok((pipeline, sink, remote))
         };
-        proxy
-            .select_sources(
-                session,
-                CursorMode::Embedded,
-                kind.into(),
-                false,
-                None,
-                PersistMode::DoNot,
-            )
-            .await
-            .map_err(|_| "Não foi possível selecionar o tipo de captura.")?
-            .response()
-            .map_err(|_| "Seleção recusada pelo portal.")?;
-        let response = proxy
-            .start(session, None)
-            .await
-            .map_err(|_| "Seleção cancelada ou recusada pelo portal.")?
-            .response()
-            .map_err(|_| "Captura cancelada ou recusada.")?;
-        if response.streams().len() != 1 {
-            return Err("O portal deve autorizar exatamente uma fonte.".to_string());
-        }
-        let node = response.streams()[0].pipe_wire_node_id();
-        let remote = proxy
-            .open_pipe_wire_remote(session)
-            .await
-            .map_err(|_| "Falha ao abrir PipeWire autorizado.")?;
-        let p = flags.profile;
-        let (pipeline, sink) = pipeline(&format!("pipewiresrc fd={} path={} do-timestamp=true ! queue max-size-buffers=1 leaky=downstream ! videorate drop-only=true ! video/x-raw,framerate={}/1 ! videoconvert ! videoscale add-borders=true ! video/x-raw,format=I420,width={},height={},pixel-aspect-ratio=1/1 ! appsink name=frames sync=false max-buffers=1 drop=true enable-last-sample=false", remote.as_raw_fd(), node, p.fps, p.width, p.height))?;
-        Ok((pipeline, sink, remote))
-    };
-    let result = if *cancel.borrow() {
-        Err("Operação cancelada.".into())
-    } else {
-        tokio::select! {
-            _ = cancel.changed() => Err("Operação cancelada.".into()),
-            result = tokio::time::timeout(Duration::from_secs(120), operation) => result.unwrap_or_else(|_| Err("Tempo de seleção do portal excedido.".into())),
+        if *cancel.borrow() {
+            Err("Operação cancelada.".into())
+        } else {
+            tokio::select! {
+                _ = cancel.changed() => Err("Operação cancelada.".into()),
+                result = tokio::time::timeout(Duration::from_secs(120), operation) => result.unwrap_or_else(|_| Err("Tempo de seleção do portal excedido.".into())),
+            }
         }
     };
     let (pipeline, sink, remote) = match result {
@@ -418,16 +420,19 @@ pub fn audio(
             initialize()?;
             let monitor = system_monitor()?;
             let (pipeline, sink) = pipeline("pulsesrc name=output do-timestamp=true ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,rate=48000,channels=2,layout=interleaved ! appsink name=frames sync=false max-buffers=5 drop=true enable-last-sample=false")?;
-            pipeline
-                .by_name("output")
-                .unwrap()
-                .set_property("device", monitor);
+            let source = pipeline.by_name("output").unwrap();
+            source.set_property("device", &monitor);
+            let policy = gst::Structure::builder("props")
+                .field("node.dont-fallback", true)
+                .field("node.dont-reconnect", true)
+                .build();
+            source.set_property("stream-properties", &policy);
             pipeline
                 .set_state(gst::State::Playing)
                 .map_err(|_| "Não foi possível iniciar o monitor de áudio.")?;
-            Ok::<_, String>((pipeline, sink))
+            Ok::<_, String>((pipeline, sink, source, monitor))
         })();
-        let (pipeline, sink) = match setup {
+        let (pipeline, sink, source, monitor) = match setup {
             Ok(v) => v,
             Err(e) => {
                 let _ = ready.send(Err(e.clone()));
@@ -436,7 +441,7 @@ pub fn audio(
         };
         // Require actual monitor samples before declaring audio ready.
         let mut ready = Some(ready);
-        let result = (|| {
+        let result: Result<(), String> = (|| {
             let mut pending = Vec::with_capacity(1920);
             let deadline = Instant::now() + Duration::from_secs(8);
             let mut last_sample = Instant::now();
@@ -451,6 +456,16 @@ pub fn audio(
                     continue;
                 };
                 last_sample = Instant::now();
+                if source
+                    .property::<Option<String>>("current-device")
+                    .as_deref()
+                    != Some(monitor.as_str())
+                {
+                    return Err(
+                        "A fonte de áudio mudou; captura encerrada para impedir uso do microfone."
+                            .into(),
+                    );
+                }
                 let data = sample
                     .buffer()
                     .ok_or("Áudio vazio.")?

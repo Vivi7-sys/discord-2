@@ -26,6 +26,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: desktop/transmissor-tauri/src-tauri
+          cache-on-failure: true
       - name: Build dependencies
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-pipewire libssl-dev libva-dev cmake ninja-build protobuf-compiler patchelf
       - run: npm ci --no-audit --no-fund
