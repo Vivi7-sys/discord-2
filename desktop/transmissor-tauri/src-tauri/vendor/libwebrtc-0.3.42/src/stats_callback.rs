@@ -94,7 +94,7 @@ mod tests {
         let (tx, rx) = oneshot::channel::<StatsReply>();
         complete_stats(
             Box::new(tx),
-            r#"[{"type":"peer-connection","timestamp":12.5,"id":"PC","dataChannelsOpened":1,"dataChannelsClosed":0}]"#,
+            r#"[{"type":"peer-connection","timestamp":12345,"id":"PC","dataChannelsOpened":1,"dataChannelsClosed":0}]"#,
         );
         let report = rx.await.unwrap().unwrap();
         assert!(matches!(report.as_slice(), [RtcStats::PeerConnection(_)]));
