@@ -83,7 +83,7 @@ export default function RoomEntry() {
 
   return (
     <div className={styles.panel}>
-      <section className={styles.column} aria-labelledby="create-title" aria-busy={creating}>
+      <section className={`${styles.column} ${styles.create}`} aria-labelledby="create-title" aria-busy={creating}>
         <h2 id="create-title">Criar sala</h2>
         <p className={styles.description}>Inicie uma nova sala e convide outras pessoas.</p>
         <div className={styles.verification}>
@@ -146,8 +146,8 @@ export default function RoomEntry() {
           aria-describedby={error ? "join-description room-input-error" : "join-description"}
           required
         />
-        <button type="submit" className={`${styles.button} ${styles.secondary}`} disabled={joining}>
-          {joining ? "Entrando…" : "Entrar"}
+        <button type="submit" className={`${styles.button} ${styles.primary} ${styles.joinButton}`} disabled={joining}>
+          {joining ? "Entrando…" : "Entrar na sala"}
         </button>
         <div className={styles.feedback}>
           {error && <p role="alert" id="room-input-error" className={styles.error}>{error}</p>}

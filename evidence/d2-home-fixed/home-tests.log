@@ -1,0 +1,21 @@
+
+> screen-share@0.1.0 test:home
+> node scripts/test-home-regressions.cjs
+
+✔ creation remains blocked until verification, expires and reports widget failures (158.007899ms)
+✔ creation sends the existing request once, shows loading and resets single-use token (41.523145ms)
+✔ server rate-limit errors and malformed successful invites remain visible and fail closed (67.775355ms)
+✔ invite validation rejects external links and accepts IDs and same-origin links (103.404857ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 392.327917
+npm notice
+npm notice New major version of npm available! 11.19.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

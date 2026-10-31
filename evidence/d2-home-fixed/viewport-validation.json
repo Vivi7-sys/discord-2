@@ -1,0 +1,93 @@
+{
+  "realBrowser": true,
+  "viewports": [
+    {
+      "label": "desktop",
+      "width": 1440,
+      "height": 900,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "desktop-small",
+      "width": 1280,
+      "height": 720,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "tablet",
+      "width": 768,
+      "height": 1024,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile",
+      "width": 390,
+      "height": 844,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile-small",
+      "width": 360,
+      "height": 640,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile-se",
+      "width": 320,
+      "height": 568,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "landscape",
+      "width": 844,
+      "height": 390,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "landscape-se",
+      "width": 568,
+      "height": 320,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile-se-invite-error",
+      "width": 320,
+      "height": 568,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile-se-both-errors",
+      "width": 320,
+      "height": 568,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    },
+    {
+      "label": "mobile-se-browser-back",
+      "width": 320,
+      "height": 568,
+      "allControlsAndVerificationVisible": true,
+      "noScroll": true
+    }
+  ],
+  "turnstile": "Unchanged compact widget, official visible test sitekey in local build only",
+  "joinHoverColor": "rgb(189, 32, 45)",
+  "inputFocusBorder": "rgb(255, 105, 116)",
+  "keyboardFocusVisible": true,
+  "accessibilityViolations": [],
+  "roomHtmlOverflow": "visible",
+  "roomBodyOverflow": "visible",
+  "homeLockRemovedOnNavigation": true,
+  "homeLockRestoredOnBrowserBack": true,
+  "livekitRequests": 0,
+  "passed": true
+}
