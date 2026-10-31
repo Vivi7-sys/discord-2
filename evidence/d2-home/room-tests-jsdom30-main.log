@@ -1,0 +1,44 @@
+
+> screen-share@0.1.0 test:ui
+> node scripts/test-share-dialog.cjs && node scripts/test-room-regressions.cjs
+
+PASS: abertura sem captura, opções, eventos de cancelar/Escape, iniciar, bloqueio por permissão e restauração de foco (DOM simulado).
+✔ Parar interrompe vídeo antes da rede e descarta áudio que chega após nova transmissão (2877.421828ms)
+✔ Parar durante enumerateDevices impede abrir uma entrada tardia (401.693116ms)
+✔ áudio autorizado após disconnect é parado sem publicação (217.723605ms)
+✔ áudio autorizado após revoke é parado sem publicação (213.363913ms)
+✔ áudio autorizado após browser-stop é parado sem publicação (217.09139ms)
+✔ reserva incerta permite Cancelar vez sem fingir permissão de publicar (129.17759ms)
+✖ timer oculta sem foco; Tab, teclado e foco nos botões preservam acesso; mouse/toque revelam (429.98809ms)
+✔ Parar também funciona enquanto a publicação de áudio confirmada aguarda o SDK (495.175786ms)
+✔ resposta HTTP perdida mantém Cancelar vez; rejeição conhecida não inventa reserva (187.240991ms)
+✔ revogação com limpeza Redis pendente mantém Cancelar vez para repetir (180.231854ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5465.859436
+
+✖ failing tests:
+
+test at scripts/test-room-regressions.cjs:158:1
+✖ timer oculta sem foco; Tab, teclado e foco nos botões preservam acesso; mouse/toque revelam (429.98809ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: '0'
+      at TestContext.<anonymous> (/tmp/d2-home-baseline/scripts/test-room-regressions.cjs:181:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '0',
+    expected: '0',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+npm notice
+npm notice New major version of npm available! 11.19.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

@@ -1,0 +1,47 @@
+{
+  "branch": "redesign/d2-minimal-home",
+  "base": "0c84dcf",
+  "lint": true,
+  "typescript": true,
+  "productionBuild": true,
+  "securityAndCaptureTests": 38,
+  "apiRegressionTests": 11,
+  "homeRegressionTests": 4,
+  "roomRegressionTests": 10,
+  "shareDialogRegression": true,
+  "jsdomVersion": "26.1.0",
+  "browser": {
+    "realBrowser": true,
+    "livekitRequests": 0,
+    "screenshots": [
+      {
+        "file": "home-desktop.png",
+        "width": 1440,
+        "height": 1000,
+        "horizontalOverflow": false
+      },
+      {
+        "file": "home-mobile.png",
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": false
+      },
+      {
+        "file": "home-small-mobile.png",
+        "width": 320,
+        "height": 740,
+        "horizontalOverflow": false
+      }
+    ],
+    "turnstile": "official visible test sitekey; no production settings changed",
+    "realTurnstileTestWidgetPassed": true,
+    "accessibilityViolations": [],
+    "loadingAndRateLimitErrorVerified": true,
+    "sameOriginInviteNavigationVerified": true,
+    "passed": true
+  },
+  "protectedFiles": 41,
+  "protectedFilesUnchanged": true,
+  "livekitCloudUsage": 0,
+  "securityWarning": "Pre-existing Next.js 16.4.0 vulnerability warning; dependencies preserved."
+}

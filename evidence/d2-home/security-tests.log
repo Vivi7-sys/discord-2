@@ -1,0 +1,75 @@
+
+> screen-share@0.1.0 test
+> tsc --project tsconfig.test.json && node .test-build/tests/security-and-capture.test.js && node scripts/test-api-regressions.cjs
+
+✔ captura mantém perfis menores e solicita 1080p30 com teto LiveKit de 5 Mbps (14.211267ms)
+✔ máxima solicita 1080p60 com teto de 8 Mbps e padrão continua em 1080p30 (2.428994ms)
+✔ áudio pede exclusão da própria aba só com suporte e mantém reprodução local (3.204286ms)
+✔ mute nativo é preservado mesmo se o navegador ignorar ganho/volume HTML (2.800152ms)
+✔ mix Web Audio mantém o elemento HTML mudo e controla o ganho do SDK (2.645818ms)
+✔ integração isola cotas Redis sem alterar o prefixo normal (4.281479ms)
+✔ JSON aceita o limite exato e rejeita bytes extras sem Content-Length (252.324831ms)
+✔ JSON rejeita tipo incorreto, sintaxe inválida e comprimento declarado excessivo (4.921944ms)
+✔ JSON interrompe corpo enviado em chunks quando ultrapassa o limite (8.00401ms)
+✔ timeout do limitador nunca é tratado como autorização (4.375108ms)
+✔ limitador mantém uma rejeição real e propaga falha de conexão (2.217232ms)
+✔ convite assinado rejeita adulteração e outra chave (2.995137ms)
+✔ captura que chega após sair da sala é parada sem publicar (2.765813ms)
+✔ falha na publicação de áudio desfaz o vídeo e para ambas as capturas (4.621014ms)
+✔ desconexão durante a última publicação desfaz todas as trilhas (4.736953ms)
+✔ falha de despublicação não deixa a captura aberta nem oculta o erro original (7.616361ms)
+✔ desconexão após vídeo impede a publicação do áudio (6.508564ms)
+✔ publicação completa mantém as trilhas capturadas ativas (0.882348ms)
+✔ encerramento de tela para vídeo e áudio antes de esperar a despublicação (2.653016ms)
+✔ encerramento tenta remover ambas as trilhas mesmo com erro síncrono do SDK (0.972769ms)
+✔ desabilitar publicação em produção conserva a possibilidade de liberar (3.730903ms)
+✔ permissão de transmissor restringe fontes a tela e seu áudio (3.671039ms)
+✔ revogação remove todas as fontes de publicação e preserva recepção (0.588751ms)
+▶ fronteira HTTP do SDK Redis: configuração, serialização e falhas
+  ✔ cada comando recebe um sinal novo e não repete falha de rede (97.958161ms)
+  ✔ aquisição usa NX e prazo; resposta perdida nunca concede a trava (37.47762ms)
+  ✔ timeout do transporte Redis rejeita a operação sem sucesso artificial (10.8362ms)
+  ✔ verificação antes do grant envia dono da trava e dono da reserva (22.17718ms)
+  ✔ liberação usa comparação de dono em Lua e respeita rejeição (19.442048ms)
+  ✔ reserva usa a mesma chave conferida no grant e retorna a identidade intacta (27.802354ms)
+✔ fronteira HTTP do SDK Redis: configuração, serialização e falhas (243.393097ms)
+✔ fonte virtual nunca escolhe entrada padrão, microfone, saída ou dispositivo sem nome (6.679371ms)
+✔ grant rejeitado explicitamente + viewer confirmado devolve reserva imediatamente (15.588261ms)
+✔ timeout sem grant visível conserva reserva: leitura viewer não prova cancelamento do RPC (0.739992ms)
+✔ resposta perdida com canPublish confirmado é sucesso sem liberar reserva (12.866603ms)
+✔ reconsulta indisponível, tracks ainda ativas e tentativa anterior incerta nunca liberam reserva (4.181059ms)
+✔ grant não executa sem lease válido e falha Redis conserva estado (3.705111ms)
+✔ rejeição genérica 5xx é ambígua mesmo com viewer confirmado (2.903477ms)
+✔ cancelamento durante grant não deixa uma rejeição posterior limpar incerteza anterior (11.579175ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 827.492355
+✔ captcha inválido/replay com IPs forjados não consome emissão de convites (545.805442ms)
+✔ inundação de JSON/convites inválidos não consome cotas da sala nem globais (897.9321ms)
+✔ limite distribuído por sala impede uma sala de drenar a cota global (553.035603ms)
+✔ JWT inválido não consome global e abuso autenticado continua limitado por identidade (700.505871ms)
+✔ falha Redis bloqueia emissão/aquisição; liberação autenticada continua possível (23.466422ms)
+✔ rejeição explícita do grant devolve reserva e outro usuário pode transmitir (17.166272ms)
+✔ ACK perdido com permissão confirmada retorna sucesso e preserva exclusividade (24.584737ms)
+✔ timeout ambíguo retém reserva inclusive após envelhecimento; dono pode cancelar (24.332774ms)
+✔ marcador e reserva de outro dono não são removidos por liberação antiga (2.403027ms)
+✔ orçamento global de emissão continua limitado entre salas e instâncias (420.97218ms)
+✔ tokens inválidos distintos têm orçamento de verificação separado e limitado (1787.589738ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5149.847303
+npm notice
+npm notice New major version of npm available! 11.19.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

@@ -1,0 +1,171 @@
+{
+  "unchanged": true,
+  "baseCommit": "0c84dcf640ec14336fac3defe5a2ccd9f56f090b",
+  "fileCount": 41,
+  "files": [
+    {
+      "file": "next.config.ts",
+      "sha256": "e0301b29137b43003627243494a4d25004d5b2316affe4df05b058e546e5da17"
+    },
+    {
+      "file": "package-lock.json",
+      "sha256": "018c9a7f433179ce7a04910358035084479ec643e267902bd487f7cd4e424bdc"
+    },
+    {
+      "file": "src/app/api/health/route.ts",
+      "sha256": "9c7c3f95b6da42d905c498e1584bdd05b2ed48bf6c30baa5194fe40bd6b0a5b4"
+    },
+    {
+      "file": "src/app/api/livekit/share/route.ts",
+      "sha256": "3d1b36814cf6e3b60444f9fc464b230b42629bb19954b8f0949c21c15d511fca"
+    },
+    {
+      "file": "src/app/api/livekit/token/route.ts",
+      "sha256": "5cd4344b3156ac844c8360aebc687c22c842d2f6a74e6a091068e8797aa1eb1b"
+    },
+    {
+      "file": "src/app/api/rooms/create/route.ts",
+      "sha256": "8ff14734c2279e6f460a16d01de5bd4fc7f0f41cdba571f2d7b479f314b63d97"
+    },
+    {
+      "file": "src/app/globals.css",
+      "sha256": "f1c452bacd60763bcb0f7953ce6cea2ec5f89d5c0fc3587427b30069612a2781"
+    },
+    {
+      "file": "src/app/sala/[roomId]/page.tsx",
+      "sha256": "82ce0befe38e293bc19dcc1c449abb9a6023166499e5f964406bff457ccf35a0"
+    },
+    {
+      "file": "src/components/room/LiveKitRoomConnection.tsx",
+      "sha256": "c8177c14e7a39cb0bdb27e1f44a3fa616ef456544ee317d11b50da0ae9815a4b"
+    },
+    {
+      "file": "src/components/room/ParticipantList.tsx",
+      "sha256": "79b896ebcb5e7ef31e76424990f4021450064f4ff5809f706207d7d597213a2a"
+    },
+    {
+      "file": "src/components/room/RemoteScreenAudio.tsx",
+      "sha256": "5bd3283d5b76fd6ca9f11d3077ac5ca64bc85ae09311147386bf141047aaa4a4"
+    },
+    {
+      "file": "src/components/room/RoomControls.tsx",
+      "sha256": "2ea0b4017b47096742cd0092ab4cc235dae91dd5ec99dcfa80fbf4f97eb97b6d"
+    },
+    {
+      "file": "src/components/room/RoomIcon.tsx",
+      "sha256": "12c190ddb009ed1dc9a49e97139aab15ea7a82d90e51a8da87fd93abcb8368bc"
+    },
+    {
+      "file": "src/components/room/RoomInvite.tsx",
+      "sha256": "9d3ba83455701b06c2b8c0501d2b0222de2aae3cccef96228b66c81ed286508f"
+    },
+    {
+      "file": "src/components/room/RoomJoinForm.tsx",
+      "sha256": "16290551c5f12b086b2495cecb1939b9be5fdac151c6e3582c487569655d0c4f"
+    },
+    {
+      "file": "src/components/room/RoomScreen.tsx",
+      "sha256": "c4d00bbff836cd8b68b79be560ae5e5f66695dec6090a5577ae55245b64abdc1"
+    },
+    {
+      "file": "src/components/room/ShareDialog.tsx",
+      "sha256": "335307a9a6be8a53d143d3197fc4c1857ed0d5c1f5ed93ee82bdc9ff92ecbe18"
+    },
+    {
+      "file": "src/components/room/StreamArea.tsx",
+      "sha256": "dcfd0f4a97564d1530f920e93808e3e018d87a340308c234b203cff3b61fe021"
+    },
+    {
+      "file": "src/components/room/StreamVolumeControl.tsx",
+      "sha256": "e119a1f2be9fbf1ada916a84867156bba8036f01250d9b7d0a4a8fcdadd8212e"
+    },
+    {
+      "file": "src/lib/capture/README.md",
+      "sha256": "3b79dad618efc5fcfb92fb535df62cd794bc2d58f20410b71620a316a8635d1a"
+    },
+    {
+      "file": "src/lib/capture/media-diagnostics.ts",
+      "sha256": "c74adfc7560d9f47a8be424d9ada8a2f17f7cc145ee5cef308caa7227adf51d5"
+    },
+    {
+      "file": "src/lib/capture/publish-screen-tracks.ts",
+      "sha256": "6e191f700d82258e8adb3a546b3f0c686bb34517985209db7f8bfab3509c24d6"
+    },
+    {
+      "file": "src/lib/capture/screen-options.ts",
+      "sha256": "bd0fe15e802cfa86706ece918c5f42b27d3f4f3eb3e5a261a7f2f43b5618f428"
+    },
+    {
+      "file": "src/lib/room/README.md",
+      "sha256": "60c6684b9122069f43ce931bfe364d7bf8df5e0d4790d5b8f6462b1dfce24e57"
+    },
+    {
+      "file": "src/lib/room/participant-profile.ts",
+      "sha256": "6cd36a054eebc1554f6daf7beb4b26d9f63dae32304a14e9ba2be1c1f290ea7b"
+    },
+    {
+      "file": "src/lib/room/remote-audio-volume.ts",
+      "sha256": "b45fa6de2ad040f3a56541dce64e33d4d3965b50c4cf0def55b6f1cf2ef4e650"
+    },
+    {
+      "file": "src/lib/room/room-id.ts",
+      "sha256": "db2503d40df4842815507a290ba0c1ab3857146592b6eb7f6dfd2d257b0bacba"
+    },
+    {
+      "file": "src/lib/room/server-invite.ts",
+      "sha256": "9be2bc505706ce786048ef5243cc485c26ece9ec082f5c3916045fd29d5c9690"
+    },
+    {
+      "file": "src/lib/security/grant-reserved-share.ts",
+      "sha256": "b9186a935d74c516dac0bc0a8c9b5aede3416736d8f40d77f8be4292fad589be"
+    },
+    {
+      "file": "src/lib/security/rate-limit-prefix.ts",
+      "sha256": "6476989f0f7553c00a90b5a1f1745399d3fb360d6c36c9338de02820e49f44b8"
+    },
+    {
+      "file": "src/lib/security/redis-client.ts",
+      "sha256": "db4bddb0673d2bffd576229e7b0cc2f6cdf6c453a72c5756f14eed0334c42231"
+    },
+    {
+      "file": "src/lib/security/redis-rate-limit.ts",
+      "sha256": "c7b47d520a226de31afb395914474e2b1610694255daf637ee93031df9a2f6fd"
+    },
+    {
+      "file": "src/lib/security/redis-room-lock.ts",
+      "sha256": "e0f90fe03fc9129a81cb73c5dcf7b89c22d3ad16221fd22802aabb738fe91586"
+    },
+    {
+      "file": "src/lib/security/redis-share-reservation.ts",
+      "sha256": "4dc82894dae0e5e8bf657197ddc5a4b818338c30511d434f039c78d4637ef230"
+    },
+    {
+      "file": "src/lib/security/request-json.ts",
+      "sha256": "417461402ecc10e76fa6130a26d1290f221aed8fce1b125a5a2295d23e3f0df8"
+    },
+    {
+      "file": "src/lib/security/share-permissions.ts",
+      "sha256": "b27dcce9c92b4b44eec8b3afee633045f5a7ba7600c208123c1492541885b684"
+    },
+    {
+      "file": "src/lib/security/share-rate-limit.ts",
+      "sha256": "9151d0bd869325a2a5dd6a08f09d1499120d180a6a1365c13bdd5d9d8c8141ac"
+    },
+    {
+      "file": "src/lib/security/strict-rate-limit.ts",
+      "sha256": "7fc23dcbc0588b997952ff0fdc7aec06249ac17deaea1d282e239a9cd86faa54"
+    },
+    {
+      "file": "src/lib/security/token-rate-limit.ts",
+      "sha256": "e900ff95f668c7ee7796183ef0d2354088ec47e6a41b80a858607e0183f306a1"
+    },
+    {
+      "file": "src/lib/security/turnstile.ts",
+      "sha256": "9f9215d9e5a91e11b980f2b34e285684de37e0db20c092fd7d6f596f0b64b241"
+    },
+    {
+      "file": "src/lib/security/verification-rate-limit.ts",
+      "sha256": "a84b30f34caa26d6b40a7d73f7c64dba10b5113519c3a1ddd5db392450bbcc39"
+    }
+  ]
+}

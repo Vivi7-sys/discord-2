@@ -1,0 +1,28 @@
+
+> screen-share@0.1.0 test:ui
+> node scripts/test-share-dialog.cjs && node scripts/test-room-regressions.cjs
+
+PASS: abertura sem captura, opções, eventos de cancelar/Escape, iniciar, bloqueio por permissão e restauração de foco (DOM simulado).
+✔ Parar interrompe vídeo antes da rede e descarta áudio que chega após nova transmissão (2528.281885ms)
+✔ Parar durante enumerateDevices impede abrir uma entrada tardia (661.519766ms)
+✔ áudio autorizado após disconnect é parado sem publicação (574.433606ms)
+✔ áudio autorizado após revoke é parado sem publicação (572.984608ms)
+✔ áudio autorizado após browser-stop é parado sem publicação (627.95286ms)
+✔ reserva incerta permite Cancelar vez sem fingir permissão de publicar (435.291922ms)
+✔ timer oculta sem foco; Tab, teclado e foco nos botões preservam acesso; mouse/toque revelam (1359.350434ms)
+✔ Parar também funciona enquanto a publicação de áudio confirmada aguarda o SDK (756.492395ms)
+✔ resposta HTTP perdida mantém Cancelar vez; rejeição conhecida não inventa reserva (506.671904ms)
+✔ revogação com limpeza Redis pendente mantém Cancelar vez para repetir (408.865546ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8579.248953
+npm notice
+npm notice New major version of npm available! 11.19.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

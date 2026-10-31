@@ -1,0 +1,30 @@
+{
+  "realBrowser": true,
+  "livekitRequests": 0,
+  "screenshots": [
+    {
+      "file": "home-desktop.png",
+      "width": 1440,
+      "height": 1000,
+      "horizontalOverflow": false
+    },
+    {
+      "file": "home-mobile.png",
+      "width": 390,
+      "height": 844,
+      "horizontalOverflow": false
+    },
+    {
+      "file": "home-small-mobile.png",
+      "width": 320,
+      "height": 740,
+      "horizontalOverflow": false
+    }
+  ],
+  "turnstile": "official visible test sitekey; no production settings changed",
+  "realTurnstileTestWidgetPassed": true,
+  "accessibilityViolations": [],
+  "loadingAndRateLimitErrorVerified": true,
+  "sameOriginInviteNavigationVerified": true,
+  "passed": true
+}

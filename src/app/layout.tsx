@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Discord 2 · compartilhamento de tela privado",
+  title: "D2 · Salas privadas para assistir juntos",
   description:
-    "Sistema privado de compartilhamento de tela, com áudio, para um grupo pequeno de amigos.",
+    "Salas privadas para assistir juntos.",
 };
 
 export default function RootLayout({
