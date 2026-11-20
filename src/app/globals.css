@@ -456,7 +456,7 @@ code {
 
 
 /* Fase 5: seleção consciente do áudio e reprodução remota. */
-.audio-mode-label {
+  .audio-mode-label {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -1664,22 +1664,55 @@ body {
 .share-dialog :focus-visible { outline: 2px solid #e1515d; outline-offset: 3px; }
 
 .share-audio-fieldset {
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 12px 0;
-  display: grid;
-  gap: 6px;
-}
-.share-audio-fieldset legend { padding: 0 6px; }
-.share-audio-option { display: flex; gap: 8px; align-items: center; }
-.share-audio-list {
-  max-height: 200px;
-  overflow: auto;
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 12px;
   display: grid;
   gap: 4px;
-  padding: 6px;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: .85rem;
+  color: var(--text);
 }
-.share-audio-muted { opacity: 0.6; }
+.share-audio-fieldset legend {
+  padding: 0 6px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.share-audio-fieldset p { margin: 6px 0; }
+
+.share-audio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: .85rem;
+  line-height: 1.4;
+  color: var(--text);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.share-audio-option:hover { background: var(--surface-2); }
+.share-audio-option input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.share-audio-list {
+  max-height: 200px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.share-audio-muted { opacity: .6; }
