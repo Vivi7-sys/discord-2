@@ -21,8 +21,8 @@
     "@marsidev/react-turnstile": "^1.6.1",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
-    "livekit-client": "^2.22.3",
-    "livekit-server-sdk": "^2.19.1",
+    "livekit-client": "^2.25.0",
+    "livekit-server-sdk": "^2.20.1",
     "next": "^16.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
