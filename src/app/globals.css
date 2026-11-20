@@ -1662,3 +1662,24 @@ body {
 .share-dialog .audio-mode-select { width: 100%; max-width: 100%; }
 .share-dialog-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .share-dialog :focus-visible { outline: 2px solid #e1515d; outline-offset: 3px; }
+
+.share-audio-fieldset {
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 12px 0;
+  display: grid;
+  gap: 6px;
+}
+.share-audio-fieldset legend { padding: 0 6px; }
+.share-audio-option { display: flex; gap: 8px; align-items: center; }
+.share-audio-list {
+  max-height: 200px;
+  overflow: auto;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 6px;
+}
+.share-audio-muted { opacity: 0.6; }
