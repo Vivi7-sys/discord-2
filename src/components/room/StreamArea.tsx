@@ -16,10 +16,12 @@ type StreamAreaProps = {
   onToggleTheater: () => void;
   controls: ReactNode;
   volumeControl: ReactNode;
+  onStartBroadcast: () => void;
+  startDisabled: boolean;
 };
 
 // Usa a trilha recebida do LiveKit; não abre outra captura de tela.
-export default function StreamArea({ screen, theaterMode, onToggleTheater, controls, volumeControl }: StreamAreaProps) {
+export default function StreamArea({ screen, theaterMode, onToggleTheater, controls, volumeControl, onStartBroadcast, startDisabled }: StreamAreaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -154,7 +156,7 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
     );
   }
 
-  return (
+    return (
     <section className="stream" aria-label="Área da transmissão">
       <svg
         viewBox="0 0 24 24"
@@ -168,8 +170,17 @@ export default function StreamArea({ screen, theaterMode, onToggleTheater, contr
         <rect x="2.5" y="4" width="19" height="12.5" rx="2" />
         <path d="M8.5 20.5h7M12 16.5v4" />
       </svg>
-      <p className="stream-title">Nenhuma transmissão ainda</p>
-      {playerBar}
+      <div className="stream-empty-cta">
+        <p className="stream-title">Nenhuma transmissão ainda</p>
+        <button
+          type="button"
+          className="btn btn-primary stream-start-btn desktop-broadcast-only"
+          disabled={startDisabled}
+          onClick={onStartBroadcast}
+        >
+          Iniciar transmissão
+        </button>
+      </div>
     </section>
   );
 }

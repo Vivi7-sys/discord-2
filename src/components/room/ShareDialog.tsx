@@ -39,26 +39,11 @@ export default function ShareDialog(props: Props) {
   const [desktopAudio, setDesktopAudio] = useState<DesktopAudio>("system");
   const [excluded, setExcluded] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [known, setKnown] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
-  const apps = useDesktopAudioApps(isDesktop && desktopAudio !== "none");
-  const playing = useMemo(() => new Set(apps.map((app) => app.key)), [apps]);
-
-  // Guarda todo aplicativo visto enquanto a janela está aberta, para quem
-  // desmarcou um app que parou de tocar poder marcá-lo de novo.
-  useEffect(() => {
-    if (!apps.length) return;
-    setKnown((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      for (const app of apps) {
-        if (next[app.key] !== app.name) { next[app.key] = app.name; changed = true; }
-      }
-      return changed ? next : prev;
-    });
-  }, [apps]);
+  const { playing: playingApps, known } = useDesktopAudioApps(isDesktop && desktopAudio !== "none");
+  const playing = useMemo(() => new Set(playingApps.map((app) => app.key)), [playingApps]);
 
   // O resto do site só precisa saber se há áudio ou não.
   const onAudioModeChangeRef = useRef(props.onAudioModeChange);
@@ -184,7 +169,7 @@ export default function ShareDialog(props: Props) {
         </>
       )}
 
-      {!props.canStart && <p role="status">Solicite a transmissão na barra e aguarde a liberação.</p>}
+      {!props.canStart && <p role="status">Reservando a transmissão. Aguarde um instante…</p>}
       <div className="share-dialog-actions">
         <button type="button" className="btn btn-secondary" onClick={handleCancel}>Cancelar</button>
         <button type="button" className="btn btn-primary"

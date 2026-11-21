@@ -56,7 +56,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const captureTracksRef = useRef<{ room: Room; tracks: LocalTrack[]; onEnded: () => void } | null>(null);
   const captureGenerationRef = useRef(0);
   const shareOperationRef = useRef(0);
-  const [hasReservation, setHasReservation] = useState(false);
+  const [, setHasReservation] = useState(false);
   const reservedRoomRef = useRef<Room | null>(null);
   const releasesRef = useRef(new WeakMap<Room, Promise<void>>());
   const [busy, setBusy] = useState(false);
@@ -69,6 +69,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const [qualityProfile, setQualityProfile] = useState<QualityProfile>(DEFAULT_QUALITY_PROFILE);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [audioStatus, setAudioStatus] = useState<string | null>(null);
+  const shareDialogOpenRef = useRef(false);
+  useEffect(() => { shareDialogOpenRef.current = shareDialogOpen; }, [shareDialogOpen]);
 
   const invalidateCapture = useCallback(() => { captureGenerationRef.current++; }, []);
 
@@ -154,25 +156,24 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     }
   }, [roomId]);
 
-  async function requestBroadcast() {
+  async function requestBroadcast(): Promise<boolean> {
     const room = roomInstance;
-    if (!room || room.state !== ConnectionState.Connected || busyRef.current || anotherSharing) return;
+    if (!room || room.state !== ConnectionState.Connected || busyRef.current || anotherSharing) return false;
     busyRef.current = true;
     setBusy(true);
     setCaptureError(null);
     try {
       await requestBroadcastAction(room, "acquire");
-      if (activeRoomRef.current !== room) return;
+      if (activeRoomRef.current !== room) return false;
       // A atualização também chega ao navegador pelo evento de permissões.
       setBroadcastAllowed(Boolean(room.localParticipant.permissions?.canPublish));
-      if (!room.localParticipant.permissions?.canPublish) {
-        setAudioStatus("Permissão concedida pelo servidor. Aguarde o botão mudar para Compartilhar tela.");
-      } else {
-        setAudioStatus(null);
-      }
+      setAudioStatus(null);
+      return true;
     } catch (cause) {
-      if (activeRoomRef.current !== room) return;
-      setCaptureError(cause instanceof Error ? cause.message : "Não foi possível reservar a transmissão.");
+      if (activeRoomRef.current === room) {
+        setCaptureError(cause instanceof Error ? cause.message : "Não foi possível reservar a transmissão.");
+      }
+      return false;
     } finally {
       if (activeRoomRef.current === room) {
         busyRef.current = false;
@@ -181,12 +182,12 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     }
   }
 
-  async function cancelBroadcast() {
+  async function cancelBroadcast(keepError = false) {
     const room = roomInstance;
     if (busyRef.current || !room || sharing) return;
     busyRef.current = true;
     setBusy(true);
-    setCaptureError(null);
+    if (!keepError) setCaptureError(null);
     try {
       await requestBroadcastAction(room, "release");
       if (activeRoomRef.current !== room) return;
@@ -561,9 +562,23 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
   const localId = roomInstance?.localParticipant.identity;
   const anotherSharing = Boolean(screen && screen.ownerId !== localId);
 
-  function openShareDialog() {
-    if (!sharing) setShareDialogOpen(true);
-    else void toggleShare();
+  async function startBroadcastFlow() {
+    const room = roomInstance;
+    if (!room || room.state !== ConnectionState.Connected || sharing || shareDialogOpen ||
+        busyRef.current || anotherSharing) return;
+    setShareDialogOpen(true);
+    const ok = await requestBroadcast();
+    if (activeRoomRef.current !== room) return;
+    const held = reservedRoomRef.current === room ||
+      Boolean(room.localParticipant.permissions?.canPublish);
+    if (!ok) {
+      // Falhou: fecha o diálogo e, se a reserva ficou incerta, tenta liberá-la.
+      setShareDialogOpen(false);
+      if (held) await cancelBroadcast(true);
+      return;
+    }
+    // O usuário cancelou o diálogo enquanto a reserva estava em andamento.
+    if (!shareDialogOpenRef.current && held) await cancelBroadcast();
   }
 
   async function dismissShareDialog() {
@@ -581,7 +596,7 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
     if (busyRef.current && !room.localParticipant.isScreenShareEnabled) return;
     if (anotherSharing && !sharing) return;
     if (!room.localParticipant.isScreenShareEnabled && !room.localParticipant.permissions?.canPublish) {
-      setCaptureError("Solicite a transmissão e aguarde a liberação antes de compartilhar.");
+      setCaptureError("Aguarde a liberação da transmissão e tente novamente.");
       return;
     }
     setShareDialogOpen(false);
@@ -737,6 +752,8 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
           screen={screen}
           theaterMode={theaterMode}
           onToggleTheater={() => setTheaterMode((enabled) => !enabled)}
+          onStartBroadcast={() => void startBroadcastFlow()}
+          startDisabled={phase !== "connected" || !roomInstance || busy}
           volumeControl={
             <StreamVolumeControl
               volume={streamVolume}
@@ -754,15 +771,11 @@ export default function LiveKitRoomConnection({ roomId, profile }: { roomId: str
               sharing={sharing}
               busy={busy}
               anotherSharing={anotherSharing}
-              broadcastAllowed={broadcastAllowed}
-              hasReservation={hasReservation}
-              onRequestBroadcast={() => void requestBroadcast()}
-              onCancelBroadcast={() => void cancelBroadcast()}
               audioStatus={audioStatus}
               pendingAudioConfirmation={pendingAudioConfirmation}
               onApproveVirtualAudio={() => void approveVirtualAudio()}
               onRejectVirtualAudio={rejectVirtualAudio}
-              onToggleShare={openShareDialog}
+              onStopShare={() => void toggleShare()}
             />
           }
         />

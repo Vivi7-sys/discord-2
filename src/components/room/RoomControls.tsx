@@ -8,15 +8,11 @@ type RoomControlsProps = {
   sharing: boolean;
   busy: boolean;
   anotherSharing: boolean;
-  broadcastAllowed: boolean;
-  hasReservation: boolean;
-  onRequestBroadcast: () => void;
-  onCancelBroadcast: () => void;
   audioStatus: string | null;
   pendingAudioConfirmation: boolean;
   onApproveVirtualAudio: () => void;
   onRejectVirtualAudio: () => void;
-  onToggleShare: () => void;
+  onStopShare: () => void;
 };
 
 export default function RoomControls({
@@ -24,38 +20,24 @@ export default function RoomControls({
   sharing,
   busy,
   anotherSharing,
-  broadcastAllowed,
-  hasReservation,
-  onRequestBroadcast,
-  onCancelBroadcast,
   audioStatus,
   pendingAudioConfirmation,
   onApproveVirtualAudio,
   onRejectVirtualAudio,
-  onToggleShare,
+  onStopShare,
 }: RoomControlsProps) {
-  const actionLabel = sharing ? "Parar transmissão" : busy ? "Aguarde…" :
-    broadcastAllowed ? "Compartilhar tela" : "Solicitar transmissão";
-  // Play solicita a vez; ao liberar, volta ao ícone de compartilhar tela.
-  const actionIcon = sharing ? "stop" : broadcastAllowed ? "share" : "play";
-
   return (
     <section className="controls" aria-label="Controles da sala">
-      <button
-        type="button"
-        className={`room-icon-btn room-broadcast-btn desktop-broadcast-only${sharing ? " room-broadcast-stop" : ""}`}
-        aria-label={actionLabel}
-        title={actionLabel}
-        disabled={!connected || (busy && !sharing) || (anotherSharing && !sharing)}
-        onClick={sharing || broadcastAllowed ? onToggleShare : onRequestBroadcast}
-      >
-        <RoomIcon name={actionIcon} size={21} />
-      </button>
-      {(broadcastAllowed || hasReservation) && !sharing && (
-        <button type="button" className="room-icon-btn desktop-broadcast-only"
-          aria-label="Cancelar vez" title="Cancelar vez"
-          disabled={!connected || busy} onClick={onCancelBroadcast}>
-          <RoomIcon name="cancel" />
+      {sharing && (
+        <button
+          type="button"
+          className="room-icon-btn room-broadcast-btn room-broadcast-stop desktop-broadcast-only"
+          aria-label="Parar transmissão"
+          title="Parar transmissão"
+          disabled={!connected}
+          onClick={onStopShare}
+        >
+          <RoomIcon name="stop" size={21} />
         </button>
       )}
       {pendingAudioConfirmation && sharing && (

@@ -1347,9 +1347,7 @@ body {
   position: relative;
   isolation: isolate;
 }
-.room .stream:not(.stream-active) {
-  padding-bottom: 78px;
-}
+
 .room .stream-player-bar {
   position: absolute;
   z-index: 8;
@@ -1457,7 +1455,6 @@ body {
     min-width: 44px;
     min-height: 44px;
   }
-  .room .stream:not(.stream-active) { padding-bottom: 68px; }
 }
 
 /* Fase de identidade: entrada com nome e foto, sem cadastro. */
@@ -1716,3 +1713,19 @@ body {
   border-radius: 8px;
 }
 .share-audio-muted { opacity: .6; }
+
+/* Título + botão: o contêiner tem a largura do título; o botão a ocupa inteira */
+.stream-empty-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: max-content;
+  max-width: 100%;
+  gap: 14px;
+}
+.stream-empty-cta .stream-title { text-align: center; }
+.stream-empty-cta .stream-start-btn {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+}

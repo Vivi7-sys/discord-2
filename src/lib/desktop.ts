@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 export type AudioApp = { key: string; name: string };
 export type AudioSelection =
@@ -22,23 +22,38 @@ export function getDesktop(): DesktopBridge | null {
   return (window as unknown as { discord2Desktop?: DesktopBridge }).discord2Desktop ?? null;
 }
 
-// Começa false no servidor e no primeiro render, para não dar erro de hidratação
+const noopSubscribe = () => () => {};
+
+// false no servidor e na hidratação; o valor real no navegador, sem efeito nem setState
 export function useIsDesktop() {
-  const [is, setIs] = useState(false);
-  useEffect(() => setIs(getDesktop() !== null), []);
-  return is;
+  return useSyncExternalStore(noopSubscribe, () => getDesktop() !== null, () => false);
 }
 
 export function useDesktopAudioApps(active: boolean) {
-  const [apps, setApps] = useState<AudioApp[]>([]);
+  const [state, setState] = useState<{ playing: AudioApp[]; known: Record<string, string> }>({
+    playing: [],
+    known: {},
+  });
   useEffect(() => {
     const d = getDesktop();
     if (!active || !d) return;
     let alive = true;
-    const refresh = () => d.audio.listApps().then((a) => alive && setApps(a)).catch(() => {});
+    const refresh = () =>
+      d.audio
+        .listApps()
+        .then((found) => {
+          if (!alive) return;
+          setState((prev) => {
+            // guarda todo app já visto, para poder remarcá-lo se ele parar de tocar
+            const known = { ...prev.known };
+            for (const app of found) known[app.key] = app.name;
+            return { playing: found, known };
+          });
+        })
+        .catch(() => {});
     refresh();
     const stop = d.audio.onAppsChanged(refresh);
     return () => { alive = false; stop(); };
   }, [active]);
-  return apps;
+  return state;
 }
